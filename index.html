@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portail outils – Bureau d'études & chantier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f5f3ef;
+      --paper:#fcfbf8;
+      --paper-2:#f0ede6;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#ddd6c8;
+      --gold:#c8922a;
+      --green:#1f7a4f;
+      --green-2:#e7f4ec;
+      --shadow:0 10px 30px rgba(31,41,55,.08), 0 2px 8px rgba(31,41,55,.05);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"DM Sans",sans-serif;
+      background:linear-gradient(180deg,#f2efe9 0%, #f7f5f1 100%);
+      color:var(--ink);
+    }
+    .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding:32px 20px 56px;
+    }
+    .hero{
+      background:linear-gradient(135deg,#1f2937 0%, #334155 100%);
+      color:white;
+      border-radius:24px;
+      padding:32px;
+      box-shadow:var(--shadow);
+      margin-bottom:24px;
+    }
+    .hero-top{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .eyebrow{
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:11px;
+      opacity:.72;
+      font-weight:700;
+      margin-bottom:10px;
+    }
+    h1{
+      margin:0 0 10px;
+      font-family:"DM Serif Display",serif;
+      font-size:42px;
+      line-height:1.05;
+      letter-spacing:-.02em;
+    }
+    .hero p{
+      margin:0;
+      max-width:760px;
+      color:rgba(255,255,255,.82);
+      font-size:15px;
+      line-height:1.65;
+    }
+    .badge{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      color:#f8fafc;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .section-title{
+      display:flex;
+      justify-content:space-between;
+      align-items:end;
+      gap:12px;
+      margin:12px 0 16px;
+      flex-wrap:wrap;
+    }
+    .section-title h2{
+      margin:0;
+      font-size:20px;
+    }
+    .section-title p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:16px;
+    }
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      min-height:220px;
+    }
+    .icon{
+      width:50px;
+      height:50px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:14px;
+      background:var(--green-2);
+      font-size:24px;
+      margin-bottom:14px;
+    }
+    .card h3{
+      margin:0 0 8px;
+      font-size:18px;
+      line-height:1.3;
+    }
+    .card p{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+      flex:1;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .chip{
+      font-size:11px;
+      padding:6px 9px;
+      border-radius:999px;
+      background:var(--paper-2);
+      color:#4b5563;
+      border:1px solid #e5dfd1;
+      font-weight:700;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      border-radius:10px;
+      padding:11px 14px;
+      font-size:13px;
+      font-weight:700;
+      transition:.15s ease;
+    }
+    .btn-primary{
+      background:var(--green);
+      color:white;
+    }
+    .btn-primary:hover{
+      filter:brightness(.93);
+    }
+    .note{
+      margin-top:24px;
+      background:#fffdf8;
+      border:1px solid #eadfbe;
+      border-left:5px solid var(--gold);
+      border-radius:14px;
+      padding:16px 18px;
+      color:#4b5563;
+      font-size:14px;
+      line-height:1.65;
+    }
+    .note strong{color:#111827}
+    footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+    code{
+      background:#f3efe5;
+      border:1px solid #e4ddcd;
+      padding:2px 6px;
+      border-radius:6px;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:12px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      h1{font-size:36px;}
+    }
+    @media (max-width: 640px){
+      .grid{grid-template-columns:1fr;}
+      .hero{padding:24px;}
+      h1{font-size:30px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Portail centralisé</div>
+          <h1>Outils bureau d’études<br>et chantier</h1>
+          <p>
+            Page d’accueil unique pour accéder rapidement à vos applications HTML.
+            Déposez ce fichier sous le nom <code>index.html</code> à la racine de votre dépôt GitHub,
+            puis ajoutez les autres outils avec les noms indiqués ci-dessous.
+          </p>
+        </div>
+        <div class="badge">GitHub Pages compatible</div>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>Applications disponibles</h2>
+      <p>Liens prévus pour fonctionner avec les noms de fichiers standardisés</p>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <div class="icon">🦺</div>
+        <h3>PPSPS</h3>
+        <p>Générateur de PPSPS avec sauvegarde et rechargement des données chantier.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">ppsps.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="ppsps.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="icon">♻️</div>
+        <h3>SOGED</h3>
+        <p>Schéma d’Organisation et de Gestion des Déchets, avec sauvegarde et rechargement JSON.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">soged.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="soged.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="icon">📋</div>
+        <h3>DUERP</h3>
+        <p>Document Unique avec exports et gestion structurée des risques, unités de travail et actions.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">duerp.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="duerp.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="icon">📆</div>
+        <h3>Gantt chantier</h3>
+        <p>Planning Gantt EV &amp; VRD avec tâches, jalons, ressources, livraisons et export PDF.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">gantt.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="gantt.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="icon">🗂️</div>
+        <h3>Planning bureau d’études</h3>
+        <p>Suivi des affaires, tâches internes et organisation du bureau d’études.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">planning-bureau-etudes.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="planning-bureau-etudes.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="icon">🚚</div>
+        <h3>Planning hebdo chantier</h3>
+        <p>Planning hebdomadaire des équipes chantier, affectations, absences et suivi journalier.</p>
+        <div class="meta">
+          <span class="chip">Fichier attendu</span>
+          <span class="chip">planning-hebdo-chantier.html</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="planning-hebdo-chantier.html">Ouvrir l’outil</a>
+        </div>
+      </article>
+    </section>
+
+    <div class="note">
+      <strong>Important :</strong> pour que tous les boutons fonctionnent, renommez vos fichiers dans GitHub exactement ainsi :
+      <code>ppsps.html</code>, <code>soged.html</code>, <code>duerp.html</code>, <code>gantt.html</code>,
+      <code>planning-bureau-etudes.html</code> et <code>planning-hebdo-chantier.html</code>.
+      Déposez ensuite ce fichier sous le nom <code>index.html</code>.
+    </div>
+
+    <footer>
+      Portail HTML pour GitHub Pages – bureau d’études / chantier
+    </footer>
+  </div>
+</body>
+</html>

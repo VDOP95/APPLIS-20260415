@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)file:///C:/Users/dessin/Downloads/gantt-chantier-v5_3.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gantt Chantier – Espaces verts &amp; VRD</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f3;color:#2C2C2A;font-size:14px}
+.page{max-width:1400px;margin:0 auto;padding:16px}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#888780;margin-bottom:16px}
+.card{background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:14px;margin-bottom:12px}
+label{font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px}
+input,select{font-size:13px;padding:5px 8px;border:0.5px solid #c8c6be;border-radius:6px;background:#fff;color:#2C2C2A;font-family:inherit}
+input:focus,select:focus{outline:2px solid #1D9E75;outline-offset:1px}
+button{font-size:13px;padding:6px 13px;border:0.5px solid #c8c6be;border-radius:6px;background:transparent;color:#2C2C2A;cursor:pointer;font-family:inherit;white-space:nowrap}
+button:hover{background:#f5f5f3}
+.btn-g{background:#1D9E75;color:#fff;border-color:#1D9E75;font-weight:500}
+.btn-g:hover{background:#0F6E56;border-color:#0F6E56}
+.btn-del{color:#D85A30;border:none;font-size:16px;padding:0 6px;background:transparent;cursor:pointer}
+.btn-del:hover{background:#fff0ec;border-radius:4px}
+.btn-del-row{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:0;padding:0;background:#fff5f3;color:#C7462D;border:1px solid #E7A79A;border-radius:8px;font-size:14px;font-weight:600;line-height:1;white-space:nowrap}
+.btn-del-row:hover{background:#C7462D;color:#fff;border-color:#C7462D}
+.btn-del-row:focus{outline:2px solid #C7462D;outline-offset:1px}
+.action-cell{display:flex;justify-content:center;align-items:center;border-left:1px solid #ece9e4;padding-left:8px;min-height:30px}
+.row{display:grid;gap:6px;align-items:center;margin-bottom:5px}
+.hdr{font-size:10px;color:#888780;font-weight:500}
+.tabs{display:flex;gap:4px;margin-bottom:-1px;position:relative;z-index:2}
+.tab-btn{padding:6px 14px;border:0.5px solid #e0dedd;border-bottom:none;border-radius:8px 8px 0 0;background:#f0efed;cursor:pointer;font-size:13px;color:#888780}
+.tab-btn.active{background:#fff;color:#2C2C2A;font-weight:500}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:10px;font-weight:500}
+.metric{background:#f5f5f3;border-radius:8px;padding:9px 14px;display:inline-block}
+.metric .val{font-size:18px;font-weight:500}
+.metric .lbl{font-size:11px;color:#888780}
+#gantt-scroll{overflow-x:auto}
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#888780}
+.swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.ms-trigger{font-size:12px;padding:5px 8px;border:0.5px solid #c8c6be;border-radius:6px;background:#fff;cursor:pointer;min-height:29px;display:flex;align-items:center;gap:4px;color:#2C2C2A;user-select:none;width:100%}
+.ms-trigger:hover{border-color:#1D9E75}
+.ms-trigger .ms-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#2C2C2A}
+.ms-trigger .ms-val.empty{color:#aaa}
+.ms-trigger .ms-arrow{color:#888780;font-size:9px;flex-shrink:0}
+.ms-panel{position:fixed;z-index:9999;background:#fff;border:0.5px solid #c8c6be;border-radius:8px;padding:5px;min-width:210px;max-width:290px;box-shadow:0 4px 20px rgba(0,0,0,.14);max-height:240px;overflow-y:auto}
+.ms-item{display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;border-radius:5px;font-size:12px;color:#2C2C2A}
+.ms-item:hover{background:#f0efed}
+.ms-item input[type=checkbox]{width:13px;height:13px;cursor:pointer;accent-color:#1D9E75;flex-shrink:0}
+.ms-empty{padding:10px 8px;font-size:12px;color:#888780;line-height:1.5;text-align:center}
+.res-tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 10px 3px 12px;border-radius:8px;background:#f0efed;color:#2C2C2A;border:0.5px solid #e0dedd}
+.res-tag button{border:none;background:none;color:#888780;cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+.res-tag button:hover{color:#D85A30}
+
+/* ---- PRINT / PDF ---- */
+@media print{
+  body{background:#fff}
+  .page{max-width:none;padding:0;margin:0}
+  .no-print{display:none!important}
+  .card{border:none;border-radius:0;padding:0;margin:0;box-shadow:none}
+  #gantt-card{display:block!important}
+  #gantt-scroll{overflow:visible}
+  h1{font-size:16px}
+  .print-header{display:block!important}
+  @page{size:A3 landscape;margin:10mm}
+}
+.print-header{display:none;margin-bottom:8px}
+.print-header h2{font-size:15px;font-weight:500}
+.print-header p{font-size:11px;color:#888780}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="no-print">
+<h1>Gantt chantier — Espaces verts &amp; VRD</h1>
+<p class="subtitle">Planification professionnelle avec jalons, livraisons, jours fériés et export PDF</p>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="print-header">
+  <h2 id="ph-title"></h2>
+  <p id="ph-sub"></p>
+</div>
+
+<!-- CONFIG -->
+<div class="card no-print">
+  <div style="display:grid;grid-template-columns:1.6fr 1fr 100px 110px;gap:10px;align-items:end">
+    <div><label>Nom du chantier</label><input id="pname" style="width:100%" value="Chantier mixte – Lotissement résidentiel"></div>
+    <div><label>Date de début</label><input type="date" id="pstart" style="width:100%"></div>
+    <div><label>Zoom</label>
+      <select id="zoom" style="width:100%">
+        <option value="16">Très large</option>
+        <option value="22">Large</option>
+        <option value="30" selected="">Normal</option>
+        <option value="42">Serré</option>
+      </select>
+    </div>
+    <div><label>Modèle</label>
+      <select id="preset-sel" style="width:100%" onchange="loadPreset(this.value)">
+        <option value="mixte">Chantier mixte</option>
+        <option value="vrd">VRD complet</option>
+        <option value="ev">Espaces verts</option>
+        <option value="empty">Vierge</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs no-print">
+  <button class="tab-btn active" id="tab-tasks-btn" onclick="showTab(&#39;tasks&#39;)">Tâches &amp; jalons</button>
+  <button class="tab-btn" id="tab-res-btn" onclick="showTab(&#39;res&#39;)">Ressources</button>
+  <button class="tab-btn" id="tab-livr-btn" onclick="showTab(&#39;livr&#39;)">Livraisons fournisseurs</button>
+  <button class="tab-btn" id="tab-cal-btn" onclick="showTab(&#39;cal&#39;)">Jours fériés &amp; fermetures</button>
+  <button class="tab-btn" id="tab-pdf-btn" onclick="showTab(&#39;pdf&#39;)">Export PDF</button>
+</div>
+
+<div class="card no-print" style="border-radius:0 12px 12px 12px">
+
+  <!-- TACHES -->
+  <div class="tab-pane active" id="tab-tasks">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">Tâches, jalons &amp; avancement</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="addTask(&#39;task&#39;)">+ Tâche</button>
+        <button onclick="addTask(&#39;milestone&#39;)" style="color:#854F0B;border-color:#EF9F27">+ Jalon</button>
+        <button onclick="addTitle()" style="color:#2C2C2A;border-color:#2C2C2A;font-weight:600;letter-spacing:.03em">+ Titre / Chapitre</button>
+      </div>
+    </div>
+    <div class="row hdr" style="grid-template-columns:22px 14px minmax(110px,1.4fr) 100px 50px 50px 110px minmax(90px,1fr) minmax(90px,1fr) minmax(150px,1fr) 80px 55px 130px 44px">
+      <span></span><span></span><span>Tâche / Jalon</span><span>Catégorie</span><span>Début j+</span><span>Durée j</span><span>Date début</span>
+      <span>Moyens humains</span><span>Moyens matériels</span><span>Préd.</span><span>Lien</span><span>Décal.</span><span>Avancement %</span><span style="text-align:center">🗑</span>
+    </div>
+    <div id="task-list"><div class="row" draggable="true" data-idx="0" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#5F5E5A;border-radius:2px"></span></span>
+      <input value="Installation &amp; balisage" onchange="tasks[0].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[0].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option selected="">Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[0].start=+this.value||0" style="width:100%">
+      <input type="number" value="2" min="0" onchange="tasks[0].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[0].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(0,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-0-human" class="ms-val">Chef chantier</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(0,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-0-material" class="ms-val">Bungalow, signalétique</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[0].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[0].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[0].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="100" oninput="tasks[0].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">100%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(100)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="1" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span></span>
+      <input value="Réunion de lancement" onchange="tasks[1].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[1].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option selected="">Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="2" min="0" onchange="tasks[1].start=+this.value||0" style="width:100%">
+      <input type="number" value="0" min="0" disabled="" onchange="tasks[1].dur=+this.value||0" style="width:100%;opacity:.4">
+      <input type="date" value="2026-04-04" onchange="tasks[1].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(1,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-1-human" class="ms-val">Équipe + MO</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(1,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-1-material" class="ms-val empty">Choisir…</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[1].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100" selected="">Installation &amp;</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[1].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[1].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" disabled="" oninput="tasks[1].progress=+this.value;renderTasks()" style="flex:1;opacity:.4">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(101)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="2" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#888780;border-radius:2px"></span></span>
+      <input value="Terrassement général" onchange="tasks[2].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[2].cat=this.value;renderTasks()" style="width:100%"><option selected="">Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="2" min="0" onchange="tasks[2].start=+this.value||0" style="width:100%">
+      <input type="number" value="7" min="0" onchange="tasks[2].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-04" onchange="tasks[2].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(2,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-2-human" class="ms-val">2 terrassiers</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(2,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-2-material" class="ms-val">Pelleteuse, dumper</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[2].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100" selected="">Installation &amp;</option><option value="101">Réunion de lan</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[2].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[2].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="60" oninput="tasks[2].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">60%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(102)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="3" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#378ADD;border-radius:2px"></span></span>
+      <input value="Réseaux enterrés" onchange="tasks[3].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[3].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option selected="">Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[3].start=+this.value||0" style="width:100%">
+      <input type="number" value="8" min="0" onchange="tasks[3].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[3].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(3,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-3-human" class="ms-val">2 techniciens VRD</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(3,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-3-material" class="ms-val">Mini-pelle, compacteur</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[3].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102" selected="">Terrassement g</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[3].link=this.value" style="width:100%"><option value="FS">FS</option><option value="FF">FF</option><option value="SS" selected="">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="2" onchange="tasks[3].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="30" oninput="tasks[3].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">30%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(103)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="4" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#7F77DD;border-radius:2px"></span></span>
+      <input value="Drainage EV" onchange="tasks[4].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[4].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option selected="">Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[4].start=+this.value||0" style="width:100%">
+      <input type="number" value="4" min="0" onchange="tasks[4].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[4].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(4,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-4-human" class="ms-val">1 technicien</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(4,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-4-material" class="ms-val">Mini-pelle</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[4].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103" selected="">Réseaux enterr</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[4].link=this.value" style="width:100%"><option value="FS">FS</option><option value="FF">FF</option><option value="SS" selected="">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[4].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[4].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(104)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="5" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#BA7517;border-radius:2px"></span></span>
+      <input value="Voiries internes" onchange="tasks[5].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[5].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option selected="">Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[5].start=+this.value||0" style="width:100%">
+      <input type="number" value="7" min="0" onchange="tasks[5].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[5].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(5,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-5-human" class="ms-val">3 compagnons voirie</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(5,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-5-material" class="ms-val">Finisseur, rouleau</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[5].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103" selected="">Réseaux enterr</option><option value="104">Drainage EV</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[5].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[5].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[5].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(105)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="6" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span></span>
+      <input value="Réunion de chantier S3" onchange="tasks[6].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[6].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option selected="">Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[6].start=+this.value||0" style="width:100%">
+      <input type="number" value="0" min="0" disabled="" onchange="tasks[6].dur=+this.value||0" style="width:100%;opacity:.4">
+      <input type="date" value="2026-04-02" onchange="tasks[6].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(6,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-6-human" class="ms-val">Chef chantier</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(6,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-6-material" class="ms-val empty">Choisir…</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[6].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105" selected="">Voiries intern</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[6].link=this.value" style="width:100%"><option value="FS">FS</option><option value="FF">FF</option><option value="SS" selected="">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[6].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" disabled="" oninput="tasks[6].progress=+this.value;renderTasks()" style="flex:1;opacity:.4">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(106)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="7" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#888780;border-radius:2px"></span></span>
+      <input value="Préparation sols EV" onchange="tasks[7].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[7].cat=this.value;renderTasks()" style="width:100%"><option selected="">Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[7].start=+this.value||0" style="width:100%">
+      <input type="number" value="3" min="0" onchange="tasks[7].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[7].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(7,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-7-human" class="ms-val">1 paysagiste</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(7,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-7-material" class="ms-val">Micro-tracteur, fraise</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[7].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104" selected="">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[7].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[7].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[7].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(107)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="8" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#378ADD;border-radius:2px"></span></span>
+      <input value="Arrosage automatique" onchange="tasks[8].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[8].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option selected="">Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[8].start=+this.value||0" style="width:100%">
+      <input type="number" value="4" min="0" onchange="tasks[8].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[8].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(8,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-8-human" class="ms-val">1 technicien arrosage</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(8,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-8-material" class="ms-val">Trancheuse, pompe test</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[8].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107" selected="">Préparation so</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[8].link=this.value" style="width:100%"><option value="FS">FS</option><option value="FF">FF</option><option value="SS" selected="">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="1" onchange="tasks[8].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[8].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(108)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="9" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#3B6D11;border-radius:2px"></span></span>
+      <input value="Plantation haies" onchange="tasks[9].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[9].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option selected="">Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[9].start=+this.value||0" style="width:100%">
+      <input type="number" value="4" min="0" onchange="tasks[9].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[9].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(9,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-9-human" class="ms-val">2 paysagistes</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(9,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-9-material" class="ms-val">Tracteur, tarière</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[9].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107" selected="">Préparation so</option><option value="108">Arrosage autom</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[9].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="1" onchange="tasks[9].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[9].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(109)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="10" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#1D9E75;border-radius:2px"></span></span>
+      <input value="Engazonnement" onchange="tasks[10].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[10].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option selected="">Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[10].start=+this.value||0" style="width:100%">
+      <input type="number" value="3" min="0" onchange="tasks[10].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[10].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(10,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-10-human" class="ms-val">1 paysagiste</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(10,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-10-material" class="ms-val">Semoir, rouleau</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[10].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109" selected="">Plantation hai</option><option value="111">Clôtures</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[10].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[10].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[10].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(110)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="11" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#D85A30;border-radius:2px"></span></span>
+      <input value="Clôtures" onchange="tasks[11].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[11].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option selected="">Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[11].start=+this.value||0" style="width:100%">
+      <input type="number" value="4" min="0" onchange="tasks[11].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[11].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(11,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-11-human" class="ms-val">2 clôturistes</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(11,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-11-material" class="ms-val">Perforateur, outillage</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[11].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105" selected="">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="112">Finitions &amp; ne</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[11].link=this.value" style="width:100%"><option value="FS">FS</option><option value="FF" selected="">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[11].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[11].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(111)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="12" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#639922;border-radius:2px"></span></span>
+      <input value="Finitions &amp; nettoyage" onchange="tasks[12].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[12].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option selected="">Finitions</option><option>Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[12].start=+this.value||0" style="width:100%">
+      <input type="number" value="3" min="0" onchange="tasks[12].dur=+this.value||0" style="width:100%;">
+      <input type="date" value="2026-04-02" onchange="tasks[12].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(12,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-12-human" class="ms-val">Chef chantier + équipe</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(12,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-12-material" class="ms-val">Benne, souffleur</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[12].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110" selected="">Engazonnement</option><option value="111">Clôtures</option><option value="113">Réception de c</option></select>
+      <select onchange="tasks[12].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[12].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" oninput="tasks[12].progress=+this.value;renderTasks()" style="flex:1;">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(112)">🗑</button></div>
+    </div><div class="row" draggable="true" data-idx="13" style="cursor: default; grid-template-columns: 22px 14px minmax(110px, 1.4fr) 100px 50px 50px 110px minmax(90px, 1fr) minmax(90px, 1fr) minmax(150px, 1fr) 80px 55px 110px 30px;">
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center"><span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span></span>
+      <input value="Réception de chantier" onchange="tasks[13].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[13].cat=this.value;renderTasks()" style="width:100%"><option>Terrassement</option><option>Réseaux VRD</option><option>Voirie</option><option>Drainage</option><option>Plantation</option><option>Engazonnement</option><option>Clôtures</option><option>Mobilier urbain</option><option>Finitions</option><option selected="">Coordination</option><option>Travaux préparatoires</option><option>Revêtements</option><option>Aire de jeux</option></select>
+      <input type="number" value="0" min="0" onchange="tasks[13].start=+this.value||0" style="width:100%">
+      <input type="number" value="0" min="0" disabled="" onchange="tasks[13].dur=+this.value||0" style="width:100%;opacity:.4">
+      <input type="date" value="2026-04-02" onchange="tasks[13].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(13,&#39;human&#39;,humanResources,this)">
+        <span id="ms-d-13-human" class="ms-val">MO + équipe</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(13,&#39;material&#39;,materialResources,this)">
+        <span id="ms-d-13-material" class="ms-val empty">Choisir…</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[13].pred=this.value;renderTasks()" style="width:100%"><option value="">—</option><option value="100">Installation &amp;</option><option value="101">Réunion de lan</option><option value="102">Terrassement g</option><option value="103">Réseaux enterr</option><option value="104">Drainage EV</option><option value="105">Voiries intern</option><option value="106">Réunion de cha</option><option value="107">Préparation so</option><option value="108">Arrosage autom</option><option value="109">Plantation hai</option><option value="110">Engazonnement</option><option value="111">Clôtures</option><option value="112" selected="">Finitions &amp; ne</option></select>
+      <select onchange="tasks[13].link=this.value" style="width:100%"><option value="FS" selected="">FS</option><option value="FF">FF</option><option value="SS">SS</option><option value="SF">SF</option></select>
+      <input type="number" value="0" onchange="tasks[13].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="0" disabled="" oninput="tasks[13].progress=+this.value;renderTasks()" style="flex:1;opacity:.4">
+        <span style="font-size:11px;min-width:28px;color:#888780">0%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(113)">🗑</button></div>
+    </div></div>
+  </div>
+
+  <!-- RESSOURCES -->
+  <div class="tab-pane" id="tab-res">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <!-- Moyens humains -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">👷 Moyens humains</span>
+          <button onclick="addHumanRes()">+ Ajouter</button>
+        </div>
+        <div id="human-res-inputs" style="margin-bottom:10px"><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-1" value="Conducteur de travaux" onchange="humanResources[0].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(1)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-2" value="Chef de chantier" onchange="humanResources[1].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(2)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-3" value="Chef d&#39;équipe" onchange="humanResources[2].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(3)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-4" value="Equipe 1" onchange="humanResources[3].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(4)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-5" value="Equipe 2" onchange="humanResources[4].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(5)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-6" value="Equipe 3" onchange="humanResources[5].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(6)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-7" value="Ouvrier" onchange="humanResources[6].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(7)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-8" value="Manœuvre" onchange="humanResources[7].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(8)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="hr-inp-9" value="Chauffeur PL" onchange="humanResources[8].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(9)">×</button></div></div>
+        <div id="human-res-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:30px;padding:8px;background:#f5f5f3;border-radius:8px;border:0.5px solid #e0dedd"><span class="res-tag">👷 Conducteur de travaux</span><span class="res-tag">👷 Chef de chantier</span><span class="res-tag">👷 Chef d'équipe</span><span class="res-tag">👷 Equipe 1</span><span class="res-tag">👷 Equipe 2</span><span class="res-tag">👷 Equipe 3</span><span class="res-tag">👷 Ouvrier</span><span class="res-tag">👷 Manœuvre</span><span class="res-tag">👷 Chauffeur PL</span></div>
+      </div>
+      <!-- Moyens matériels -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">🚜 Moyens matériels</span>
+          <button onclick="addMaterialRes()">+ Ajouter</button>
+        </div>
+        <div id="material-res-inputs" style="margin-bottom:10px"><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-10" value="Camion 8x4" onchange="materialResources[0].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(10)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-11" value="Camion toupie" onchange="materialResources[1].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(11)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-12" value="Camion 20T grue" onchange="materialResources[2].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(12)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-13" value="Camion grue mobile" onchange="materialResources[3].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(13)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-14" value="Camionnette 3,5T" onchange="materialResources[4].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(14)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-15" value="Chargeur" onchange="materialResources[5].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(15)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-16" value="Chariot télescopique" onchange="materialResources[6].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(16)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-17" value="Dumper" onchange="materialResources[7].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(17)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-18" value="Rouleau compresseur" onchange="materialResources[8].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(18)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-19" value="Plaque vibrante" onchange="materialResources[9].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(19)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-20" value="Enfonce pieux" onchange="materialResources[10].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(20)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-21" value="Malaxeur" onchange="materialResources[11].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(21)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-22" value="Pelle 1T5" onchange="materialResources[12].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(22)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-23" value="Pelle 2T5" onchange="materialResources[13].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(23)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-24" value="Pelle 5T" onchange="materialResources[14].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(24)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-25" value="Pelle 10T" onchange="materialResources[15].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(25)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-26" value="Pelle 12T" onchange="materialResources[16].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(26)">×</button></div><div style="display: flex; gap: 6px; align-items: center; margin-bottom: 5px;"><input id="mr-inp-27" value="Pelle 15T" onchange="materialResources[17].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(27)">×</button></div></div>
+        <div id="material-res-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:30px;padding:8px;background:#f5f5f3;border-radius:8px;border:0.5px solid #e0dedd"><span class="res-tag">🔧 Camion 8x4</span><span class="res-tag">🔧 Camion toupie</span><span class="res-tag">🔧 Camion 20T grue</span><span class="res-tag">🔧 Camion grue mobile</span><span class="res-tag">🔧 Camionnette 3,5T</span><span class="res-tag">🔧 Chargeur</span><span class="res-tag">🔧 Chariot télescopique</span><span class="res-tag">🔧 Dumper</span><span class="res-tag">🔧 Rouleau compresseur</span><span class="res-tag">🔧 Plaque vibrante</span><span class="res-tag">🔧 Enfonce pieux</span><span class="res-tag">🔧 Malaxeur</span><span class="res-tag">🔧 Pelle 1T5</span><span class="res-tag">🔧 Pelle 2T5</span><span class="res-tag">🔧 Pelle 5T</span><span class="res-tag">🔧 Pelle 10T</span><span class="res-tag">🔧 Pelle 12T</span><span class="res-tag">🔧 Pelle 15T</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVRAISONS -->
+  <div class="tab-pane" id="tab-livr">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">Livraisons fournisseurs</span>
+      <button onclick="addLivr()">+ Livraison</button>
+    </div>
+    <div class="row hdr" style="grid-template-columns:1.2fr 1fr 100px 1.2fr 30px">
+      <span>Fournisseur</span><span>Matériaux / Fournitures</span><span>Jour (j+)</span><span>Note</span><span></span>
+    </div>
+    <div id="livr-list"><div class="row" style="grid-template-columns: 1.2fr 1fr 100px 1.2fr 30px;">
+      <input value="Granulats SA" onchange="livraisons[0].supplier=this.value" style="width:100%">
+      <input value="Tout-venant 0/80" onchange="livraisons[0].items=this.value" style="width:100%">
+      <input type="number" value="2" min="0" onchange="livraisons[0].day=+this.value||0" style="width:100%">
+      <input value="Livraison matin" onchange="livraisons[0].note=this.value" style="width:100%" placeholder="Note">
+      <button class="btn-del" onclick="removeLivr(114)">×</button>
+    </div><div class="row" style="grid-template-columns: 1.2fr 1fr 100px 1.2fr 30px;">
+      <input value="Canalisations Pro" onchange="livraisons[1].supplier=this.value" style="width:100%">
+      <input value="Buses béton EP" onchange="livraisons[1].items=this.value" style="width:100%">
+      <input type="number" value="9" min="0" onchange="livraisons[1].day=+this.value||0" style="width:100%">
+      <input value="Camion grue nécessaire" onchange="livraisons[1].note=this.value" style="width:100%" placeholder="Note">
+      <button class="btn-del" onclick="removeLivr(115)">×</button>
+    </div><div class="row" style="grid-template-columns: 1.2fr 1fr 100px 1.2fr 30px;">
+      <input value="Pépinière du Val" onchange="livraisons[2].supplier=this.value" style="width:100%">
+      <input value="Arbres &amp; arbustes" onchange="livraisons[2].items=this.value" style="width:100%">
+      <input type="number" value="28" min="0" onchange="livraisons[2].day=+this.value||0" style="width:100%">
+      <input value="Avant 8h matin" onchange="livraisons[2].note=this.value" style="width:100%" placeholder="Note">
+      <button class="btn-del" onclick="removeLivr(116)">×</button>
+    </div></div>
+  </div>
+
+  <!-- CALENDRIER -->
+  <div class="tab-pane" id="tab-cal">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <label>Jours fériés français (inclus automatiquement)</label>
+        <div id="feries-list" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px"><span class="pill" style="background:#FAEEDA;color:#633806">Jour de l'An (01 janv.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Fête du Travail (01 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Victoire 1945 (08 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Fête Nationale (14 juil.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Assomption (15 août)</span><span class="pill" style="background:#FAEEDA;color:#633806">Toussaint (01 nov.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Armistice (11 nov.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Noël (25 déc.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Lundi de Pâques (06 avr.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Ascension (14 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Lundi de Pentecôte (25 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Jour de l'An (01 janv.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Fête du Travail (01 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Victoire 1945 (08 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Fête Nationale (14 juil.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Assomption (15 août)</span><span class="pill" style="background:#FAEEDA;color:#633806">Toussaint (01 nov.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Armistice (11 nov.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Noël (25 déc.)</span><span class="pill" style="background:#FAEEDA;color:#633806">Lundi de Pâques (29 mars)</span><span class="pill" style="background:#FAEEDA;color:#633806">Ascension (06 mai)</span><span class="pill" style="background:#FAEEDA;color:#633806">Lundi de Pentecôte (17 mai)</span></div>
+        <div style="margin-top:14px">
+          <label>Jours de fermeture ponctuels (j+ depuis le début)</label>
+          <div style="display:flex;gap:6px;margin-top:4px">
+            <input type="number" id="ferm-day" placeholder="j+" min="0" style="width:70px">
+            <input type="text" id="ferm-label" placeholder="Motif (ex: pont, congés)" style="flex:1">
+            <button onclick="addFermeture()">Ajouter</button>
+          </div>
+          <div id="ferm-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
+        </div>
+      </div>
+      <div>
+        <label>Semaines de fermeture</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <input type="number" id="fw-start" placeholder="Sem. début" min="1" max="52" style="width:95px">
+          <input type="number" id="fw-end" placeholder="Sem. fin" min="1" max="52" style="width:95px">
+          <input type="text" id="fw-label" placeholder="Motif" style="flex:1">
+          <button onclick="addFermWeek()">Ajouter</button>
+        </div>
+        <div id="ferm-week-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF -->
+  <div class="tab-pane" id="tab-pdf">
+    <label style="font-size:13px;font-weight:500;color:#2C2C2A;text-transform:none;letter-spacing:0;margin-bottom:10px;display:block">
+      Export PDF — impression via le navigateur
+    </label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
+      <div><label>Jour de début (j+)</label><input type="number" id="pdf-start" value="0" min="0" style="width:100%"></div>
+      <div><label>Jour de fin (j+)</label><input type="number" id="pdf-end" value="60" min="1" style="width:100%"></div>
+      <div><label>Afficher moyens humains</label>
+        <select id="pdf-human" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
+      </div>
+      <div><label>Afficher moyens matériels</label>
+        <select id="pdf-mat" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
+      </div>
+      <div><label>Afficher avancement</label>
+        <select id="pdf-prog" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
+      </div>
+      <div style="display:flex;align-items:end">
+        <button class="btn-g" onclick="exportPDF()" style="width:100%;padding:8px">Exporter en PDF (impression)</button>
+      </div>
+    </div>
+    <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
+      <strong>Comment ça marche :</strong> cliquez "Exporter en PDF", la boîte d'impression de votre navigateur s'ouvre.<br>
+      Choisissez <strong>Enregistrer en PDF</strong> comme imprimante (ou "Microsoft Print to PDF" sur Windows).<br>
+      Format recommandé : <strong>A3 paysage</strong> — décochez les en-têtes/pieds de page pour un rendu propre.
+    </div>
+  </div>
+
+</div><!-- end tabs card -->
+
+<!-- BOUTONS ACTIONS -->
+<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
+  <button class="btn-g" onclick="renderGantt()">Générer le Gantt</button>
+  <button onclick="loadPreset(&#39;mixte&#39;)">Modèle mixte</button>
+  <button onclick="loadPreset(&#39;vrd&#39;)">Modèle VRD</button>
+  <button onclick="loadPreset(&#39;ev&#39;)">Modèle espaces verts</button>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button id="btn-save" onclick="sauvegarder()" style="background:#EAF3DE;border-color:#639922;color:#3B6D11;font-weight:500">
+      ↓ Sauvegarder
+    </button>
+    <button onclick="document.getElementById(&#39;input-load&#39;).click()" style="background:#E6F1FB;border-color:#378ADD;color:#0C447C;font-weight:500">
+      ↑ Charger une sauvegarde
+    </button>
+    <input type="file" id="input-load" accept=".json" style="display:none" onchange="charger(event)">
+  </div>
+</div>
+
+<!-- GANTT RESULT -->
+<div id="gantt-card" class="card" style="display: block;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px" class="no-print">
+    <div>
+      <p style="font-size:15px;font-weight:500" id="g-title">Chantier mixte – Lotissement résidentiel</p>
+      <p style="font-size:12px;color:#888780;margin-top:3px" id="g-sub">Démarrage : 02 avr. 2026 · 9 catégories · 13 liens · 3 jalons · 3 livraisons</p>
+    </div>
+    <div class="legend-row" id="g-legend"><span class="legend-item"><span class="swatch" style="background:#5F5E5A"></span>Coordination</span><span class="legend-item"><span class="swatch" style="background:#888780"></span>Terrassement</span><span class="legend-item"><span class="swatch" style="background:#378ADD"></span>Réseaux VRD</span><span class="legend-item"><span class="swatch" style="background:#7F77DD"></span>Drainage</span><span class="legend-item"><span class="swatch" style="background:#BA7517"></span>Voirie</span><span class="legend-item"><span class="swatch" style="background:#3B6D11"></span>Plantation</span><span class="legend-item"><span class="swatch" style="background:#1D9E75"></span>Engazonnement</span><span class="legend-item"><span class="swatch" style="background:#D85A30"></span>Clôtures</span><span class="legend-item"><span class="swatch" style="background:#639922"></span>Finitions</span><span class="legend-item"><span class="swatch" style="background:#EF9F27"></span>Livraisons</span><span class="legend-item"><span class="swatch" style="background:#EF9F27;transform:rotate(45deg)"></span>Jalons</span></div>
+  </div>
+  <div id="gantt-scroll"><svg xmlns="http://www.w3.org/2000/svg" width="1000" height="666"><defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888780"></path></marker></defs><rect x="220" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="250" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="280" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="310" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="340" y="0" width="30" height="666" fill="#FAEEDA"></rect><rect x="370" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="400" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="430" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="460" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="490" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="520" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="550" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="580" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="610" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="640" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="670" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="700" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="730" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="760" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="790" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="820" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="850" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="880" y="0" width="30" height="666" fill="#fafaf8"></rect><rect x="910" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="940" y="0" width="30" height="666" fill="#f3f3f1"></rect><rect x="970" y="0" width="30" height="666" fill="#fafaf8"></rect><line x1="220" y1="0" x2="220" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="250" y1="0" x2="250" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="280" y1="0" x2="280" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="310" y1="0" x2="310" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="340" y1="0" x2="340" y2="666" stroke="#c8c6be" stroke-width="1"></line><line x1="370" y1="0" x2="370" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="400" y1="0" x2="400" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="430" y1="0" x2="430" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="460" y1="0" x2="460" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="490" y1="0" x2="490" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="520" y1="0" x2="520" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="550" y1="0" x2="550" y2="666" stroke="#c8c6be" stroke-width="1"></line><line x1="580" y1="0" x2="580" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="610" y1="0" x2="610" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="640" y1="0" x2="640" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="670" y1="0" x2="670" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="700" y1="0" x2="700" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="730" y1="0" x2="730" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="760" y1="0" x2="760" y2="666" stroke="#c8c6be" stroke-width="1"></line><line x1="790" y1="0" x2="790" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="820" y1="0" x2="820" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="850" y1="0" x2="850" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="880" y1="0" x2="880" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="910" y1="0" x2="910" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="940" y1="0" x2="940" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><line x1="970" y1="0" x2="970" y2="666" stroke="#c8c6be" stroke-width="1"></line><line x1="1000" y1="0" x2="1000" y2="666" stroke="#e8e6e2" stroke-width="0.5"></line><rect x="0" y="0" width="1000" height="58" fill="#f5f5f3"></rect><line x1="0" y1="58" x2="1000" y2="58" stroke="#c8c6be" stroke-width="1"></line><text x="280" y="16" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S1</text><line x1="220" y1="20" x2="340" y2="20" stroke="#d3d1c7" stroke-width=".5"></line><text x="235" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">2</text><text x="235" y="52" text-anchor="middle" font-size="9" fill="#1D9E75" font-family="Arial,sans-serif" font-weight="bold">avr</text><text x="265" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">3</text><text x="295" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">4</text><text x="325" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">5</text><text x="460" y="16" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S2</text><line x1="370" y1="20" x2="550" y2="20" stroke="#d3d1c7" stroke-width=".5"></line><text x="385" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">7</text><text x="415" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">8</text><text x="445" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">9</text><text x="475" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">10</text><text x="505" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">11</text><text x="535" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">12</text><text x="670" y="16" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S3</text><line x1="580" y1="20" x2="760" y2="20" stroke="#d3d1c7" stroke-width=".5"></line><text x="595" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">14</text><text x="625" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">15</text><text x="655" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">16</text><text x="685" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">17</text><text x="715" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">18</text><text x="745" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">19</text><text x="880" y="16" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S4</text><line x1="790" y1="20" x2="970" y2="20" stroke="#d3d1c7" stroke-width=".5"></line><text x="805" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">21</text><text x="835" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">22</text><text x="865" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">23</text><text x="895" y="36" text-anchor="middle" font-size="10" fill="#888780" font-family="Arial,sans-serif">24</text><text x="925" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">25</text><text x="955" y="36" text-anchor="middle" font-size="10" fill="#b4b2a9" font-family="Arial,sans-serif">26</text><rect x="0" y="0" width="220" height="666" fill="#f5f5f3"></rect><line x1="220" y1="0" x2="220" y2="666" stroke="#b4b2a9" stroke-width="1"></line><text x="8" y="33" font-size="12" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">Tâches</text><rect x="0" y="58" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="98" x2="1000" y2="98" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="70" width="3" height="16" rx="1" fill="#5F5E5A"></rect><text x="10" y="74" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Installation &amp; balisage</text><text x="10" y="87" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">Chef chantier | Bungalow, signalét</text><rect x="222" y="65" width="56" height="26" rx="4" fill="#5F5E5A" opacity=".85"></rect><rect x="222" y="86" width="56" height="5" rx="2" fill="white" opacity=".55"></rect><text x="250" y="82" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">2j (100%)</text><text x="274" y="62" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">04/04</text><rect x="0" y="98" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="138" x2="1000" y2="138" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="110" width="3" height="16" rx="1" fill="#5F5E5A"></rect><text x="10" y="114" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Réunion de lancement</text><text x="10" y="127" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">Équipe + MO</text><rect x="290" y="113" width="10" height="10" fill="#EF9F27" transform="rotate(45,295,118)" rx="2"></rect><text x="305" y="122" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">04/04</text><rect x="0" y="138" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="178" x2="1000" y2="178" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="150" width="3" height="16" rx="1" fill="#888780"></rect><text x="10" y="154" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Terrassement général</text><text x="10" y="167" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">2 terrassiers | Pelleteuse, dumper</text><rect x="282" y="145" width="206" height="26" rx="4" fill="#888780" opacity=".85"></rect><rect x="282" y="166" width="123.6" height="5" rx="2" fill="white" opacity=".55"></rect><text x="385" y="162" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">7j (60%)</text><text x="484" y="142" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">11/04</text><rect x="0" y="178" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="218" x2="1000" y2="218" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="190" width="3" height="16" rx="1" fill="#378ADD"></rect><text x="10" y="194" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Réseaux enterrés</text><text x="10" y="207" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">2 techniciens VRD | Mini-pelle, compac</text><rect x="342" y="185" width="236" height="26" rx="4" fill="#378ADD" opacity=".85"></rect><rect x="342" y="206" width="70.8" height="5" rx="2" fill="white" opacity=".55"></rect><text x="460" y="202" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">8j (30%)</text><text x="574" y="182" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">14/04</text><rect x="0" y="218" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="258" x2="1000" y2="258" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="230" width="3" height="16" rx="1" fill="#7F77DD"></rect><text x="10" y="234" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Drainage EV</text><text x="10" y="247" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">1 technicien | Mini-pelle</text><rect x="342" y="225" width="116" height="26" rx="4" fill="#7F77DD" opacity=".85"></rect><text x="400" y="242" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">4j</text><text x="454" y="222" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">10/04</text><rect x="0" y="258" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="298" x2="1000" y2="298" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="270" width="3" height="16" rx="1" fill="#BA7517"></rect><text x="10" y="274" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Voiries internes</text><text x="10" y="287" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">3 compagnons voirie | Finisseur, rouleau</text><rect x="582" y="265" width="206" height="26" rx="4" fill="#BA7517" opacity=".85"></rect><text x="685" y="282" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">7j</text><text x="784" y="262" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">21/04</text><rect x="0" y="298" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="338" x2="1000" y2="338" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="310" width="3" height="16" rx="1" fill="#5F5E5A"></rect><text x="10" y="314" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Réunion de chantier S3</text><text x="10" y="327" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">Chef chantier</text><rect x="590" y="313" width="10" height="10" fill="#EF9F27" transform="rotate(45,595,318)" rx="2"></rect><text x="605" y="322" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">14/04</text><rect x="0" y="338" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="378" x2="1000" y2="378" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="350" width="3" height="16" rx="1" fill="#888780"></rect><text x="10" y="354" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Préparation sols EV</text><text x="10" y="367" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">1 paysagiste | Micro-tracteur, fr</text><rect x="462" y="345" width="86" height="26" rx="4" fill="#888780" opacity=".85"></rect><text x="505" y="362" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">3j</text><text x="544" y="342" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">13/04</text><rect x="0" y="378" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="418" x2="1000" y2="418" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="390" width="3" height="16" rx="1" fill="#378ADD"></rect><text x="10" y="394" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Arrosage automatique</text><text x="10" y="407" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">1 technicien arrosag | Trancheuse, pompe </text><rect x="492" y="385" width="116" height="26" rx="4" fill="#378ADD" opacity=".85"></rect><text x="550" y="402" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">4j</text><text x="604" y="382" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">15/04</text><rect x="0" y="418" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="458" x2="1000" y2="458" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="430" width="3" height="16" rx="1" fill="#3B6D11"></rect><text x="10" y="434" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Plantation haies</text><text x="10" y="447" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">2 paysagistes | Tracteur, tarière</text><rect x="582" y="425" width="116" height="26" rx="4" fill="#3B6D11" opacity=".85"></rect><text x="640" y="442" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">4j</text><text x="694" y="422" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">18/04</text><rect x="0" y="458" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="498" x2="1000" y2="498" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="470" width="3" height="16" rx="1" fill="#1D9E75"></rect><text x="10" y="474" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Engazonnement</text><text x="10" y="487" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">1 paysagiste | Semoir, rouleau</text><rect x="702" y="465" width="86" height="26" rx="4" fill="#1D9E75" opacity=".85"></rect><text x="745" y="482" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">3j</text><text x="784" y="462" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">21/04</text><rect x="0" y="498" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="538" x2="1000" y2="538" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="510" width="3" height="16" rx="1" fill="#D85A30"></rect><text x="10" y="514" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Clôtures</text><text x="10" y="527" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">2 clôturistes | Perforateur, outil</text><rect x="672" y="505" width="116" height="26" rx="4" fill="#D85A30" opacity=".85"></rect><text x="730" y="522" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">4j</text><text x="784" y="502" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">21/04</text><rect x="0" y="538" width="1000" height="40" fill="#ffffff"></rect><line x1="0" y1="578" x2="1000" y2="578" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="550" width="3" height="16" rx="1" fill="#639922"></rect><text x="10" y="554" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Finitions &amp; nettoyage</text><text x="10" y="567" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">Chef chantier + équi | Benne, souffleur</text><rect x="792" y="545" width="86" height="26" rx="4" fill="#639922" opacity=".85"></rect><text x="835" y="562" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">3j</text><text x="874" y="542" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">24/04</text><rect x="0" y="578" width="1000" height="40" fill="#fafaf8"></rect><line x1="0" y1="618" x2="1000" y2="618" stroke="#eeecea" stroke-width=".5"></line><rect x="3" y="590" width="3" height="16" rx="1" fill="#5F5E5A"></rect><text x="10" y="594" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">Réception de chantier</text><text x="10" y="607" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">MO + équipe</text><rect x="890" y="593" width="10" height="10" fill="#EF9F27" transform="rotate(45,895,598)" rx="2"></rect><text x="905" y="602" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">24/04</text><rect x="0" y="618" width="1000" height="40" fill="#fdf8f0"></rect><text x="10" y="642" font-size="11" fill="#854F0B" font-weight="bold" font-family="Arial,sans-serif">Livraisons fournisseurs</text><line x1="295" y1="622" x2="295" y2="654" stroke="#EF9F27" stroke-width="2.5"></line><polygon points="288,622 302,622 295,634" fill="#EF9F27"></polygon><text x="305" y="642" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">Granulats </text><line x1="505" y1="622" x2="505" y2="654" stroke="#EF9F27" stroke-width="2.5"></line><polygon points="498,622 512,622 505,634" fill="#EF9F27"></polygon><text x="515" y="642" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">Canalisati</text><path d="M278,78 C286.5,78 286.5,118 295,118" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="275.5" y="91" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="286.5" y="101" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M278,78 C280,78 280,158 282,158" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="269" y="111" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="280" y="121" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M282,158 C312,158 312,198 342,198" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="301" y="171" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="312" y="181" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">SS+2</text><path d="M342,198 C342,198 342,238 342,238" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="331" y="211" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="342" y="221" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">SS</text><path d="M578,198 C580,198 580,278 582,278" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="569" y="231" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="580" y="241" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M582,278 C588.5,278 588.5,318 595,318" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="577.5" y="291" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="588.5" y="301" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">SS</text><path d="M458,238 C460,238 460,358 462,358" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="449" y="291" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="460" y="301" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M462,358 C477,358 477,398 492,398" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="466" y="371" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="477" y="381" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">SS+1</text><path d="M548,358 C565,358 565,438 582,438" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="554" y="391" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="565" y="401" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS+1</text><path d="M698,438 C700,438 700,478 702,478" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="689" y="451" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="700" y="461" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M788,278 C788,278 788,518 788,518" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="777" y="391" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="788" y="401" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FF</text><path d="M788,478 C790,478 790,558 792,558" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="779" y="511" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="790" y="521" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text><path d="M878,558 C886.5,558 886.5,598 895,598" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"></path><rect x="875.5" y="571" width="22" height="13" rx="3" fill="#f0efed"></rect><text x="886.5" y="581" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">FS</text></svg></div>
+  <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap" id="g-metrics" class="no-print">
+    <div class="metric"><div class="lbl">Durée totale</div><div class="val">26 jours</div></div>
+    <div class="metric"><div class="lbl">Fin prévisionnelle</div><div class="val">28 avr. 2026</div></div>
+    <div class="metric"><div class="lbl">Avancement global</div><div class="val">17%</div></div>
+    <div class="metric"><div class="lbl">Tâches</div><div class="val" style="font-size:14px">
+      <span style="color:#1D9E75">✓ 1 terminées</span> &nbsp;
+      <span style="color:#BA7517">~ 2 en cours</span> &nbsp;
+      <span style="color:#888780">○ 8 à faire</span>
+    </div></div>
+  </div>
+</div>
+
+</div><!-- end .page -->
+
+<script>
+const CATS={
+  'Terrassement':{c:'#888780'},'Réseaux VRD':{c:'#378ADD'},'Voirie':{c:'#BA7517'},
+  'Drainage':{c:'#7F77DD'},'Plantation':{c:'#3B6D11'},'Engazonnement':{c:'#1D9E75'},
+  'Clôtures':{c:'#D85A30'},'Mobilier urbain':{c:'#D4537E'},'Finitions':{c:'#639922'},
+  'Coordination':{c:'#5F5E5A'},
+  'Travaux préparatoires':{c:'#6B4FBE'},
+  'Revêtements':{c:'#2E8AAB'},
+  'Aire de jeux':{c:'#E05C1A'},
+};
+const LINK_TYPES=['FS','FF','SS','SF'];
+let tasks=[],livraisons=[],fermetures=[],fermWeeks=[];
+let humanResources=[
+  {id:0,name:'Conducteur de travaux'},
+  {id:0,name:'Chef de chantier'},
+  {id:0,name:"Chef d'équipe"},
+  {id:0,name:'Equipe 1'},
+  {id:0,name:'Equipe 2'},
+  {id:0,name:'Equipe 3'},
+  {id:0,name:'Ouvrier'},
+  {id:0,name:'Manœuvre'},
+  {id:0,name:'Chauffeur PL'},
+];
+let materialResources=[
+  {id:0,name:'Camion 8x4'},
+  {id:0,name:'Camion toupie'},
+  {id:0,name:'Camion 20T grue'},
+  {id:0,name:'Camion grue mobile'},
+  {id:0,name:'Camionnette 3,5T'},
+  {id:0,name:'Chargeur'},
+  {id:0,name:'Chariot télescopique'},
+  {id:0,name:'Dumper'},
+  {id:0,name:'Rouleau compresseur'},
+  {id:0,name:'Plaque vibrante'},
+  {id:0,name:'Enfonce pieux'},
+  {id:0,name:'Malaxeur'},
+  {id:0,name:'Pelle 1T5'},
+  {id:0,name:'Pelle 2T5'},
+  {id:0,name:'Pelle 5T'},
+  {id:0,name:'Pelle 10T'},
+  {id:0,name:'Pelle 12T'},
+  {id:0,name:'Pelle 15T'},
+];
+let uid=1;
+
+function today(){return new Date().toISOString().split('T')[0]}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+function fmtDate(d){return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}
+function fmtFull(d){return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}
+
+function showTab(name){
+  ['tasks','res','livr','cal','pdf'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('tab-'+t+'-btn').classList.toggle('active',t===name);
+  });
+}
+
+function addTask(type){
+  const def=type==='milestone'
+    ?{type:'milestone',name:'Réunion de chantier',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
+    :{type:'task',name:'Nouvelle tâche',cat:'Coordination',start:0,dur:5,human:'',material:'',pred:'',link:'FS',lag:0,progress:0};
+  tasks.push({...def,id:uid++});renderTasks();
+}
+function addTitle(){
+  tasks.push({type:'title',id:uid++,name:'Nouveau chapitre',cat:'',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0});
+  renderTasks();
+}
+function removeTask(id){if(!confirm('Supprimer cette ligne ?'))return;tasks=tasks.filter(t=>t.id!==id);renderTasks()}
+
+// ---- RESSOURCES ----
+function addHumanRes(){
+  const id=uid++;
+  humanResources.push({id,name:'Nouvelle ressource'});
+  renderResources();
+  // focus the new input
+  setTimeout(()=>{const inp=document.getElementById('hr-inp-'+id);if(inp){inp.select();}},30);
+}
+function removeHumanRes(id){
+  humanResources=humanResources.filter(r=>r.id!==id);
+  renderResources();renderTasks();
+}
+function addMaterialRes(){
+  const id=uid++;
+  materialResources.push({id,name:'Nouvel engin'});
+  renderResources();
+  setTimeout(()=>{const inp=document.getElementById('mr-inp-'+id);if(inp){inp.select();}},30);
+}
+function removeMaterialRes(id){
+  materialResources=materialResources.filter(r=>r.id!==id);
+  renderResources();renderTasks();
+}
+function renderResources(){
+  // Inputs for editing
+  const hi=document.getElementById('human-res-inputs');
+  hi.innerHTML='';
+  humanResources.forEach((r,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:5px';
+    row.innerHTML=`<input id="hr-inp-${r.id}" value="${r.name}" onchange="humanResources[${i}].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeHumanRes(${r.id})">×</button>`;
+    hi.appendChild(row);
+  });
+  const mi=document.getElementById('material-res-inputs');
+  mi.innerHTML='';
+  materialResources.forEach((r,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:5px';
+    row.innerHTML=`<input id="mr-inp-${r.id}" value="${r.name}" onchange="materialResources[${i}].name=this.value;renderTasks()" style="flex:1;font-size:13px">
+      <button class="btn-del" onclick="removeMaterialRes(${r.id})">×</button>`;
+    mi.appendChild(row);
+  });
+  // Tag cloud preview
+  document.getElementById('human-res-list').innerHTML=
+    humanResources.length ? humanResources.map(r=>`<span class="res-tag">👷 ${r.name}</span>`).join('') :
+    '<span style="font-size:12px;color:#aaa">Aucune ressource humaine définie</span>';
+  document.getElementById('material-res-list').innerHTML=
+    materialResources.length ? materialResources.map(r=>`<span class="res-tag">🔧 ${r.name}</span>`).join('') :
+    '<span style="font-size:12px;color:#aaa">Aucun moyen matériel défini</span>';
+}
+
+// ---- MULTI-SELECT DROPDOWN ----
+let _openMsPanel=null;
+document.addEventListener('click',e=>{
+  if(_openMsPanel && !e.target.closest('.ms-trigger') && !e.target.closest('.ms-panel')){
+    _openMsPanel.remove();_openMsPanel=null;
+  }
+});
+function openMsDropdown(taskIdx,field,resources,anchor){
+  if(_openMsPanel){_openMsPanel.remove();_openMsPanel=null;}
+  const t=tasks[taskIdx];
+  const selected=(t[field]||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const panel=document.createElement('div');
+  panel.className='ms-panel';
+  if(resources.length===0){
+    panel.innerHTML=`<div class="ms-empty">Aucune ressource définie.<br>Ajoutez-en dans l'onglet <strong>Ressources</strong>.</div>`;
+  } else {
+    resources.forEach(r=>{
+      const checked=selected.includes(r.name);
+      const item=document.createElement('label');
+      item.className='ms-item';
+      item.innerHTML=`<input type="checkbox" ${checked?'checked':''}> <span>${r.name}</span>`;
+      item.querySelector('input').addEventListener('change',ev=>{
+        ev.stopPropagation();
+        const cur=(tasks[taskIdx][field]||'').split(',').map(s=>s.trim()).filter(Boolean);
+        if(ev.target.checked){if(!cur.includes(r.name))cur.push(r.name);}
+        else{const ix=cur.indexOf(r.name);if(ix>-1)cur.splice(ix,1);}
+        tasks[taskIdx][field]=cur.join(', ');
+        const disp=document.getElementById(`ms-d-${taskIdx}-${field}`);
+        if(disp){
+          disp.textContent=tasks[taskIdx][field]||'';
+          disp.className='ms-val'+(tasks[taskIdx][field]?'':' empty');
+        }
+      });
+      panel.appendChild(item);
+    });
+  }
+  const rect=anchor.getBoundingClientRect();
+  panel.style.top=(rect.bottom+window.scrollY+3)+'px';
+  panel.style.left=Math.max(4,rect.left+window.scrollX)+'px';
+  // Switch to fixed positioning
+  panel.style.top=(rect.bottom+3)+'px';
+  panel.style.left=Math.max(4,rect.left)+'px';
+  document.body.appendChild(panel);
+  _openMsPanel=panel;
+}
+function addLivr(){livraisons.push({id:uid++,supplier:'Fournisseur',items:'Matériaux',day:0,note:''});renderLivr()}
+function removeLivr(id){livraisons=livraisons.filter(l=>l.id!==id);renderLivr()}
+
+function addFermeture(){
+  const d=parseInt(document.getElementById('ferm-day').value);
+  const l=document.getElementById('ferm-label').value||'Fermeture';
+  if(isNaN(d))return;
+  fermetures.push({id:uid++,day:d,label:l});
+  document.getElementById('ferm-day').value='';
+  document.getElementById('ferm-label').value='';
+  renderCal();
+}
+function removeFermeture(id){fermetures=fermetures.filter(f=>f.id!==id);renderCal()}
+function addFermWeek(){
+  const s=parseInt(document.getElementById('fw-start').value);
+  const e=parseInt(document.getElementById('fw-end').value)||s;
+  const l=document.getElementById('fw-label').value||'Fermeture';
+  if(isNaN(s))return;
+  fermWeeks.push({id:uid++,start:s,end:e,label:l});renderCal();
+}
+function removeFermWeek(id){fermWeeks=fermWeeks.filter(f=>f.id!==id);renderCal()}
+
+let dragSrcIdx=null;
+
+function renderTasks(){
+  const el=document.getElementById('task-list');
+  el.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='row';
+    row.draggable=true;
+    row.dataset.idx=i;
+    row.style.cursor='default';
+    row.addEventListener('dragstart',e=>{dragSrcIdx=i;e.dataTransfer.effectAllowed='move';row.style.opacity='0.4';});
+    row.addEventListener('dragend',()=>{row.style.opacity='1';});
+    row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';row.style.background='#EAF3DE';});
+    row.addEventListener('dragleave',()=>{row.style.background='';});
+    row.addEventListener('drop',e=>{
+      e.preventDefault();row.style.background='';
+      if(dragSrcIdx===null||dragSrcIdx===i)return;
+      const moved=tasks.splice(dragSrcIdx,1)[0];tasks.splice(i,0,moved);dragSrcIdx=null;renderTasks();
+    });
+
+    // ---- TITRE / CHAPITRE ----
+    if(t.type==='title'){
+      row.style.gridTemplateColumns='22px 18px 1fr 30px';
+      row.style.background='#f0efed';
+      row.style.borderRadius='6px';
+      row.style.marginTop='6px';
+      row.style.marginBottom='2px';
+      row.style.padding='4px 2px';
+      row.innerHTML=`
+        <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#888780;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+        <span style="display:flex;justify-content:center;align-items:center">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:#2C2C2A;border-radius:3px;font-size:9px;color:white;font-weight:bold">T</span>
+        </span>
+        <input value="${t.name}" onchange="tasks[${i}].name=this.value" style="width:100%;font-weight:700;font-size:14px;border:none;border-bottom:2px solid #2C2C2A;border-radius:0;background:transparent;padding:3px 4px;color:#2C2C2A;letter-spacing:.02em" placeholder="Nom du chapitre…">
+        <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(${t.id})">🗑</button></div>
+      `;
+      el.appendChild(row);
+      return;
+    }
+
+    const isMil=t.type==='milestone';
+    const catOpts=Object.keys(CATS).map(c=>`<option${c===t.cat?' selected':''}>${c}</option>`).join('');
+    const predOpts='<option value="">—</option>'+tasks.filter(x=>x.id!==t.id&&x.type!=='title').map(x=>`<option value="${x.id}"${String(t.pred)===String(x.id)?' selected':''}>${x.name.substring(0,14)}</option>`).join('');
+    const linkOpts=LINK_TYPES.map(l=>`<option value="${l}"${t.link===l?' selected':''}>${l}</option>`).join('');
+    row.style.gridTemplateColumns='22px 14px minmax(110px,1.4fr) 100px 50px 50px 110px minmax(90px,1fr) minmax(90px,1fr) minmax(150px,1fr) 80px 55px 130px 44px';
+    const dot=isMil?`<span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span>`
+                   :`<span style="display:inline-block;width:10px;height:10px;background:${CATS[t.cat]?.c||'#888'};border-radius:2px"></span>`;
+    const hVal=t.human||'';
+    const mVal=t.material||'';
+    row.innerHTML=`
+      <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
+      <span style="display:flex;justify-content:center">${dot}</span>
+      <input value="${t.name}" onchange="tasks[${i}].name=this.value;renderTasks()" style="width:100%">
+      <select onchange="tasks[${i}].cat=this.value;renderTasks()" style="width:100%">${catOpts}</select>
+      <input type="number" value="${t.start}" min="0" onchange="tasks[${i}].start=+this.value||0" style="width:100%">
+      <input type="number" value="${t.dur}" min="0" ${isMil?'disabled':''} onchange="tasks[${i}].dur=+this.value||0" style="width:100%;${isMil?'opacity:.4':''}">
+      <input type="date" value="${startToDate(t.start)}" onchange="tasks[${i}].start=dateToStart(this.value);renderTasks()" style="width:100%;font-size:11px">
+      <div class="ms-trigger" onclick="openMsDropdown(${i},'human',humanResources,this)">
+        <span id="ms-d-${i}-human" class="ms-val${hVal?'':' empty'}">${hVal||'Choisir…'}</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <div class="ms-trigger" onclick="openMsDropdown(${i},'material',materialResources,this)">
+        <span id="ms-d-${i}-material" class="ms-val${mVal?'':' empty'}">${mVal||'Choisir…'}</span>
+        <span class="ms-arrow">▼</span>
+      </div>
+      <select onchange="tasks[${i}].pred=this.value;renderTasks()" style="width:100%">${predOpts}</select>
+      <select onchange="tasks[${i}].link=this.value" style="width:100%">${linkOpts}</select>
+      <input type="number" value="${t.lag||0}" onchange="tasks[${i}].lag=+this.value||0" style="width:100%">
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="range" min="0" max="100" step="5" value="${t.progress||0}" ${isMil?'disabled':''} oninput="tasks[${i}].progress=+this.value;renderTasks()" style="flex:1;${isMil?'opacity:.4':''}">
+        <span style="font-size:11px;min-width:28px;color:#888780">${t.progress||0}%</span>
+      </div>
+      <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(${t.id})">🗑</button></div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function renderLivr(){
+  const el=document.getElementById('livr-list');
+  el.innerHTML='';
+  livraisons.forEach((l,i)=>{
+    const row=document.createElement('div');
+    row.className='row';
+    row.style.gridTemplateColumns='1.2fr 1fr 100px 1.2fr 30px';
+    row.innerHTML=`
+      <input value="${l.supplier}" onchange="livraisons[${i}].supplier=this.value" style="width:100%">
+      <input value="${l.items}" onchange="livraisons[${i}].items=this.value" style="width:100%">
+      <input type="number" value="${l.day}" min="0" onchange="livraisons[${i}].day=+this.value||0" style="width:100%">
+      <input value="${l.note||''}" onchange="livraisons[${i}].note=this.value" style="width:100%" placeholder="Note">
+      <button class="btn-del" onclick="removeLivr(${l.id})">×</button>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function getEaster(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,ii=Math.floor(c/4),k=c%4,l=(32+2*e+2*ii-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;
+  return new Date(y,month-1,day);
+}
+function getFeries(year){
+  const r=[
+    [1,1,'Jour de l\'An'],[5,1,'Fête du Travail'],[5,8,'Victoire 1945'],
+    [7,14,'Fête Nationale'],[8,15,'Assomption'],[11,1,'Toussaint'],
+    [11,11,'Armistice'],[12,25,'Noël']
+  ].map(([m,d,n])=>({date:new Date(year,m-1,d),name:n}));
+  const e=getEaster(year);
+  r.push({date:new Date(e.getTime()+86400000),'name':'Lundi de Pâques'});
+  r.push({date:new Date(e.getTime()+86400000*39),'name':'Ascension'});
+  r.push({date:new Date(e.getTime()+86400000*50),'name':'Lundi de Pentecôte'});
+  return r;
+}
+
+function renderCal(){
+  const ps=document.getElementById('pstart').value||today();
+  const yr=new Date(ps).getFullYear();
+  const feries=getFeries(yr).concat(getFeries(yr+1));
+  document.getElementById('feries-list').innerHTML=feries.map(f=>`<span class="pill" style="background:#FAEEDA;color:#633806">${f.name} (${f.date.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})})</span>`).join('');
+  document.getElementById('ferm-list').innerHTML=fermetures.map(f=>`<span class="pill" style="background:#FBEAF0;color:#72243E">j+${f.day} – ${f.label} <span onclick="removeFermeture(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
+  document.getElementById('ferm-week-list').innerHTML=fermWeeks.map(f=>`<span class="pill" style="background:#E6F1FB;color:#0C447C">S${f.start}${f.end!==f.start?'–S'+f.end:''} – ${f.label} <span onclick="removeFermWeek(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
+}
+
+function pstartDate(){const v=document.getElementById('pstart').value||today();return new Date(v);}
+function startToDate(j){const d=new Date(pstartDate());d.setDate(d.getDate()+j);return d.toISOString().split('T')[0];}
+function dateToStart(dateStr){const ps=pstartDate();const d=new Date(dateStr);const diff=Math.round((d-ps)/86400000);return Math.max(0,diff);}
+function resolveStarts(){
+  const map={};tasks.forEach(t=>map[t.id]=t);
+  const resolved={};
+  function resolve(t){
+    if(t.type==='title'){resolved[t.id]=0;return 0;}
+    if(resolved[t.id]!==undefined)return resolved[t.id];
+    if(!t.pred||!map[t.pred]){resolved[t.id]=t.start;return t.start}
+    const p=map[t.pred],ps=resolve(p),lag=t.lag||0;
+    let s;
+    if(t.link==='FS')s=ps+p.dur+lag;
+    else if(t.link==='FF')s=ps+p.dur-t.dur+lag;
+    else if(t.link==='SS')s=ps+lag;
+    else if(t.link==='SF')s=ps-t.dur+lag;
+    else s=ps+p.dur+lag;
+    resolved[t.id]=Math.max(0,s);return resolved[t.id];
+  }
+  tasks.forEach(t=>resolve(t));return resolved;
+}
+
+function getClosedDays(pDate,totalDays){
+  const closed=new Set();
+  for(let d=0;d<totalDays;d++){
+    const dt=addDays(pDate,d);
+    const dow=dt.getDay();
+    if(dow===0||dow===6)closed.add(d);
+  }
+  const yr=pDate.getFullYear();
+  getFeries(yr).concat(getFeries(yr+1)).forEach(f=>{
+    const diff=Math.round((f.date-pDate)/86400000);
+    if(diff>=0&&diff<totalDays)closed.add(diff);
+  });
+  fermetures.forEach(f=>{if(f.day>=0&&f.day<totalDays)closed.add(f.day)});
+  fermWeeks.forEach(fw=>{
+    for(let w=fw.start;w<=fw.end;w++){
+      const sd=(w-1)*7;
+      for(let d=sd;d<sd+7&&d<totalDays;d++)closed.add(d);
+    }
+  });
+  return closed;
+}
+
+function buildSVG(pDate,DW,rangeStart,rangeEnd){
+  const LABEL_W=220,ROW_H=40,HDR_H=58,FOOT=8;
+  const starts=resolveStarts();
+  const sDay=rangeStart||0;
+  const eDay=rangeEnd||Math.max(...tasks.map(t=>starts[t.id]+(t.dur||1)))+3;
+  const totalDays=eDay-sDay;
+  const closed=getClosedDays(pDate,eDay);
+  const hasLivr=livraisons.length>0;
+  const totalRows=tasks.length+(hasLivr?1:0);
+  const svgW=LABEL_W+totalDays*DW;
+  const svgH=HDR_H+totalRows*ROW_H+FOOT;
+
+  let s='';
+  s+=`<defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888780"/></marker></defs>`;
+
+  // Background columns
+  for(let d=0;d<totalDays;d++){
+    const dd=d+sDay,x=LABEL_W+d*DW;
+    const isClosed=closed.has(dd);
+    const dt=addDays(pDate,dd);
+    const isFerie=getFeries(dt.getFullYear()).some(f=>f.date.toDateString()===dt.toDateString());
+    s+=`<rect x="${x}" y="0" width="${DW}" height="${svgH}" fill="${isFerie?'#FAEEDA':isClosed?'#f3f3f1':'#fafaf8'}"/>`;
+  }
+
+  // Vertical lines
+  for(let d=0;d<=totalDays;d++){
+    const x=LABEL_W+d*DW;
+    const dt=addDays(pDate,d+sDay);
+    const isMon=dt.getDay()===1;
+    s+=`<line x1="${x}" y1="0" x2="${x}" y2="${svgH}" stroke="${isMon?'#c8c6be':'#e8e6e2'}" stroke-width="${isMon?1:.5}"/>`;
+  }
+
+  // Header background
+  s+=`<rect x="0" y="0" width="${svgW}" height="${HDR_H}" fill="#f5f5f3"/>`;
+  s+=`<line x1="0" y1="${HDR_H}" x2="${svgW}" y2="${HDR_H}" stroke="#c8c6be" stroke-width="1"/>`;
+
+  // Week + day labels
+  const months=['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  let wn=Math.floor(sDay/7)+1,d=0;
+  while(d<totalDays){
+    const dt=addDays(pDate,d+sDay);
+    const dow=dt.getDay();
+    const toEnd=dow===1?7:(dow===0?1:8-dow);
+    const we=Math.min(d+toEnd,totalDays);
+    const wx=LABEL_W+d*DW,ww=(we-d)*DW;
+    s+=`<text x="${wx+ww/2}" y="16" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S${wn++}</text>`;
+    s+=`<line x1="${wx}" y1="20" x2="${wx+ww}" y2="20" stroke="#d3d1c7" stroke-width=".5"/>`;
+    for(let dd2=d;dd2<we&&dd2<totalDays;dd2++){
+      const x=LABEL_W+dd2*DW;
+      const day2=addDays(pDate,dd2+sDay);
+      const isWE=(day2.getDay()===0||day2.getDay()===6);
+      const isFe=getFeries(day2.getFullYear()).some(f=>f.date.toDateString()===day2.toDateString());
+      if(DW>=18||!isWE){
+        s+=`<text x="${x+DW/2}" y="36" text-anchor="middle" font-size="${DW>=26?10:9}" fill="${isFe?'#854F0B':isWE?'#b4b2a9':'#888780'}" font-family="Arial,sans-serif">${day2.getDate()}</text>`;
+      }
+      if(DW>=22&&(day2.getDate()===1||dd2===0)){
+        s+=`<text x="${x+DW/2}" y="52" text-anchor="middle" font-size="9" fill="#1D9E75" font-family="Arial,sans-serif" font-weight="bold">${months[day2.getMonth()]}</text>`;
+      }
+    }
+    d=we;if(we<totalDays&&we===d)d++;
+  }
+
+  // Left label column
+  s+=`<rect x="0" y="0" width="${LABEL_W}" height="${svgH}" fill="#f5f5f3"/>`;
+  s+=`<line x1="${LABEL_W}" y1="0" x2="${LABEL_W}" y2="${svgH}" stroke="#b4b2a9" stroke-width="1"/>`;
+  s+=`<text x="8" y="${HDR_H/2+4}" font-size="12" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">Tâches</text>`;
+
+  // Task rows
+  const barCoords={};
+  tasks.forEach((t,i)=>{
+    const y=HDR_H+i*ROW_H;
+
+    // ---- TITRE / CHAPITRE ----
+    if(t.type==='title'){
+      s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="#2C2C2A"/>`;
+      s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#444" stroke-width="1"/>`;
+      const titleTxt=t.name.length>40?t.name.substring(0,40)+'…':t.name;
+      s+=`<text x="10" y="${y+ROW_H/2+5}" font-size="13" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.5">${titleTxt}</text>`;
+      barCoords[t.id]={x:LABEL_W,x2:LABEL_W,y:y+ROW_H/2,ts:0,te:0};
+      return;
+    }
+
+    s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="${i%2===0?'#ffffff':'#fafaf8'}"/>`;
+    s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#eeecea" stroke-width=".5"/>`;
+    const cat=CATS[t.cat]||CATS['Coordination'];
+    s+=`<rect x="3" y="${y+12}" width="3" height="16" rx="1" fill="${cat.c}"/>`;
+    // Wrap task name on 2 lines (max ~26 chars per line)
+    const MAX_LINE=26;
+    let line1=t.name,line2='';
+    if(t.name.length>MAX_LINE){
+      let cut=t.name.lastIndexOf(' ',MAX_LINE);
+      if(cut<8)cut=MAX_LINE;
+      line1=t.name.substring(0,cut);
+      const rest=t.name.substring(cut).trim();
+      line2=rest.length>MAX_LINE?rest.substring(0,MAX_LINE-1)+'…':rest;
+    }
+    const hasRes=!!(t.human||t.material);
+    if(line2){
+      // 2 lines for name, no resource subtitle
+      s+=`<text x="10" y="${y+ROW_H/2-6}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${line1}</text>`;
+      s+=`<text x="10" y="${y+ROW_H/2+7}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${line2}</text>`;
+    } else {
+      s+=`<text x="10" y="${y+ROW_H/2-4}" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">${line1}</text>`;
+      const subParts=[];
+      if(t.human)subParts.push(t.human.substring(0,20));
+      if(t.material)subParts.push(t.material.substring(0,18));
+      if(subParts.length)s+=`<text x="10" y="${y+ROW_H/2+9}" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">${subParts.join(' | ')}</text>`;
+    }
+
+    const ts=starts[t.id];
+    if(t.type==='milestone'){
+      const mx=LABEL_W+(ts-sDay)*DW+DW/2,my=y+ROW_H/2,ms=10;
+      if(ts>=sDay&&ts<=eDay){
+        s+=`<rect x="${mx-ms/2}" y="${my-ms/2}" width="${ms}" height="${ms}" fill="#EF9F27" transform="rotate(45,${mx},${my})" rx="2"/>`;
+        if(DW>=22)s+=`<text x="${mx+ms}" y="${my+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,ts))}</text>`;
+      }
+      barCoords[t.id]={x:mx,x2:mx,y:my,ts,te:ts};
+    } else {
+      const bx=LABEL_W+(ts-sDay)*DW+2,bw=t.dur*DW-4,bh=ROW_H-14,by=y+7;
+      if(ts<eDay&&ts+t.dur>sDay){
+        const cx=Math.max(LABEL_W+2,bx);
+        const cw=Math.min(LABEL_W+(eDay-sDay)*DW-4,bx+bw)-cx;
+        if(cw>0){
+          s+=`<rect x="${cx}" y="${by}" width="${cw}" height="${bh}" rx="4" fill="${cat.c}" opacity=".85"/>`;
+          const prog=t.progress||0;
+          if(prog>0){s+=`<rect x="${cx}" y="${by+bh-5}" width="${cw*(prog/100)}" height="5" rx="2" fill="white" opacity=".55"/>`}
+          if(cw>38)s+=`<text x="${cx+cw/2}" y="${by+bh/2+4}" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">${t.dur}j${prog>0?' ('+prog+'%)':''}</text>`;
+          if(cw>55)s+=`<text x="${cx+cw-4}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,ts+t.dur))}</text>`;
+        }
+      }
+      barCoords[t.id]={x:LABEL_W+(ts-sDay)*DW+2,x2:LABEL_W+(ts-sDay)*DW+t.dur*DW-2,y:y+ROW_H/2,ts,te:ts+t.dur};
+    }
+  });
+
+  // Livraisons row
+  if(hasLivr){
+    const iy=HDR_H+tasks.length*ROW_H;
+    s+=`<rect x="0" y="${iy}" width="${svgW}" height="${ROW_H}" fill="#fdf8f0"/>`;
+    s+=`<text x="10" y="${iy+ROW_H/2+4}" font-size="11" fill="#854F0B" font-weight="bold" font-family="Arial,sans-serif">Livraisons fournisseurs</text>`;
+    livraisons.forEach(l=>{
+      if(l.day<sDay||l.day>eDay)return;
+      const lx=LABEL_W+(l.day-sDay)*DW;
+      s+=`<line x1="${lx+DW/2}" y1="${iy+4}" x2="${lx+DW/2}" y2="${iy+ROW_H-4}" stroke="#EF9F27" stroke-width="2.5"/>`;
+      s+=`<polygon points="${lx+DW/2-7},${iy+4} ${lx+DW/2+7},${iy+4} ${lx+DW/2},${iy+16}" fill="#EF9F27"/>`;
+      if(DW>=18)s+=`<text x="${lx+DW/2+10}" y="${iy+ROW_H/2+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${l.supplier.substring(0,10)}</text>`;
+    });
+  }
+
+  // Dependency arrows
+  tasks.forEach(t=>{
+    if(!t.pred||!barCoords[t.pred]||!barCoords[t.id])return;
+    const p=barCoords[t.pred],c=barCoords[t.id];
+    let sx,sy,ex,ey;
+    if(t.link==='FS'){sx=p.x2;sy=p.y;ex=c.x;ey=c.y}
+    else if(t.link==='FF'){sx=p.x2;sy=p.y;ex=c.x2;ey=c.y}
+    else if(t.link==='SS'){sx=p.x;sy=p.y;ex=c.x;ey=c.y}
+    else if(t.link==='SF'){sx=p.x;sy=p.y;ex=c.x2;ey=c.y}
+    const mx=(sx+ex)/2;
+    s+=`<path d="M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}" fill="none" stroke="#888780" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>`;
+    const midX=(sx+ex)/2,midY=(sy+ey)/2;
+    s+=`<rect x="${midX-11}" y="${midY-7}" width="22" height="13" rx="3" fill="#f0efed"/>`;
+    s+=`<text x="${midX}" y="${midY+3}" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold">${t.link}${t.lag?'+'+t.lag:''}</text>`;
+  });
+
+  return {svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}">${s}</svg>`,width:svgW,height:svgH};
+}
+
+function renderGantt(){
+  if(!tasks.length)return;
+  const DW=parseInt(document.getElementById('zoom').value);
+  const ps=document.getElementById('pstart').value||today();
+  const pDate=new Date(ps);
+  const starts=resolveStarts();
+  const totalDays=Math.max(...tasks.filter(t=>t.type!=='title').map(t=>starts[t.id]+(t.dur||1)))+3;
+  const {svg}=buildSVG(pDate,DW,0,totalDays);
+
+  const usedCats=[...new Set(tasks.map(t=>t.cat))];
+  document.getElementById('g-legend').innerHTML=
+    usedCats.map(c=>`<span class="legend-item"><span class="swatch" style="background:${CATS[c]?.c||'#888'}"></span>${c}</span>`).join('')+
+    (livraisons.length?`<span class="legend-item"><span class="swatch" style="background:#EF9F27"></span>Livraisons</span>`:'') +
+    `<span class="legend-item"><span class="swatch" style="background:#EF9F27;transform:rotate(45deg)"></span>Jalons</span>`;
+
+  const taskOnly=tasks.filter(t=>t.type!=='milestone'&&t.type!=='title');
+  const done=taskOnly.filter(t=>(t.progress||0)===100).length;
+  const inP=taskOnly.filter(t=>(t.progress||0)>0&&(t.progress||0)<100).length;
+  const todo=taskOnly.filter(t=>(t.progress||0)===0).length;
+  const avg=taskOnly.length?Math.round(taskOnly.reduce((a,t)=>a+(t.progress||0),0)/taskOnly.length):0;
+  const endDate=addDays(pDate,totalDays);
+
+  document.getElementById('g-metrics').innerHTML=`
+    <div class="metric"><div class="lbl">Durée totale</div><div class="val">${totalDays} jours</div></div>
+    <div class="metric"><div class="lbl">Fin prévisionnelle</div><div class="val">${fmtFull(endDate)}</div></div>
+    <div class="metric"><div class="lbl">Avancement global</div><div class="val">${avg}%</div></div>
+    <div class="metric"><div class="lbl">Tâches</div><div class="val" style="font-size:14px">
+      <span style="color:#1D9E75">✓ ${done} terminées</span> &nbsp;
+      <span style="color:#BA7517">~ ${inP} en cours</span> &nbsp;
+      <span style="color:#888780">○ ${todo} à faire</span>
+    </div></div>
+  `;
+
+  const name=document.getElementById('pname').value||'Planning de chantier';
+  document.getElementById('g-title').textContent=name;
+  document.getElementById('g-sub').textContent=`Démarrage : ${fmtFull(pDate)} · ${usedCats.length} catégories · ${tasks.filter(t=>t.pred).length} liens · ${tasks.filter(t=>t.type==='milestone').length} jalons · ${livraisons.length} livraisons`;
+  document.getElementById('gantt-scroll').innerHTML=svg;
+  document.getElementById('gantt-card').style.display='block';
+  document.getElementById('pdf-end').value=totalDays;
+}
+
+function exportPDF(){
+  const ps=document.getElementById('pstart').value||today();
+  const pDate=new Date(ps);
+  const pdStart=parseInt(document.getElementById('pdf-start').value)||0;
+  const pdEnd=parseInt(document.getElementById('pdf-end').value)||60;
+  const showH=document.getElementById('pdf-human').value==='1';
+  const showM=document.getElementById('pdf-mat').value==='1';
+  const showP=document.getElementById('pdf-prog').value==='1';
+  const name=document.getElementById('pname').value||'Planning de chantier';
+  const DW=26;
+
+  // Build gantt SVG for print range
+  const {svg,width,height}=buildSVG(pDate,DW,pdStart,pdEnd);
+
+  // Update print header
+  document.getElementById('ph-title').textContent=name;
+  document.getElementById('ph-sub').textContent=`Démarrage : ${fmtFull(pDate)} — Plage : j+${pdStart} à j+${pdEnd} — Généré le ${new Date().toLocaleDateString('fr-FR')}`;
+
+  // Replace gantt with print version
+  const origContent=document.getElementById('gantt-scroll').innerHTML;
+  document.getElementById('gantt-scroll').innerHTML=svg;
+
+  // Build detail table if needed
+  let detailHtml='';
+  if(showH||showM||showP){
+    const starts2=resolveStarts();
+    const cols=['N°','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',showH?'Moyens humains':null,showM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
+    let rowNum=0;
+    const taskRows=tasks.filter(t=>t.type!=='title').map(t=>{
+      rowNum++;
+      const ts=starts2[t.id]||0;
+      const te=t.type==='milestone'?ts:ts+(t.dur||0);
+      const isMilRow=t.type==='milestone';
+      const vals=[
+        String(rowNum),
+        t.name,
+        t.cat||'—',
+        'j+'+ts,
+        fmtFull(addDays(pDate,ts)),
+        isMilRow?'—':'j+'+te,
+        isMilRow?'—':fmtFull(addDays(pDate,te)),
+        isMilRow?'Jalon':(t.dur||0)+' j',
+        showH?t.human||'—':null,
+        showM?t.material||'—':null,
+        showP?(t.progress||0)+'%':null
+      ].filter((_,j)=>cols[j]!==undefined);
+      const bg=isMilRow?'#FAEEDA':'';
+      return `<tr style="background:${bg}">${vals.map((v,vi)=>`<td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px;${vi===1?'font-weight:500':''}${isMilRow&&vi===1?';color:#854F0B':''}">${v||'—'}</td>`).join('')}</tr>`;
+    }).join('');
+    detailHtml=`<div style="margin-top:20px;page-break-before:always">
+      <p style="font-size:14px;font-weight:bold;margin-bottom:4px">${name}</p>
+      <p style="font-size:11px;color:#888780;margin-bottom:12px">Détail des tâches &amp; ressources — Démarrage : ${fmtFull(pDate)} — Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>${cols.map(c=>`<th style="padding:5px 8px;background:#2C2C2A;color:white;font-size:10px;font-weight:600;text-align:left;border-right:1px solid #555">${c}</th>`).join('')}</tr></thead>
+        <tbody>${taskRows}</tbody>
+      </table>
+      ${livraisons.length?`
+      <p style="font-size:13px;font-weight:bold;margin-top:18px;margin-bottom:6px">Livraisons fournisseurs</p>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>${['Fournisseur','Matériaux / Fournitures','Jour (j+)','Date','Note'].map(c=>`<th style="padding:5px 8px;background:#854F0B;color:white;font-size:10px;font-weight:600;text-align:left">${c}</th>`).join('')}</tr></thead>
+        <tbody>${livraisons.map(l=>`<tr><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.supplier}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.items}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">j+${l.day}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${fmtFull(addDays(pDate,l.day))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.note||'—'}</td></tr>`).join('')}</tbody>
+      </table>`:''}
+    </div>`;
+    document.getElementById('gantt-card').insertAdjacentHTML('afterend',`<div id="print-detail">${detailHtml}</div>`);
+  }
+
+  window.print();
+
+  // Restore
+  document.getElementById('gantt-scroll').innerHTML=origContent;
+  const pd=document.getElementById('print-detail');
+  if(pd)pd.remove();
+}
+
+// ---- PRESETS ----
+const PRESETS={
+  mixte:{name:'Chantier mixte – Lotissement résidentiel',tasks:[
+    {type:'task',name:'Installation & balisage',cat:'Coordination',start:0,dur:2,human:'Chef chantier',material:'Bungalow, signalétique',pred:'',link:'FS',lag:0,progress:100},
+    {type:'milestone',name:'Réunion de lancement',cat:'Coordination',start:2,dur:0,human:'Équipe + MO',material:'',pred:'1',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Terrassement général',cat:'Terrassement',start:2,dur:7,human:'2 terrassiers',material:'Pelleteuse, dumper',pred:'1',link:'FS',lag:0,progress:60},
+    {type:'task',name:'Réseaux enterrés',cat:'Réseaux VRD',start:0,dur:8,human:'2 techniciens VRD',material:'Mini-pelle, compacteur',pred:'3',link:'SS',lag:2,progress:30},
+    {type:'task',name:'Drainage EV',cat:'Drainage',start:0,dur:4,human:'1 technicien',material:'Mini-pelle',pred:'4',link:'SS',lag:0,progress:0},
+    {type:'task',name:'Voiries internes',cat:'Voirie',start:0,dur:7,human:'3 compagnons voirie',material:'Finisseur, rouleau',pred:'4',link:'FS',lag:0,progress:0},
+    {type:'milestone',name:'Réunion de chantier S3',cat:'Coordination',start:0,dur:0,human:'Chef chantier',material:'',pred:'6',link:'SS',lag:0,progress:0},
+    {type:'task',name:'Préparation sols EV',cat:'Terrassement',start:0,dur:3,human:'1 paysagiste',material:'Micro-tracteur, fraise',pred:'5',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Arrosage automatique',cat:'Réseaux VRD',start:0,dur:4,human:'1 technicien arrosage',material:'Trancheuse, pompe test',pred:'8',link:'SS',lag:1,progress:0},
+    {type:'task',name:'Plantation haies',cat:'Plantation',start:0,dur:4,human:'2 paysagistes',material:'Tracteur, tarière',pred:'8',link:'FS',lag:1,progress:0},
+    {type:'task',name:'Engazonnement',cat:'Engazonnement',start:0,dur:3,human:'1 paysagiste',material:'Semoir, rouleau',pred:'10',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Clôtures',cat:'Clôtures',start:0,dur:4,human:'2 clôturistes',material:'Perforateur, outillage',pred:'6',link:'FF',lag:0,progress:0},
+    {type:'task',name:'Finitions & nettoyage',cat:'Finitions',start:0,dur:3,human:'Chef chantier + équipe',material:'Benne, souffleur',pred:'11',link:'FS',lag:0,progress:0},
+    {type:'milestone',name:'Réception de chantier',cat:'Coordination',start:0,dur:0,human:'MO + équipe',material:'',pred:'13',link:'FS',lag:0,progress:0},
+  ],livr:[
+    {supplier:'Granulats SA',items:'Tout-venant 0/80',day:2,note:'Livraison matin'},
+    {supplier:'Canalisations Pro',items:'Buses béton EP',day:9,note:'Camion grue nécessaire'},
+    {supplier:'Pépinière du Val',items:'Arbres & arbustes',day:28,note:'Avant 8h matin'},
+  ]},
+  vrd:{name:'Chantier VRD – Zone industrielle',tasks:[
+    {type:'task',name:'Installation de chantier',cat:'Coordination',start:0,dur:2,human:'Chef chantier',material:'Bungalow, clôture chantier',pred:'',link:'FS',lag:0,progress:100},
+    {type:'milestone',name:'Réunion démarrage VRD',cat:'Coordination',start:2,dur:0,human:'',material:'',pred:'1',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Débroussaillage',cat:'Terrassement',start:0,dur:3,human:'2 ouvriers',material:'Débroussailleuse, benne',pred:'1',link:'FS',lag:0,progress:100},
+    {type:'task',name:'Terrassement général',cat:'Terrassement',start:0,dur:8,human:'2 conducteurs engins',material:'Pelleteuse 20t, dumper',pred:'3',link:'FS',lag:0,progress:50},
+    {type:'task',name:'Fouilles réseaux EP',cat:'Réseaux VRD',start:0,dur:5,human:'2 techniciens VRD',material:'Mini-pelle, étaiement',pred:'4',link:'SS',lag:3,progress:0},
+    {type:'task',name:'Pose réseau eaux pluviales',cat:'Réseaux VRD',start:0,dur:6,human:'3 techniciens',material:'Grue pose tuyaux, laser',pred:'5',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Pose réseau EU',cat:'Réseaux VRD',start:0,dur:5,human:'3 techniciens',material:'Grue, laser canalisation',pred:'6',link:'SS',lag:2,progress:0},
+    {type:'task',name:'Réseau AEP',cat:'Réseaux VRD',start:0,dur:4,human:'2 techniciens',material:'Mini-pelle, détecteur',pred:'7',link:'SS',lag:1,progress:0},
+    {type:'milestone',name:'Inspection réseaux',cat:'Coordination',start:0,dur:0,human:'Bureau de contrôle',material:'',pred:'8',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Remblaiement & compactage',cat:'Terrassement',start:0,dur:4,human:'2 conducteurs',material:'Compacteur, dumper',pred:'9',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Sous-couche voirie',cat:'Voirie',start:0,dur:4,human:'3 compagnons',material:'Finisseur, rouleau vibrant',pred:'10',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Bordures & cunettes',cat:'Voirie',start:0,dur:6,human:'3 maçons',material:'Coupe, banche',pred:'11',link:'SS',lag:0,progress:0},
+    {type:'task',name:'Revêtement enrobé',cat:'Voirie',start:0,dur:5,human:'4 compagnons',material:'Finisseur enrobé, rouleau',pred:'11',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Signalisation',cat:'Finitions',start:0,dur:3,human:'2 techniciens',material:'Traceur, plots, panneaux',pred:'13',link:'FS',lag:0,progress:0},
+    {type:'milestone',name:'Réception VRD',cat:'Coordination',start:0,dur:0,human:'MO + bureau contrôle',material:'',pred:'14',link:'FS',lag:0,progress:0},
+  ],livr:[
+    {supplier:'Granulats Loire',items:'GNT 0/31,5',day:14,note:'2 semi-remorques'},
+    {supplier:'Enrobés Région',items:'Enrobé BB 0/10',day:30,note:'Centrale à 35km'},
+    {supplier:'Signaux France',items:'Panneaux & marquage',day:36,note:''},
+  ]},
+  ev:{name:'Aménagement espaces verts – Parc municipal',tasks:[
+    {type:'task',name:'Préparation des sols',cat:'Terrassement',start:0,dur:4,human:'2 paysagistes',material:'Micro-tracteur, fraise',pred:'',link:'FS',lag:0,progress:100},
+    {type:'task',name:'Drainage parcelles',cat:'Drainage',start:0,dur:4,human:'1 technicien VRD',material:'Mini-pelle, gravier drainant',pred:'1',link:'SS',lag:1,progress:80},
+    {type:'task',name:'Réseau arrosage',cat:'Réseaux VRD',start:0,dur:5,human:'1 technicien arrosage',material:'Trancheuse, centrale pompe',pred:'2',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Modelage terrain',cat:'Terrassement',start:0,dur:5,human:'1 conducteur engin',material:'Niveleuse, compacteur',pred:'1',link:'FS',lag:1,progress:0},
+    {type:'milestone',name:'Validation modelage MO',cat:'Coordination',start:0,dur:0,human:'MO + paysagiste',material:'',pred:'4',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Amendement & fumure',cat:'Engazonnement',start:0,dur:2,human:'1 paysagiste',material:'Épandeur, motoculteur',pred:'5',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Plantations arbres',cat:'Plantation',start:0,dur:7,human:'3 paysagistes',material:'Tracteur + tarière, tuteurs',pred:'6',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Massifs fleuris',cat:'Plantation',start:0,dur:5,human:'2 paysagistes',material:'Outillage manuel, paillage',pred:'7',link:'SS',lag:3,progress:0},
+    {type:'task',name:'Engazonnement',cat:'Engazonnement',start:0,dur:4,human:'1 paysagiste',material:'Semoir, rouleau, arrosage',pred:'6',link:'FS',lag:2,progress:0},
+    {type:'task',name:'Allées et cheminements',cat:'Voirie',start:0,dur:6,human:'2 maçons paysagistes',material:'Coupe, banche, niveau',pred:'4',link:'FS',lag:2,progress:0},
+    {type:'task',name:'Clôtures & portails',cat:'Clôtures',start:0,dur:4,human:'2 clôturistes',material:'Perforateur, soudure',pred:'10',link:'FS',lag:0,progress:0},
+    {type:'task',name:'Mobilier & signalétique',cat:'Mobilier urbain',start:0,dur:3,human:'2 monteurs',material:'Nacelle, outillage pose',pred:'11',link:'FS',lag:0,progress:0},
+    {type:'milestone',name:'Réception espaces verts',cat:'Coordination',start:0,dur:0,human:'MO + maître d\'ouvrage',material:'',pred:'12',link:'FS',lag:0,progress:0},
+  ],livr:[
+    {supplier:'Pépinière du Loiret',items:'Arbres tiges 12/14',day:16,note:'Livraison + déchargement'},
+    {supplier:'Fleurosite',items:'Plants fleuris saison',day:22,note:'Conserver à l\'ombre'},
+    {supplier:'Gazons Pro',items:'Graines gazon sport',day:18,note:'Stocker au sec'},
+  ]},
+  empty:{name:'Nouveau chantier',tasks:[
+    {type:'task',name:'Première tâche',cat:'Coordination',start:0,dur:5,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
+  ],livr:[]}
+};
+
+function loadPreset(key){
+  const p=PRESETS[key];
+  document.getElementById('pname').value=p.name;
+  // Keep uid above resource IDs already assigned
+  uid=Math.max(uid,100);
+  tasks=p.tasks.map(t=>({...t,id:uid++}));
+  tasks.forEach((t,i)=>{
+    if(t.pred){const pi=parseInt(t.pred)-1;t.pred=pi>=0&&pi<tasks.length?String(tasks[pi].id):''}
+  });
+  livraisons=(p.livr||[]).map(l=>({...l,id:uid++}));
+  renderTasks();renderLivr();renderCal();renderGantt();
+}
+
+// ---- SAUVEGARDE / CHARGEMENT ----
+function sauvegarder(){
+  const data={
+    version:1,
+    pname:document.getElementById('pname').value,
+    pstart:document.getElementById('pstart').value,
+    zoom:document.getElementById('zoom').value,
+    tasks,livraisons,fermetures,fermWeeks,uid,
+    humanResources,materialResources
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const nom=(document.getElementById('pname').value||'gantt').replace(/[^a-z0-9]/gi,'-').toLowerCase();
+  a.href=url;
+  a.download=`gantt-${nom}-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  const btn=document.getElementById('btn-save');
+  btn.textContent='✓ Sauvegardé !';
+  btn.style.background='#d0edc0';
+  setTimeout(()=>{btn.textContent='↓ Sauvegarder';btn.style.background='#EAF3DE';},2000);
+}
+
+function charger(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.tasks)throw new Error('Format invalide');
+      if(!confirm(`Charger "${d.pname}" ?\n${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return;
+      document.getElementById('pname').value=d.pname||'';
+      document.getElementById('pstart').value=d.pstart||today();
+      if(d.zoom)document.getElementById('zoom').value=d.zoom;
+      tasks=d.tasks||[];
+      livraisons=d.livraisons||[];
+      fermetures=d.fermetures||[];
+      fermWeeks=d.fermWeeks||[];
+      humanResources=d.humanResources||[];
+      materialResources=d.materialResources||[];
+      uid=d.uid||100;
+      renderTasks();renderLivr();renderCal();renderResources();renderGantt();
+    }catch(err){alert('Fichier invalide. Veuillez sélectionner un fichier de sauvegarde Gantt (.json).');}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+// Init
+document.getElementById('pstart').value=today();
+// Assign UIDs to predefined resources
+humanResources=humanResources.map(r=>({...r,id:uid++}));
+materialResources=materialResources.map(r=>({...r,id:uid++}));
+renderCal();
+renderResources();
+loadPreset('mixte');
+</script>
+
+
+</body></html>

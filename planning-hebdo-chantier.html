@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning Hebdomadaire Chantier</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2F0EB;
+  --surface: #FAFAF8;
+  --surface2: #EEECEA;
+  --border: rgba(40,38,32,.12);
+  --border2: rgba(40,38,32,.22);
+  --ink: #1E1C18;
+  --ink2: #4A4740;
+  --ink3: #8A877E;
+  --ink4: #B8B5AE;
+  --green: #1D7A4F;
+  --green-bg: #E6F4ED;
+  --amber: #B86A10;
+  --amber-bg: #FEF3E2;
+  --red: #B83232;
+  --red-bg: #FDEAEA;
+  --blue: #2056A8;
+  --blue-bg: #E8EFFE;
+  --purple: #6B42B8;
+  --purple-bg: #F0EBFE;
+  --teal: #1A7A6E;
+  --teal-bg: #E6F4F2;
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(30,28,24,.08), 0 4px 16px rgba(30,28,24,.05);
+  --shadow-lg: 0 4px 24px rgba(30,28,24,.12), 0 1px 6px rgba(30,28,24,.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 13px;
+}
+
+/* ─── HEADER ─── */
+.app-header {
+  background: var(--ink);
+  color: var(--surface);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-logo .dot { color: #E8C36A; }
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 600px;
+}
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.week-nav button {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--surface);
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  transition: background .15s;
+}
+.week-nav button:hover { background: rgba(255,255,255,.18); }
+.week-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  white-space: nowrap;
+  padding: 0 8px;
+}
+.header-actions { display: flex; gap: 8px; }
+.btn { font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; border-radius: 7px; border: none; padding: 7px 14px; font-weight: 500; transition: all .15s; }
+.btn-outline { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: var(--surface); }
+.btn-outline:hover { background: rgba(255,255,255,.18); }
+.btn-gold { background: #E8C36A; color: var(--ink); }
+.btn-gold:hover { background: #f0cd76; }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: #166040; }
+.btn-red { background: var(--red); color: #fff; font-size: 11px; padding: 4px 8px; }
+.btn-red:hover { background: #922a2a; }
+
+/* ─── TOOLBAR ─── */
+.toolbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.toolbar input, .toolbar select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--ink);
+  outline: none;
+}
+.toolbar input:focus, .toolbar select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,122,79,.1); }
+.toolbar label { font-size: 11px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; }
+
+/* ─── MAIN ─── */
+.main { padding: 20px 28px; }
+
+/* ─── STATS BAR ─── */
+.stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stat-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+.stat-pill .val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; color: var(--ink); }
+.stat-pill.warn .val { color: var(--amber); }
+.stat-pill.danger .val { color: var(--red); }
+
+/* ─── PLANNING GRID ─── */
+.planning-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.planning-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.planning-table th {
+  background: var(--ink);
+  color: var(--surface);
+  padding: 10px 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.planning-table th.day-th {
+  text-align: center;
+  min-width: 170px;
+}
+.planning-table th .day-name { font-size: 12px; display: block; }
+.planning-table th .day-date { font-family: 'DM Mono', monospace; font-size: 10px; opacity: .6; margin-top: 1px; display: block; }
+.planning-table th.today-th { background: var(--green); }
+
+.planning-table tbody tr td { border-bottom: 1px solid var(--border); }
+.planning-table tbody tr:last-child td { border-bottom: none; }
+.planning-table td { padding: 0; vertical-align: top; }
+.planning-table th.day-th { border-left: 1px solid rgba(255,255,255,.1); }
+.planning-table tbody td.day-cell-wrap { border-left: 1px solid var(--border); }
+
+/* chef row */
+.chef-cell {
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-right: 2px solid var(--border2);
+  min-width: 130px;
+}
+.chef-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chef-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.chef-role {
+  font-size: 10px;
+  color: var(--ink3);
+  margin-top: 2px;
+  font-weight: 400;
+}
+.chef-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 4px;
+}
+
+/* day cell */
+.day-cell {
+  padding: 6px 8px;
+  min-height: 64px;
+  vertical-align: top;
+  cursor: pointer;
+  transition: background .1s;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.day-cell:hover { background: rgba(29,122,79,.04); }
+.day-cell.today-col { background: rgba(29,122,79,.03); }
+.day-cell.today-col:hover { background: rgba(29,122,79,.07); }
+
+/* chantier tag */
+.chantier-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  margin: 2px 0;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity .1s;
+  line-height: 1.3;
+  position: relative;
+}
+.chantier-tag:hover { opacity: .85; }
+.chantier-tag .tag-code {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  opacity: .75;
+  white-space: nowrap;
+}
+.chantier-tag .tag-label { flex: 1; }
+.chantier-tag .tag-del {
+  opacity: 0;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: opacity .1s;
+  flex-shrink: 0;
+}
+.chantier-tag:hover .tag-del { opacity: .6; }
+.chantier-tag .tag-del:hover { opacity: 1 !important; }
+
+.add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  color: var(--ink4);
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px dashed var(--border2);
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  margin-top: 2px;
+}
+.add-btn:hover { color: var(--green); border-color: var(--green); background: var(--green-bg); }
+
+/* absence / congé badge */
+.absence-badge, .conge-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 2px 0;
+}
+.absence-badge { background: var(--red-bg); color: var(--red); }
+.conge-badge { background: var(--amber-bg); color: var(--amber); }
+
+/* ─── SECTION HEADERS ─── */
+.section-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--surface2);
+  border-top: 2px solid var(--border2);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink3);
+}
+
+/* ─── MATERIEL ROW ─── */
+.materiel-cell {
+  padding: 6px 10px;
+  min-height: 48px;
+  border-right: 1px solid var(--border);
+}
+.mat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 500;
+  margin: 2px 0;
+  background: var(--blue-bg);
+  color: var(--blue);
+  cursor: pointer;
+  width: 100%;
+  line-height: 1.3;
+}
+.mat-tag .tag-del { opacity: 0; cursor: pointer; font-size: 13px; margin-left: auto; }
+.mat-tag:hover .tag-del { opacity: .6; }
+.mat-label-cell {
+  padding: 6px 14px;
+  background: var(--surface2);
+  border-right: 2px solid var(--border2);
+}
+.mat-label-cell .mat-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.mat-label-cell .mat-del { margin-top: 3px; }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(30,28,24,.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 26px;
+  width: min(480px, 95vw);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn { from { opacity:0; transform: translateY(10px) scale(.97); } }
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+.modal form { display: flex; flex-direction: column; gap: 12px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; display: block; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,122,79,.1); }
+.field textarea { resize: vertical; min-height: 64px; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.btn-primary { background: var(--ink); color: #fff; padding: 8px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; }
+.btn-primary:hover { background: var(--ink2); }
+.btn-cancel { background: var(--surface2); color: var(--ink2); padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; }
+.btn-cancel:hover { background: var(--border); }
+
+/* ─── LOCATION MATERIEL ─── */
+.location-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.location-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.location-table th {
+  background: var(--ink);
+  color: #fff;
+  padding: 8px 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  letter-spacing: .04em;
+}
+.location-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.location-table tr:last-child td { border-bottom: none; }
+.location-table tr:hover td { background: var(--bg); }
+
+/* ─── ABSENCES/CONGES ─── */
+.notes-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.notes-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notes-day { border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; }
+.notes-day-title { font-size: 10px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.absence-line { font-size: 11px; color: var(--red); }
+.conge-line { font-size: 11px; color: var(--amber); }
+
+/* ─── PRINT ─── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .app-header { position: relative; background: #1E1C18 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .planning-table th { position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .chef-cell { position: relative; }
+}
+
+/* ─── COLORS palette ─── */
+.c0 { background: #E6F4ED; color: #1D7A4F; }
+.c1 { background: #E8EFFE; color: #2056A8; }
+.c2 { background: #FEF3E2; color: #B86A10; }
+.c3 { background: #FDEAEA; color: #B83232; }
+.c4 { background: #F0EBFE; color: #6B42B8; }
+.c5 { background: #E6F4F2; color: #1A7A6E; }
+.c6 { background: #FEF0FA; color: #A0287A; }
+.c7 { background: #F0F4E8; color: #4A7A1A; }
+.c8 { background: #F5F4F0; color: #5A5750; }
+
+.scroll-x { overflow-x: auto; }
+
+/* ─── EMPTY ─── */
+.empty-planning {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink4);
+}
+.empty-planning .big { font-size: 40px; margin-bottom: 10px; }
+.empty-planning p { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header no-print">
+  <div class="app-logo">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="2" width="8" height="10" rx="2" fill="#E8C36A"/>
+      <rect x="12" y="2" width="8" height="6" rx="2" fill="rgba(255,255,255,.4)"/>
+      <rect x="12" y="10" width="8" height="10" rx="2" fill="rgba(255,255,255,.25)"/>
+      <rect x="2" y="14" width="8" height="6" rx="2" fill="rgba(255,255,255,.3)"/>
+    </svg>
+    Planning <span class="dot">·</span> Chantier
+  </div>
+
+  <div class="header-center">
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">←</button>
+      <span class="week-label" id="week-label">Semaine 12</span>
+      <button onclick="changeWeek(1)">→</button>
+    </div>
+    <input id="chantier-name" type="text" placeholder="Nom du chantier / agence…"
+      style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:6px 10px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;"
+      oninput="state.nomChantier=this.value;saveLocal()">
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline no-print" onclick="sauvegarder()">↓ Sauvegarder</button>
+    <button class="btn btn-outline no-print" onclick="document.getElementById('import-file').click()">↑ Charger</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="charger(event)">
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨 Imprimer</button>
+    <button class="btn btn-gold no-print" onclick="openAddPerson()">+ Personne</button>
+  </div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar no-print">
+  <label>Début de semaine :</label>
+  <input type="date" id="week-start" onchange="setWeekStart(this.value)" style="width:140px">
+  <div style="width:1px;height:20px;background:var(--border2);margin:0 4px"></div>
+  <button class="btn no-print" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(29,122,79,.2);font-size:11px" onclick="openAddMateriel()">+ Matériel / Location</button>
+  <button class="btn no-print" style="background:var(--surface2);color:var(--ink2);border:1px solid var(--border2);font-size:11px" onclick="openAbsenceModal()">+ Absence / Congé</button>
+  <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3)" id="semaine-info"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS -->
+  <div class="stats-row" id="stats-row"></div>
+
+  <!-- PLANNING TABLE -->
+  <div class="planning-card scroll-x">
+    <table class="planning-table" id="planning-table">
+      <thead id="table-head"></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- LOCATION MATERIEL -->
+  <div id="location-section"></div>
+
+  <!-- ABSENCES / CONGES -->
+  <div id="absences-section"></div>
+
+</div>
+
+<!-- MODALS -->
+<!-- Modal ajout chantier -->
+<div class="modal-overlay" id="modal-chantier">
+  <div class="modal">
+    <p class="modal-title" id="modal-chantier-title">Affecter un chantier</p>
+    <form onsubmit="saveChantier(event)">
+      <div class="field">
+        <label>Code chantier (ex: VO250250)</label>
+        <input type="text" id="f-code" placeholder="VO250250" list="codes-list">
+        <datalist id="codes-list"></datalist>
+      </div>
+      <div class="field">
+        <label>Intitulé</label>
+        <input type="text" id="f-label" placeholder="La Frette – Plantations" required>
+      </div>
+      <div class="field">
+        <label>Couleur</label>
+        <select id="f-color">
+          <option value="c0">Vert</option>
+          <option value="c1">Bleu</option>
+          <option value="c2">Amber</option>
+          <option value="c3">Rouge</option>
+          <option value="c4">Violet</option>
+          <option value="c5">Teal</option>
+          <option value="c6">Rose</option>
+          <option value="c7">Olive</option>
+          <option value="c8">Gris</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" onclick="closeModal('modal-chantier')">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal ajout personne -->
+<div class="modal-overlay" id="modal-person">
+  <div class="modal">
+    <p class="modal-title">Ajouter une personne</p>
+    <form onsubmit="savePerson(event)">
+      <div class="field">
+        <label>Nom</label>
+        <input type="text" id="f-person-name" placeholder="Francky" required>
+      </div>
+      <div class="field">
+        <label>Rôle / Fonction</label>
+        <input type="text" id="f-person-role" placeholder="Chef de chantier">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="f-person-type">
+          <option value="chef">Chef de chantier</option>
+          <option value="ouvrier">Ouvrier</option>
+          <option value="interim">Intérimaire</option>
+          <option value="stp">STP / Sous-traitant</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" onclick="closeModal('modal-person')">Annuler</button>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal matériel -->
+<div class="modal-overlay" id="modal-materiel">
+  <div class="modal">
+    <p class="modal-title">Ajouter du matériel / location</p>
+    <form onsubmit="saveMateriel(event)">
+      <div class="field">
+        <label>Désignation</label>
+        <input type="text" id="f-mat-name" placeholder="Pelle 3T5 + BRH LOXAM" required>
+      </div>
+      <div class="field">
+        <label>Fournisseur / location</label>
+        <input type="text" id="f-mat-supplier" placeholder="LOXAM, MG-LOC, VDOP…">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" onclick="closeModal('modal-materiel')">Annuler</button>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal absence/congé -->
+<div class="modal-overlay" id="modal-absence">
+  <div class="modal">
+    <p class="modal-title">Absence / Congé</p>
+    <form onsubmit="saveAbsence(event)">
+      <div class="field">
+        <label>Personne</label>
+        <select id="f-abs-person" style="width:100%"></select>
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="f-abs-type">
+          <option value="absence">Absence / Maladie</option>
+          <option value="conge">Congé</option>
+          <option value="cp">CP</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>Du jour</label>
+          <select id="f-abs-from">
+            <option value="0">Lundi</option>
+            <option value="1">Mardi</option>
+            <option value="2">Mercredi</option>
+            <option value="3">Jeudi</option>
+            <option value="4">Vendredi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Au jour</label>
+          <select id="f-abs-to">
+            <option value="0">Lundi</option>
+            <option value="1">Mardi</option>
+            <option value="2">Mercredi</option>
+            <option value="3">Jeudi</option>
+            <option value="4">Vendredi</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Note (optionnel)</label>
+        <input type="text" id="f-abs-note" placeholder="ex: Mahraz, intérim à remplacer…">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" onclick="closeModal('modal-absence')">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+let uid = 1;
+
+let state = {
+  nomChantier: '',
+  weekMonday: getThisMonday(),
+  persons: [
+    {id:'p1', name:'Francky', role:'Chef de chantier', type:'chef'},
+    {id:'p2', name:'Patrice', role:'Chef de chantier', type:'chef'},
+    {id:'p3', name:'Lionel', role:'Chef de chantier', type:'chef'},
+    {id:'p4', name:'David', role:'Chef de chantier', type:'chef'},
+    {id:'p5', name:'José', role:'Chef de chantier', type:'chef'},
+    {id:'p6', name:'Camara', role:'Chef de chantier', type:'chef'},
+    {id:'p7', name:'Alex', role:'Ouvrier', type:'ouvrier'},
+  ],
+  // assignments[personId][dayIndex] = [{id, code, label, color}]
+  assignments: {},
+  materiel: [
+    {id:'m1', name:'Pelle 3T5 + BRH LOXAM', supplier:'LOXAM'},
+    {id:'m2', name:'Dumper 1200L LOXAM', supplier:'LOXAM'},
+    {id:'m3', name:'Pelle 5T (MG-LOC)', supplier:'MG-LOC'},
+    {id:'m4', name:'Chargeur Mecalac VDOP', supplier:'VDOP'},
+    {id:'m5', name:'Minipelle 2T5 (MG-LOC)', supplier:'MG-LOC'},
+    {id:'m6', name:'Minipelle 1T5 VDOP', supplier:'VDOP'},
+    {id:'m7', name:'Dumper 2T6 VDOP', supplier:'VDOP'},
+    {id:'m8', name:'Dumper AUSA 800L VDOP', supplier:'VDOP'},
+  ],
+  // materielAssign[matId][dayIndex] = [{id, affaire}]
+  materielAssign: {},
+  // absences[personId][dayIndex] = {type, note}
+  absences: {},
+  nextId: 100
+};
+
+// editing context
+let editCtx = null; // {personId, dayIndex} or {matId, dayIndex}
+
+// ─── DATE HELPERS ───
+function getThisMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d.toISOString().split('T')[0];
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+function fmtDate(d) {
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'});
+}
+function fmtFull(d) {
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+}
+function getWeekNum(d) {
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+function isToday(dateStr) {
+  return new Date().toDateString() === new Date(dateStr).toDateString();
+}
+
+function setWeekStart(v) {
+  // snap to monday
+  const d = new Date(v);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  state.weekMonday = d.toISOString().split('T')[0];
+  saveLocal();
+  renderAll();
+}
+
+function changeWeek(dir) {
+  const d = new Date(state.weekMonday);
+  d.setDate(d.getDate() + dir * 7);
+  state.weekMonday = d.toISOString().split('T')[0];
+  document.getElementById('week-start').value = state.weekMonday;
+  saveLocal();
+  renderAll();
+}
+
+// ─── INIT ───
+function init() {
+  const saved = localStorage.getItem('planning_chantier_v1');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      state = parsed;
+    } catch(e) {}
+  }
+  document.getElementById('week-start').value = state.weekMonday;
+  document.getElementById('chantier-name').value = state.nomChantier || '';
+  renderAll();
+}
+
+function saveLocal() {
+  localStorage.setItem('planning_chantier_v1', JSON.stringify(state));
+}
+
+// ─── RENDER ───
+function renderAll() {
+  renderHeader();
+  renderStats();
+  renderTable();
+  renderMateriel();
+  renderAbsences();
+}
+
+function renderHeader() {
+  const wn = getWeekNum(new Date(state.weekMonday));
+  const start = new Date(state.weekMonday);
+  const end = addDays(state.weekMonday, 4);
+  document.getElementById('week-label').textContent = `Semaine ${wn}`;
+  document.getElementById('semaine-info').textContent =
+    `S${wn} · du ${fmtDate(start)} au ${fmtDate(end)}`;
+}
+
+function getDayDates() {
+  return DAYS.map((_, i) => {
+    const d = addDays(state.weekMonday, i);
+    return { label: DAYS[i], date: d, dateStr: d.toISOString().split('T')[0] };
+  });
+}
+
+function renderStats() {
+  const days = getDayDates();
+  let totalAffectations = 0;
+  let absentCount = 0;
+  const chantiersCodes = new Set();
+
+  state.persons.forEach(p => {
+    const pa = state.assignments[p.id] || {};
+    days.forEach((_, di) => {
+      (pa[di] || []).forEach(a => { totalAffectations++; chantiersCodes.add(a.code||a.label); });
+    });
+    const pa2 = state.absences[p.id] || {};
+    days.forEach((_, di) => { if (pa2[di]) absentCount++; });
+  });
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-pill">
+      <div><div class="val">${state.persons.length}</div><div style="font-size:11px;color:var(--ink3)">Personnes</div></div>
+    </div>
+    <div class="stat-pill">
+      <div><div class="val">${chantiersCodes.size}</div><div style="font-size:11px;color:var(--ink3)">Chantiers</div></div>
+    </div>
+    <div class="stat-pill">
+      <div><div class="val">${totalAffectations}</div><div style="font-size:11px;color:var(--ink3)">Affectations</div></div>
+    </div>
+    ${absentCount > 0 ? `<div class="stat-pill warn">
+      <div><div class="val">${absentCount}</div><div style="font-size:11px;color:var(--ink3)">Absences sem.</div></div>
+    </div>` : ''}
+    ${state.materiel.length > 0 ? `<div class="stat-pill">
+      <div><div class="val">${state.materiel.length}</div><div style="font-size:11px;color:var(--ink3)">Matériels</div></div>
+    </div>` : ''}
+  `;
+}
+
+function renderTable() {
+  const days = getDayDates();
+  const thead = document.getElementById('table-head');
+  const tbody = document.getElementById('table-body');
+
+  // HEAD
+  thead.innerHTML = `<tr>
+    <th style="min-width:130px">Personnel</th>
+    ${days.map((d, i) => `
+      <th class="day-th ${isToday(d.dateStr) ? 'today-th' : ''}">
+        <span class="day-name">${d.label}</span>
+        <span class="day-date">${fmtDate(d.date)}</span>
+      </th>`).join('')}
+  </tr>`;
+
+  // BODY
+  let html = '';
+  state.persons.forEach((p, pi) => {
+    const pa = state.assignments[p.id] || {};
+    const abs = state.absences[p.id] || {};
+    const initials = p.name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+    const avatarColors = ['#E6F4ED,#1D7A4F','#E8EFFE,#2056A8','#FEF3E2,#B86A10','#F0EBFE,#6B42B8','#E6F4F2,#1A7A6E','#FEF0FA,#A0287A','#F0F4E8,#4A7A1A'];
+    const ac = avatarColors[pi % avatarColors.length].split(',');
+
+    html += `<tr>
+      <td>
+        <div class="chef-cell">
+          <div class="chef-name">
+            <div class="chef-avatar" style="background:${ac[0]};color:${ac[1]}">${initials}</div>
+            <div>
+              <div>${p.name}</div>
+              <div class="chef-role">${p.role || ''}</div>
+            </div>
+          </div>
+          <div class="chef-actions">
+            <button class="btn" style="font-size:10px;padding:3px 7px;background:var(--surface2);color:var(--ink2);border:1px solid var(--border2)" onclick="openAddPerson('edit','${p.id}')">✎</button>
+            <button class="btn btn-red" onclick="deletePerson('${p.id}')">×</button>
+          </div>
+        </div>
+      </td>`;
+
+    days.forEach((d, di) => {
+      const items = pa[di] || [];
+      const absence = abs[di];
+      const todayClass = isToday(d.dateStr) ? 'today-col' : '';
+      html += `<td style="border-left:1px solid var(--border)"><div class="day-cell ${todayClass}" onclick="openChantierModal('${p.id}',${di})">`;
+
+      if (absence) {
+        const label = absence.type === 'conge' || absence.type === 'cp' ? `${absence.type.toUpperCase()}${absence.note ? ' – ' + absence.note : ''}` : `Absence${absence.note ? ' – ' + absence.note : ''}`;
+        const cls = absence.type === 'absence' ? 'absence-badge' : 'conge-badge';
+        html += `<div class="${cls}" onclick="event.stopPropagation();deleteAbsence('${p.id}',${di})" title="Cliquer pour supprimer" style="cursor:pointer">${label} ×</div>`;
+      }
+
+      items.forEach(a => {
+        html += `<div class="chantier-tag ${a.color||'c0'}" onclick="event.stopPropagation();openChantierModal('${p.id}',${di},'${a.id}')">
+          ${a.code ? `<span class="tag-code">${a.code}</span>` : ''}
+          <span class="tag-label">${a.label}</span>
+          <span class="tag-del" onclick="event.stopPropagation();deleteAssignment('${p.id}',${di},'${a.id}')">×</span>
+        </div>`;
+      });
+
+      html += `<button class="add-btn" onclick="event.stopPropagation();openChantierModal('${p.id}',${di})">+ affecter</button>`;
+      html += `</div></td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  // add person row
+  html += `<tr>
+    <td colspan="${days.length + 1}" style="text-align:center;padding:10px">
+      <button class="btn no-print" style="background:var(--green-bg);color:var(--green);border:1px dashed rgba(29,122,79,.3);font-size:12px" onclick="openAddPerson()">+ Ajouter une personne</button>
+    </td>
+  </tr>`;
+
+  tbody.innerHTML = html;
+}
+
+function renderMateriel() {
+  if (!state.materiel.length) {
+    document.getElementById('location-section').innerHTML = '';
+    return;
+  }
+  const days = getDayDates();
+
+  let html = `<div class="location-card">
+    <div class="section-hdr no-print">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 3V2.5C4 1.67 4.67 1 5.5 1h3C9.33 1 10 1.67 10 2.5V3" stroke="currentColor" stroke-width="1.2"/></svg>
+      Matériel &amp; Locations
+      <button class="btn no-print" style="margin-left:auto;font-size:10px;padding:3px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(29,122,79,.2)" onclick="openAddMateriel()">+ Ajouter</button>
+    </div>
+    <table style="width:100%;border-collapse:separate;border-spacing:0">
+      <thead><tr>
+        <th style="min-width:160px;background:var(--ink);color:#fff;padding:8px 12px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;text-align:left;letter-spacing:.04em;border-bottom:2px solid rgba(255,255,255,.12)">Matériel</th>
+        ${days.map((d,i) => `<th style="min-width:120px;background:${isToday(d.dateStr)?'var(--green)':'var(--ink)'};color:#fff;padding:8px 12px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;text-align:center;letter-spacing:.04em;border-left:1px solid rgba(255,255,255,.1);border-bottom:2px solid rgba(255,255,255,.12)"><span style="display:block;font-size:12px">${d.label}</span><span style="display:block;font-family:'DM Mono',monospace;font-size:10px;opacity:.6;margin-top:1px">${fmtDate(d.date)}</span></th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+
+  state.materiel.forEach(m => {
+    const ma = state.materielAssign[m.id] || {};
+    html += `<tr>
+      <td><div class="mat-label-cell">
+        <div class="mat-name">${m.name}</div>
+        ${m.supplier ? `<div style="font-size:10px;color:var(--ink3)">${m.supplier}</div>` : ''}
+        <div class="mat-del">
+          <button class="btn btn-red no-print" onclick="deleteMateriel('${m.id}')">Supprimer</button>
+        </div>
+      </div></td>`;
+
+    days.forEach((d, di) => {
+      const items = ma[di] || [];
+      const todayBg = isToday(d.dateStr) ? 'background:rgba(29,122,79,.03);' : '';
+      html += `<td style="padding:0;vertical-align:top;border-bottom:1px solid var(--border);border-left:1px solid var(--border)"><div class="materiel-cell" style="${todayBg}cursor:pointer" onclick="openMatCell('${m.id}',${di})">`;
+      items.forEach(a => {
+        html += `<div class="mat-tag" onclick="event.stopPropagation()">
+          <span style="flex:1">${a.affaire || 'Affecté'}</span>
+          <span class="tag-del" onclick="deleteMatAssign('${m.id}',${di},'${a.id}')">×</span>
+        </div>`;
+      });
+      if (!items.length) {
+        html += `<span style="font-size:10px;color:var(--ink4)">Dépôt</span>`;
+      } else {
+        html += `<button class="add-btn" onclick="event.stopPropagation();openMatCell('${m.id}',${di})">+</button>`;
+      }
+      html += `</div></td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('location-section').innerHTML = html;
+}
+
+function renderAbsences() {
+  const days = getDayDates();
+  // collect all absences by day
+  let hasAny = false;
+  const byDay = days.map(() => []);
+
+  state.persons.forEach(p => {
+    const abs = state.absences[p.id] || {};
+    days.forEach((d, di) => {
+      if (abs[di]) { byDay[di].push({person: p, abs: abs[di]}); hasAny = true; }
+    });
+  });
+
+  if (!hasAny) { document.getElementById('absences-section').innerHTML = ''; return; }
+
+  let html = `<div class="notes-card">
+    <div class="notes-title">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Absences &amp; Congés de la semaine
+    </div>
+    <div class="notes-grid">`;
+
+  days.forEach((d, di) => {
+    if (!byDay[di].length) return;
+    html += `<div class="notes-day">
+      <div class="notes-day-title">${d.label} ${fmtDate(d.date)}</div>`;
+    byDay[di].forEach(({person, abs}) => {
+      const cls = abs.type === 'absence' ? 'absence-line' : 'conge-line';
+      const label = abs.type === 'cp' ? 'CP' : abs.type === 'conge' ? 'Congé' : 'Absence';
+      html += `<div class="${cls}">${person.name} — ${label}${abs.note ? ' ('+abs.note+')' : ''}</div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `</div></div>`;
+  document.getElementById('absences-section').innerHTML = html;
+}
+
+// ─── CHANTIER MODAL ───
+function openChantierModal(personId, dayIndex, editId = null) {
+  editCtx = {personId, dayIndex, editId};
+  const pa = state.assignments[personId] || {};
+  const items = pa[dayIndex] || [];
+
+  let existing = null;
+  if (editId) existing = items.find(a => a.id === editId);
+
+  document.getElementById('modal-chantier-title').textContent = editId ? 'Modifier l\'affectation' : 'Affecter un chantier';
+  document.getElementById('f-code').value = existing ? existing.code || '' : '';
+  document.getElementById('f-label').value = existing ? existing.label : '';
+  document.getElementById('f-color').value = existing ? existing.color || 'c0' : 'c0';
+
+  // populate datalist with known codes
+  const codes = new Set();
+  state.persons.forEach(p => {
+    const pa2 = state.assignments[p.id] || {};
+    Object.values(pa2).forEach(arr => arr.forEach(a => { if(a.code) codes.add(a.code + ' – ' + a.label); }));
+  });
+  document.getElementById('codes-list').innerHTML = [...codes].map(c => `<option value="${c}">`).join('');
+
+  openModal('modal-chantier');
+  setTimeout(() => document.getElementById('f-code').focus(), 100);
+}
+
+function saveChantier(e) {
+  e.preventDefault();
+  const code = document.getElementById('f-code').value.trim();
+  const label = document.getElementById('f-label').value.trim();
+  const color = document.getElementById('f-color').value;
+  const {personId, dayIndex, editId} = editCtx;
+
+  if (!state.assignments[personId]) state.assignments[personId] = {};
+  if (!state.assignments[personId][dayIndex]) state.assignments[personId][dayIndex] = [];
+
+  if (editId) {
+    const idx = state.assignments[personId][dayIndex].findIndex(a => a.id === editId);
+    if (idx >= 0) state.assignments[personId][dayIndex][idx] = {id: editId, code, label, color};
+  } else {
+    state.assignments[personId][dayIndex].push({id: 'a'+(state.nextId++), code, label, color});
+  }
+
+  saveLocal();
+  closeModal('modal-chantier');
+  renderTable();
+  renderStats();
+}
+
+function deleteAssignment(personId, dayIndex, assignId) {
+  if (!state.assignments[personId]?.[dayIndex]) return;
+  state.assignments[personId][dayIndex] = state.assignments[personId][dayIndex].filter(a => a.id !== assignId);
+  saveLocal();
+  renderTable();
+  renderStats();
+}
+
+// ─── PERSON ───
+function openAddPerson(mode='add', personId=null) {
+  editCtx = {mode, personId};
+  const p = personId ? state.persons.find(x => x.id === personId) : null;
+  document.getElementById('f-person-name').value = p ? p.name : '';
+  document.getElementById('f-person-role').value = p ? p.role || '' : '';
+  document.getElementById('f-person-type').value = p ? p.type || 'chef' : 'chef';
+  openModal('modal-person');
+  setTimeout(() => document.getElementById('f-person-name').focus(), 100);
+}
+
+function savePerson(e) {
+  e.preventDefault();
+  const name = document.getElementById('f-person-name').value.trim();
+  const role = document.getElementById('f-person-role').value.trim();
+  const type = document.getElementById('f-person-type').value;
+
+  if (editCtx.mode === 'edit' && editCtx.personId) {
+    const p = state.persons.find(x => x.id === editCtx.personId);
+    if (p) { p.name = name; p.role = role; p.type = type; }
+  } else {
+    state.persons.push({id: 'p'+(state.nextId++), name, role, type});
+  }
+  saveLocal();
+  closeModal('modal-person');
+  renderAll();
+}
+
+function deletePerson(id) {
+  if (!confirm('Supprimer cette personne et toutes ses affectations ?')) return;
+  state.persons = state.persons.filter(p => p.id !== id);
+  delete state.assignments[id];
+  delete state.absences[id];
+  saveLocal();
+  renderAll();
+}
+
+// ─── MATERIEL ───
+function openAddMateriel() {
+  document.getElementById('f-mat-name').value = '';
+  document.getElementById('f-mat-supplier').value = '';
+  openModal('modal-materiel');
+  setTimeout(() => document.getElementById('f-mat-name').focus(), 100);
+}
+
+function saveMateriel(e) {
+  e.preventDefault();
+  const name = document.getElementById('f-mat-name').value.trim();
+  const supplier = document.getElementById('f-mat-supplier').value.trim();
+  state.materiel.push({id: 'm'+(state.nextId++), name, supplier});
+  saveLocal();
+  closeModal('modal-materiel');
+  renderMateriel();
+  renderStats();
+}
+
+function deleteMateriel(id) {
+  if (!confirm('Supprimer ce matériel ?')) return;
+  state.materiel = state.materiel.filter(m => m.id !== id);
+  delete state.materielAssign[id];
+  saveLocal();
+  renderMateriel();
+  renderStats();
+}
+
+function openMatCell(matId, dayIndex) {
+  const affaire = prompt('Chantier affecté (ex: VO250250 La Frette) :');
+  if (!affaire) return;
+  if (!state.materielAssign[matId]) state.materielAssign[matId] = {};
+  if (!state.materielAssign[matId][dayIndex]) state.materielAssign[matId][dayIndex] = [];
+  state.materielAssign[matId][dayIndex].push({id: 'ma'+(state.nextId++), affaire});
+  saveLocal();
+  renderMateriel();
+}
+
+function deleteMatAssign(matId, dayIndex, id) {
+  if (!state.materielAssign[matId]?.[dayIndex]) return;
+  state.materielAssign[matId][dayIndex] = state.materielAssign[matId][dayIndex].filter(a => a.id !== id);
+  saveLocal();
+  renderMateriel();
+}
+
+// ─── ABSENCES ───
+function openAbsenceModal() {
+  const sel = document.getElementById('f-abs-person');
+  sel.innerHTML = state.persons.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('f-abs-note').value = '';
+  openModal('modal-absence');
+}
+
+function saveAbsence(e) {
+  e.preventDefault();
+  const personId = document.getElementById('f-abs-person').value;
+  const type = document.getElementById('f-abs-type').value;
+  const from = parseInt(document.getElementById('f-abs-from').value);
+  const to = parseInt(document.getElementById('f-abs-to').value);
+  const note = document.getElementById('f-abs-note').value.trim();
+
+  if (!state.absences[personId]) state.absences[personId] = {};
+  for (let di = Math.min(from,to); di <= Math.max(from,to); di++) {
+    state.absences[personId][di] = {type, note};
+  }
+  saveLocal();
+  closeModal('modal-absence');
+  renderAll();
+}
+
+function deleteAbsence(personId, dayIndex) {
+  if (!state.absences[personId]) return;
+  delete state.absences[personId][dayIndex];
+  saveLocal();
+  renderAll();
+}
+
+// ─── SAUVEGARDE ───
+function sauvegarder() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const start = new Date(state.weekMonday);
+  const end = addDays(state.weekMonday, 4);
+  const mois = end.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+  a.href = url;
+  a.download = `Planning semaine du ${start.getDate()} au ${end.getDate()} ${mois}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function charger(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.persons) throw new Error('Format invalide');
+      if (!confirm(`Charger ce planning ?\n"${d.nomChantier || 'Sans nom'}" · ${d.persons.length} personne(s)\n\nLes données actuelles seront remplacées.`)) return;
+      state = d;
+      document.getElementById('week-start').value = state.weekMonday;
+      document.getElementById('chantier-name').value = state.nomChantier || '';
+      saveLocal();
+      renderAll();
+    } catch(err) { alert('Fichier invalide.'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── MODAL HELPERS ───
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
+});
+
+// ─── GO ───
+init();
+</script>
+</body>
+</html>

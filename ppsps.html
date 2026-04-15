@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Générateur PPSPS — EV & VRD</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--or:#E8651A;--or2:#FEF3EC;--or3:#FDE8D4;--ink:#1F2937;--ink2:#374151;--ink3:#6B7280;--ink4:#9CA3AF;--bg:#F9FAFB;--bg2:#F3F4F6;--bg3:#E5E7EB;--gr:#16A34A;--gr2:#DCFCE7;--re:#DC2626;--re2:#FEE2E2;--sh:0 2px 12px rgba(31,41,55,.08);--sh2:0 8px 28px rgba(31,41,55,.13);--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+aside{width:252px;background:var(--ink);color:#fff;padding:0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.logo{padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo h1{font-family:'DM Serif Display',serif;font-size:17px;color:#fff;line-height:1.3}
+.logo h1 span{color:var(--or)}
+.logo p{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
+.nav-sec{padding:14px 18px 5px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 18px;font-size:12.5px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.ni:hover{background:rgba(255,255,255,.06);color:#fff}
+.ni.act{background:rgba(232,101,26,.18);color:var(--or);border-left-color:var(--or)}
+.ni.done{color:rgba(255,255,255,.5)}
+.badge{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.1);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ni.act .badge{background:var(--or);color:#fff}
+.ni.done .badge{background:var(--gr);color:#fff}
+.sidebar-bottom{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.3);line-height:1.6}
+
+/* MAIN */
+main{flex:1;padding:28px 32px;max-width:calc(100vw - 252px);overflow-x:hidden}
+.pbar{height:3px;background:var(--bg3);border-radius:2px;margin-bottom:24px;overflow:hidden}
+.pfill{height:100%;background:var(--or);border-radius:2px;transition:width .35s}
+.ph h2{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:3px}
+.ph p{font-size:13px;color:var(--ink3);margin-bottom:22px}
+
+/* STEPS */
+.step{display:none}
+.step.act{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--bg3);border-radius:var(--r);padding:18px 22px;margin-bottom:16px;box-shadow:var(--sh)}
+.ct{font-size:12px;font-weight:600;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g2 .full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--bg3);border-radius:7px;background:#fff;color:var(--ink);outline:none;transition:border-color .15s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(232,101,26,.1)}
+textarea{resize:vertical;min-height:65px}
+
+/* TYPE SELECTOR */
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tc{border:2px solid var(--bg3);border-radius:var(--r);padding:14px;cursor:pointer;transition:all .15s;text-align:center;background:#fff}
+.tc:hover,.tc.sel{border-color:var(--or);background:var(--or2)}
+.tc .ico{font-size:26px;margin-bottom:5px}
+.tc .lbl{font-weight:600;font-size:13px;color:var(--ink)}
+.tc .dsc{font-size:11px;color:var(--ink3);margin-top:2px}
+.tc.sel .dsc{color:var(--or)}
+
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cc{border:2px solid var(--bg3);border-radius:var(--r);padding:13px;cursor:pointer;transition:all .15s;background:#fff}
+.cc:hover,.cc.sel{border-color:var(--or);background:var(--or2)}
+.cc .ctit{font-weight:600;font-size:13px;margin-bottom:4px}
+.cc .cdsc{font-size:11px;color:var(--ink3);line-height:1.5}
+
+/* PHASE EDITOR */
+.pr{display:grid;grid-template-columns:1fr 120px 120px 30px;gap:7px;align-items:center;margin-bottom:5px}
+.pr input{font-size:12.5px}
+.prn{padding:5px 10px;background:var(--bg2);border-radius:5px;border:1px solid var(--bg3);font-size:12px;cursor:pointer;color:var(--ink3);font-family:inherit}
+.prn:hover{background:var(--re2);color:var(--re);border-color:var(--re2)}
+.padd{background:var(--bg2);color:var(--ink2);padding:7px 14px;border:1px solid var(--bg3);font-size:12px;border-radius:6px;cursor:pointer;margin-top:8px;font-family:inherit}
+.padd:hover{background:var(--bg3)}
+
+/* RISQUES */
+.ri{background:var(--bg2);border-radius:8px;margin-bottom:8px;border:1px solid var(--bg3);overflow:hidden;transition:border-color .15s}
+.ri.checked{border-color:var(--or)}
+.ri-header{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer}
+.ri-header input[type=checkbox]{width:16px;height:16px;accent-color:var(--or);cursor:pointer;flex-shrink:0}
+.ri-label{flex:1;font-size:13px;font-weight:500;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--ink)}
+.ri-proba select{font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--bg3);cursor:pointer;font-weight:700;outline:none}
+.ri-proba select.pg-gte{background:#FEE2E2;color:#991B1B;border-color:#FECACA}
+.ri-proba select.pg-ge{background:#FEE2E2;color:#DC2626;border-color:#FECACA}
+.ri-proba select.pg-gm{background:#FEF3C7;color:#D97706;border-color:#FDE68A}
+.ri-proba select.pg-gf{background:var(--gr2);color:#166534;border-color:#BBF7D0}
+.ri-del{background:none;border:none;padding:3px 6px;cursor:pointer;font-size:14px;color:var(--ink4);border-radius:5px;line-height:1}
+.ri-del:hover{background:var(--re2);color:var(--re)}
+.ri-body{display:none;padding:0 12px 12px;border-top:1px solid var(--bg3);background:#fff}
+.ri.checked .ri-body.open{display:block}
+.mesures-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.mesure-item{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;background:var(--bg2);border-radius:6px;border:1px solid var(--bg3);cursor:pointer;transition:all .15s}
+.mesure-item:hover,.mesure-item.sel{background:var(--or2);border-color:var(--or)}
+.mesure-item input[type=checkbox]{width:14px;height:14px;accent-color:var(--or);cursor:pointer;flex-shrink:0;margin-top:2px}
+.mesure-item label{font-size:11.5px;color:var(--ink2);line-height:1.4;cursor:pointer;display:block;flex:1}
+.mesures-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.toggle-mesures{font-size:11px;color:var(--or);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit;padding:0}
+.toggle-mesures:hover{text-decoration:underline}
+.mesure-custom-add{display:flex;gap:6px;margin-top:8px}
+.mesure-custom-add input{font-size:12px;padding:5px 8px}
+.mesure-custom-add button{white-space:nowrap;font-size:12px;padding:5px 10px;background:var(--bg3);color:var(--ink2);border:1px solid var(--bg3);border-radius:6px;cursor:pointer;font-family:inherit}
+.mesure-custom-add button:hover{background:var(--or);color:#fff;border-color:var(--or)}
+.rb{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
+.gte{background:#FEE2E2;color:#991B1B}.ge{background:#FEE2E2;color:#DC2626}.gm{background:#FEF3C7;color:#D97706}.gf{background:var(--gr2);color:#166534}
+
+/* NAV BUTTONS */
+.nb{display:flex;gap:10px;justify-content:space-between;margin-top:22px;padding-top:16px;border-top:1px solid var(--bg3)}
+button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:none;border-radius:7px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;padding:9px 20px}
+.bnx{background:var(--or);color:#fff;font-weight:600}.bnx:hover{background:#C4551A}
+.bpv{background:var(--bg2);color:var(--ink2);border:1px solid var(--bg3)}.bpv:hover{background:var(--bg3)}
+.bgen{background:var(--ink);color:#fff;font-weight:600;font-size:14px;padding:12px 28px}.bgen:hover{background:var(--ink2)}
+.bgen:disabled{background:var(--ink4);cursor:not-allowed}
+
+/* SUMMARY */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.sc{background:#fff;border:1px solid var(--bg3);border-radius:8px;padding:11px 14px;box-shadow:var(--sh)}
+.sc .sl{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
+.sc .sv{font-size:14px;font-weight:600;color:var(--ink);margin-top:3px}
+.prevzone{background:var(--or2);border:2px dashed var(--or);border-radius:var(--r);padding:22px;text-align:center}
+.prevzone .ico{font-size:44px;margin-bottom:10px}
+.prevzone h3{font-size:16px;font-weight:600;margin-bottom:5px}
+.prevzone p{font-size:13px;color:var(--ink3);margin-bottom:16px}
+
+/* STATUS */
+.stmsg{padding:11px 15px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:10px;margin-top:12px}
+.stok{background:var(--gr2);color:#166534}.sterr{background:var(--re2);color:#991B1B}.stld{background:var(--or2);color:#92400E}
+.spin{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.note{background:var(--or2);border-left:3px solid var(--or);padding:10px 14px;border-radius:0 7px 7px 0;font-size:12px;color:#7C2D12;line-height:1.6;margin-bottom:14px}
+
+/* SAVE BAR */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#fff;border:1px solid var(--bg3);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;box-shadow:var(--sh);flex-wrap:wrap}
+.topbar-left{display:flex;flex-direction:column;gap:4px;min-width:240px}
+.topbar-left .ttl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.topbar-left .nm{font-size:15px;font-weight:600;color:var(--ink)}
+.topbar-left .sub{font-size:12px;color:var(--ink3)}
+.topbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{background:#fff;color:var(--ink2);border:1px solid var(--bg3);padding:8px 12px;border-radius:7px;font-size:12.5px;font-weight:600}
+.tbtn:hover{border-color:var(--or);color:var(--or);background:var(--or2)}
+.tbtn.danger:hover{border-color:var(--re);color:var(--re);background:var(--re2)}
+.autosave-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:var(--bg2);font-size:11px;color:var(--ink3);font-weight:600}
+.autosave-badge.saved{background:var(--gr2);color:#166534}
+.autosave-badge.pending{background:var(--or2);color:#92400E}
+.hidden-file{display:none}
+
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">
+    <h1>PPSPS <span>Générateur</span></h1>
+    <p>Espaces Verts & VRD</p>
+  </div>
+  <div class="nav-sec">Étapes</div>
+  <div class="ni act" id="nav0" onclick="goTo(0)"><div class="badge">1</div>Type de chantier</div>
+  <div class="ni" id="nav1" onclick="goTo(1)"><div class="badge">2</div>Identification chantier</div>
+  <div class="ni" id="nav2" onclick="goTo(2)"><div class="badge">3</div>Entreprise & équipe</div>
+  <div class="ni" id="nav3" onclick="goTo(3)"><div class="badge">4</div>Phasage des travaux</div>
+  <div class="ni" id="nav4" onclick="goTo(4)"><div class="badge">5</div>Risques & prévention</div>
+  <div class="ni" id="nav5" onclick="goTo(5)"><div class="badge">6</div>Secours & urgences</div>
+  <div class="ni" id="nav6" onclick="goTo(6)"><div class="badge">7</div>Générer le PPSPS</div>
+  <div class="sidebar-bottom">
+    Références réglementaires :<br>
+    Art. R4532-58 à R4532-74<br>Code du travail<br><br>
+    ⚠️ Document à valider par<br>votre responsable prévention
+  </div>
+</aside>
+
+<main>
+<div class="pbar"><div class="pfill" id="pfill" style="width:14%"></div></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="ttl">Projet en cours</div>
+    <div class="nm" id="project-name-display">Nouveau PPSPS</div>
+    <div class="sub">
+      <span class="autosave-badge" id="autosave-status">● Aucune sauvegarde</span>
+      <span id="last-save-text" style="margin-left:8px">Les données sont sauvegardées localement sur ce navigateur.</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="tbtn" type="button" onclick="saveData(true)">💾 Sauvegarder</button>
+    <button class="tbtn" type="button" onclick="exportData()">⬇️ Export JSON</button>
+    <button class="tbtn" type="button" onclick="document.getElementById('import-file').click()">⬆️ Import JSON</button>
+    <button class="tbtn danger" type="button" onclick="resetData()">🗑️ Réinitialiser</button>
+    <input class="hidden-file" type="file" id="import-file" accept=".json,application/json">
+  </div>
+</div>
+
+
+<!-- ─── ÉTAPE 0 ─── -->
+<div class="step act" id="step0">
+  <div class="ph"><h2>Type de chantier & catégorie</h2><p>Détermine le contenu et le niveau de détail du PPSPS généré.</p></div>
+  <div class="card">
+    <div class="ct">🔨 Nature des travaux</div>
+    <div class="tg">
+      <div class="tc sel" id="type-EV" onclick="selType('EV')"><div class="ico">🌿</div><div class="lbl">Espaces Verts</div><div class="dsc">Plantations, engazonnement, entretien, arrosage</div></div>
+      <div class="tc" id="type-VRD" onclick="selType('VRD')"><div class="ico">🏗️</div><div class="lbl">VRD</div><div class="dsc">Terrassement, réseaux, voiries, drainage</div></div>
+      <div class="tc" id="type-Mixte" onclick="selType('Mixte')"><div class="ico">🔄</div><div class="lbl">Chantier Mixte</div><div class="dsc">EV + VRD combinés (recommandé)</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">📋 Catégorie réglementaire</div>
+    <div class="cg">
+      <div class="cc sel" id="cat-1ere" onclick="selCat('1ere')"><div class="ctit">1ère catégorie</div><div class="cdsc">Volume ≥ 10 000 hommes/jours<br>OU > 10 entreprises simultanées (5 en génie civil)<br>PPSPS simplifié</div></div>
+      <div class="cc" id="cat-2eme" onclick="selCat('2eme')"><div class="ctit">2ème catégorie</div><div class="cdsc">Volume ≥ 500 hommes/jours<br>OU > 5 entreprises simultanées<br>PPSPS complet avec registre des modifications</div></div>
+    </div>
+  </div>
+  <div class="nb"><div></div><button class="bnx" onclick="goTo(1)">Suivant →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 1 ─── -->
+<div class="step" id="step1">
+  <div class="ph"><h2>Identification du chantier</h2><p>Informations sur l'opération, le maître d'ouvrage et le maître d'œuvre.</p></div>
+  <div class="card">
+    <div class="ct">📍 Opération</div>
+    <div class="g2">
+      <div class="fg full"><label>Nom de l'opération / chantier *</label><input id="nomChantier" placeholder="Ex : Aménagement ZAC Les Acacias — Voiries et EV"></div>
+      <div class="fg"><label>Nom de sauvegarde du dossier</label><input id="nomSauvegarde" placeholder="Ex : PPSPS_ZAC_Acacias"></div>
+      <div class="fg"><label>Référence interne</label><input id="referenceDossier" placeholder="Ex : AO-2026-014"></div>
+      <div class="fg full"><label>Adresse complète du chantier *</label><input id="adresseChantier" placeholder="Ex : Rue des Lilas, 95000 Cergy-Pontoise"></div>
+      <div class="fg"><label>Date de début prévisionnelle</label><input type="date" id="dateDebut"></div>
+      <div class="fg"><label>Date de fin prévisionnelle</label><input type="date" id="dateFin"></div>
+      <div class="fg"><label>Durée prévisionnelle</label><input id="duree" placeholder="Ex : 6 mois"></div>
+      <div class="fg"><label>Montant estimatif des travaux</label><input id="montant" placeholder="Ex : 380 000 €"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">🏛️ Maîtrise d'ouvrage & œuvre</div>
+    <div class="g2">
+      <div class="fg"><label>Maître d'ouvrage</label><input id="maitreouvrage" placeholder="Ex : Mairie de Pontoise"></div>
+      <div class="fg"><label>Maître d'œuvre</label><input id="maitreoeuvre" placeholder="Ex : Cabinet XYZ Paysage"></div>
+      <div class="fg full"><label>Coordonnateur SPS (CSPS)</label><input id="coordonnateur" placeholder="Nom / raison sociale du CSPS"></div>
+      <div class="fg full">
+        <label>Description sommaire des travaux — Sélection rapide</label>
+        <select id="descSelect" onchange="addDescFromSelect()" style="margin-bottom:6px">
+          <option value="">— Choisir un type de travaux à ajouter —</option>
+          <optgroup label="🌿 Espaces Verts">
+            <option value="Travaux de débroussaillage et de nettoyage des espaces verts.">Débroussaillage / nettoyage</option>
+            <option value="Travaux de plantation d'arbres, arbustes et végétaux divers.">Plantations (arbres, arbustes)</option>
+            <option value="Travaux d'engazonnement et de semis de gazon.">Engazonnement / semis</option>
+            <option value="Travaux d'entretien des espaces verts (tonte, taille, désherbage).">Entretien EV (tonte, taille, désherbage)</option>
+            <option value="Travaux d'aménagement paysager (massifs, rocailles, clôtures végétales).">Aménagement paysager</option>
+            <option value="Travaux d'arrosage automatique (pose de réseaux et programmateurs).">Arrosage automatique</option>
+            <option value="Travaux de création et aménagement de jardins et parcs.">Création de jardins / parcs</option>
+            <option value="Travaux d'abattage et d'élagage d'arbres.">Abattage / élagage</option>
+          </optgroup>
+          <optgroup label="🏗️ VRD">
+            <option value="Travaux de terrassement général (décapage, déblais, remblais).">Terrassement général</option>
+            <option value="Travaux de création de voiries (sous-couche, enrobé, pavage).">Création de voiries</option>
+            <option value="Travaux de pose de réseaux enterrés (eaux pluviales, eaux usées, AEP).">Réseaux enterrés (EP, EU, AEP)</option>
+            <option value="Travaux de drainage et d'assainissement.">Drainage / assainissement</option>
+            <option value="Travaux de bordures, caniveaux et mobilier urbain.">Bordures / caniveaux / mobilier urbain</option>
+            <option value="Travaux de signalisation horizontale et verticale.">Signalisation</option>
+            <option value="Travaux de pose de clôtures et portails.">Clôtures / portails</option>
+            <option value="Travaux de maçonnerie paysagère (murets, escaliers, margelles).">Maçonnerie paysagère</option>
+          </optgroup>
+          <optgroup label="🔄 Mixte EV + VRD">
+            <option value="Travaux d'aménagement global comprenant la création de voiries, la pose de réseaux enterrés et l'aménagement des espaces verts.">Aménagement global (VRD + EV)</option>
+            <option value="Travaux de réhabilitation d'espaces extérieurs incluant voiries, réseaux et plantations.">Réhabilitation espaces extérieurs</option>
+            <option value="Travaux de création de lotissement incluant voirie, réseaux divers et aménagements paysagers.">Création de lotissement</option>
+          </optgroup>
+        </select>
+        <label style="margin-top:4px">Complément / précisions libres</label>
+        <textarea id="descriptionTravaux" placeholder="Complétez ou précisez ici la description des travaux..."></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(0)">← Précédent</button><button class="bnx" onclick="goTo(2)">Suivant →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 2 ─── -->
+<div class="step" id="step2">
+  <div class="ph"><h2>Entreprise & équipe chantier</h2><p>Informations sur votre entreprise et l'organisation du chantier.</p></div>
+  <div class="card">
+    <div class="ct">🏢 Entreprise</div>
+    <div class="g2">
+      <div class="fg full"><label>Raison sociale *</label><input id="nomEntreprise" value="VAL D'OISE PAYSAGE JCM"></div>
+      <div class="fg full"><label>Adresse du siège social</label><input id="adresseEntreprise" value="254 route d'Eragny à Bessancourt, 95480 PIERRELAYE"></div>
+      <div class="fg"><label>SIRET</label><input id="siretEntreprise" value="421 035 940 00012"></div>
+      <div class="fg"><label>Téléphone entreprise</label><input id="telEntreprise" value="01 30 37 38 85"></div>
+      <div class="fg full"><label>Email</label><input type="email" id="emailEntreprise" value="contact@vdop.fr"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">👷 Organisation chantier</div>
+    <div class="g2">
+      <div class="fg"><label>Responsable chantier *</label><input id="responsableChantier" placeholder="Prénom Nom"></div>
+      <div class="fg"><label>Tél. responsable chantier</label><input id="telResponsable" placeholder="06 12 34 56 78"></div>
+      <div class="fg"><label>Effectif total prévu</label><input type="number" id="effectifTotal" min="1" placeholder="Ex : 8"></div>
+      <div class="fg"><label>Effectif simultané maximum</label><input type="number" id="effectifMaxi" min="1" placeholder="Ex : 5"></div>
+      <div class="fg"><label>Nombre de sous-traitants</label><input type="number" id="nbSoustraitants" min="0" value="0"></div>
+      <div class="fg"><label>Sauveteur-Secouriste (SST)</label><input id="nomSST" placeholder="Prénom Nom du SST désigné"></div>
+    </div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(1)">← Précédent</button><button class="bnx" onclick="goTo(3)">Suivant →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 3 ─── -->
+<div class="step" id="step3">
+  <div class="ph"><h2>Phasage prévisionnel des travaux</h2><p>Les phases sont pré-remplies selon votre type de chantier. Adaptez-les à votre planning réel.</p></div>
+  <div class="card">
+    <div class="ct">📅 Phases de travaux</div>
+    <div style="display:grid;grid-template-columns:1fr 120px 120px 30px;gap:7px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Phase</div>
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Début</div>
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Fin prév.</div>
+      <div></div>
+    </div>
+    <div id="phases-container"></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+      <select id="phaseSelect" style="flex:1;min-width:220px;font-size:12.5px;padding:7px 10px;border:1px solid var(--bg3);border-radius:7px;background:#fff;color:var(--ink);font-family:'DM Sans',sans-serif">
+        <option value="">— Ajouter une phase prédéfinie —</option>
+        <optgroup label="🔧 Préparation &amp; installation">
+          <option value="Installation de chantier|Mise en place base vie, balisage périmétrique, signalisation, clôtures de chantier.">Installation de chantier</option>
+          <option value="Préparation du terrain|Décapage de la terre végétale, nettoyage du site, enlèvement des déchets existants.">Préparation du terrain</option>
+          <option value="Implantation et piquetage|Relevé topographique, implantation des ouvrages, piquetage des réseaux existants.">Implantation / piquetage</option>
+        </optgroup>
+        <optgroup label="🏗️ VRD — Terrassement &amp; réseaux">
+          <option value="Terrassement général|Décapage, déblais/remblais, évacuation des matériaux en décharge agréée.">Terrassement général</option>
+          <option value="Réseaux eaux pluviales (EP)|Fouilles, pose de canalisations EP, regards, raccordements, remblaiement et compactage.">Réseaux eaux pluviales (EP)</option>
+          <option value="Réseaux eaux usées (EU)|Fouilles, pose de canalisations EU, regards de visite, branchements, remblaiement.">Réseaux eaux usées (EU)</option>
+          <option value="Réseau eau potable (AEP)|Fouilles, pose de la conduite AEP, bouches à clé, branchements, remblaiement.">Réseau eau potable (AEP)</option>
+          <option value="Réseaux secs (électricité, télécom, éclairage)|Fouilles, pose de fourreaux, câbles, regards, remblaiement.">Réseaux secs (élec., télécom, éclairage)</option>
+          <option value="Arrosage automatique|Fouilles, pose des réseaux d'arrosage, têtes d'arrosage, programmateurs, remblaiement.">Arrosage automatique</option>
+        </optgroup>
+        <optgroup label="🛣️ VRD — Voiries &amp; revêtements">
+          <option value="Voirie — Sous-couche et fondation|Apport de matériaux de fondation, compactage, réglage de la plateforme.">Voirie — Sous-couche / fondation</option>
+          <option value="Voirie — Bordures et caniveaux|Pose de bordures béton, caniveaux, cunettes, joints.">Voirie — Bordures et caniveaux</option>
+          <option value="Voirie — Revêtement enrobé|Mise en œuvre de l'enrobé bitumineux, compactage, rabotage si nécessaire.">Voirie — Revêtement enrobé</option>
+          <option value="Voirie — Pavage / dallage|Pose de pavés ou dalles, sable de lit, joints, finitions.">Voirie — Pavage / dallage</option>
+          <option value="Voirie — Stabilisé / gravillons|Mise en œuvre de revêtement stabilisé ou gravillonné.">Voirie — Stabilisé / gravillons</option>
+          <option value="Signalisation horizontale et verticale|Marquage au sol, pose de panneaux de signalisation, mobilier de sécurité.">Signalisation H et V</option>
+        </optgroup>
+        <optgroup label="🌿 Espaces Verts — Sols &amp; plantations">
+          <option value="Préparation des sols EV|Décompactage, amendement organique, apport de terre végétale, nivellement.">Préparation des sols EV</option>
+          <option value="Débroussaillage et nettoyage EV|Débroussaillage, arrachage de végétaux indésirables, évacuation des déchets verts.">Débroussaillage / nettoyage EV</option>
+          <option value="Plantations — Arbres et arbustes|Piquetage, fosses de plantation, apport de terreau, mise en place, tuteurage, arrosage.">Plantations — Arbres et arbustes</option>
+          <option value="Plantations — Massifs et vivaces|Préparation des massifs, plantation de végétaux vivaces, paillage.">Plantations — Massifs et vivaces</option>
+          <option value="Engazonnement|Préparation du sol, semis ou pose de gazon en plaques, premier arrosage.">Engazonnement (semis ou plaques)</option>
+          <option value="Entretien et levée des réserves EV|Tonte, taille, désherbage, reprise des végétaux défaillants, arrosage de confortement.">Entretien et levée des réserves EV</option>
+        </optgroup>
+        <optgroup label="🧱 Maçonnerie paysagère">
+          <option value="Maçonnerie paysagère — Murets et clôtures|Construction de murets en pierre ou béton, pose de clôtures et portails.">Murets et clôtures</option>
+          <option value="Maçonnerie paysagère — Escaliers et cheminements|Réalisation d'escaliers extérieurs, cheminements piétons, marches en pierre ou béton.">Escaliers et cheminements</option>
+          <option value="Mobilier urbain|Pose de bancs, corbeilles, bornes, jeux, équipements sportifs.">Mobilier urbain</option>
+        </optgroup>
+        <optgroup label="✅ Fin de chantier">
+          <option value="Finitions et nettoyage|Reprise des finitions, nettoyage général du chantier, évacuation des déchets résiduels.">Finitions et nettoyage</option>
+          <option value="Levée des réserves|Correction des malfaçons, reprises suite aux observations du maître d'œuvre.">Levée des réserves</option>
+          <option value="Réception des travaux|Visite de réception avec le maître d'ouvrage, établissement du procès-verbal, remise des DOE.">Réception des travaux</option>
+          <option value="Repli de chantier|Démontage base vie, évacuation matériaux et équipements, remise en état des abords.">Repli de chantier</option>
+        </optgroup>
+      </select>
+      <button class="padd" onclick="addPhaseFromSelect()" style="margin-top:0;white-space:nowrap">+ Ajouter cette phase</button>
+      <button class="padd" onclick="addPhase()" style="margin-top:0;white-space:nowrap">+ Phase personnalisée</button>
+    </div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(2)">← Précédent</button><button class="bnx" onclick="goTo(4)">Suivant →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 4 ─── -->
+<div class="step" id="step4">
+  <div class="ph"><h2>Risques & mesures de prévention</h2><p>Sélectionnez les risques applicables, ajustez la probabilité et associez les mesures de prévention mises en place.</p></div>
+  <div id="sec-ev"></div>
+  <div id="sec-vrd"></div>
+  <div class="card">
+    <div class="ct">⚠️ Risques communs à tous chantiers</div>
+    <div id="list-communs"></div>
+  </div>
+  <!-- Ajout risque personnalisé -->
+  <div class="card" style="border:2px dashed var(--bg3)">
+    <div class="ct">➕ Ajouter un risque personnalisé</div>
+    <div style="display:grid;grid-template-columns:1fr 160px auto;gap:10px;align-items:end">
+      <div class="fg">
+        <label>Intitulé du risque *</label>
+        <input id="newRiskNom" placeholder="Ex : Risque de noyade, travail en hauteur…">
+      </div>
+      <div class="fg">
+        <label>Probabilité</label>
+        <select id="newRiskProba">
+          <option value="Faible">Faible</option>
+          <option value="Modérée" selected>Modérée</option>
+          <option value="Élevée">Élevée</option>
+          <option value="Très élevée">Très élevée</option>
+        </select>
+      </div>
+      <button class="bnx" onclick="addCustomRisk()" style="white-space:nowrap;margin-bottom:0">+ Ajouter</button>
+    </div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(3)">← Précédent</button><button class="bnx" onclick="goTo(5)">Suivant →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 5 ─── -->
+<div class="step" id="step5">
+  <div class="ph"><h2>Secours & urgences</h2><p>Informations propres à votre chantier pour la gestion des situations d'urgence.</p></div>
+  <div class="card">
+    <div class="ct">🏥 Secours</div>
+    <div class="g2">
+      <div class="fg"><label>Hôpital / urgences le plus proche</label><input id="hopital" placeholder="Ex : CHU Pontoise — 1 km"></div>
+      <div class="fg"><label>Médecin du travail</label><input id="medecinTravail" placeholder="Nom et coordonnées"></div>
+      <div class="fg"><label>Localisation trousse de secours</label><input id="locTrousse" value="Base vie chantier"></div>
+      <div class="fg"><label>Localisation extincteurs</label><input id="locExtincteur" value="Entrée chantier + engins"></div>
+      <div class="fg full"><label>Plan d'évacuation & accès secours</label><textarea id="planEvacuation" placeholder="Décrire les voies d'accès des secours, points de rassemblement, itinéraires d'évacuation..."></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">📞 Contacts d'urgence chantier</div>
+    <div class="g2">
+      <div class="fg"><label>GrDF urgences gaz</label><input id="contactGrdf" value="0 800 47 33 33"></div>
+      <div class="fg"><label>Enedis urgences électricité</label><input id="contactEnedis" placeholder="09 726 750 + n° dépt"></div>
+      <div class="fg"><label>Mairie / commune</label><input id="contactMairie" placeholder="Tél. mairie"></div>
+      <div class="fg"><label>Gendarmerie / Police locale</label><input id="contactPolice" placeholder="Tél. brigade locale"></div>
+    </div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(4)">← Précédent</button><button class="bnx" onclick="goTo(6)">Récapitulatif →</button></div>
+</div>
+
+<!-- ─── ÉTAPE 6 ─── -->
+<div class="step" id="step6">
+  <div class="ph"><h2>Récapitulatif & génération</h2><p>Vérifiez les informations avant de générer votre PPSPS.</p></div>
+  <div class="sg" id="summary"></div>
+  <div class="card">
+    <div class="ct">📋 Contenu du document généré</div>
+    <div id="contenu" style="display:grid;grid-template-columns:1fr 1fr;gap:7px"></div>
+  </div>
+  <div class="note">
+    ⚠️ Ce document est généré automatiquement à partir de vos saisies. Il constitue une base de travail à faire <strong>relire et valider par votre responsable prévention</strong> avant transmission au CSPS. Les mesures de prévention peuvent nécessiter des adaptations selon les spécificités de votre chantier.
+  </div>
+  <div class="prevzone">
+    <div class="ico">📄</div>
+    <h3>Prêt à générer votre PPSPS</h3>
+    <p>Document Word professionnel — A4 — tables colorées — prêt à signer</p>
+    <button class="bgen" id="btn-gen" onclick="generatePPSPS()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v9M4 6l3.5 5 3.5-5M1 12.5h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Générer et télécharger le PPSPS (.docx)
+    </button>
+    <div id="gen-status"></div>
+  </div>
+  <div class="nb"><button class="bpv" onclick="goTo(5)">← Précédent</button><div></div></div>
+</div>
+</main>
+
+<script>
+// ── État global ────────────────────────────────────────────────────────────────
+const S = { typeChantier:'EV', categorie:'1ere', phases:[], customRisks:[], risquesEV:[], risquesVRD:[], risquesCommuns:[], risquesCustom:[], probas:{}, mesures:{} };
+let cur = 0;
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+function goTo(n) {
+  document.getElementById('step'+cur).classList.remove('act');
+  document.getElementById('nav'+cur).classList.remove('act');
+  if(n > cur) document.getElementById('nav'+cur).classList.add('done');
+  cur = n;
+  document.getElementById('step'+n).classList.add('act');
+  document.querySelectorAll('.ni').forEach((el,i) => {
+    el.classList.toggle('act', i===n);
+  });
+  document.getElementById('pfill').style.width = ((n+1)/7*100)+'%';
+  if(n===3) renderPhases();
+  if(n===4) renderRisques();
+  if(n===6) renderSummary();
+  window.scrollTo(0,0);
+}
+
+// ── Type & catégorie ────────────────────────────────────────────────────────────
+function selType(t) {
+  S.typeChantier = t;
+  ['EV','VRD','Mixte'].forEach(k => document.getElementById('type-'+k).classList.toggle('sel', k===t));
+  S.phases = defPhases(t);
+}
+function selCat(c) {
+  S.categorie = c;
+  ['1ere','2eme'].forEach(k => document.getElementById('cat-'+k).classList.toggle('sel', k===c));
+}
+
+// ── Phases ──────────────────────────────────────────────────────────────────────
+function defPhases(t) {
+  const isEV = t==='EV'||t==='Mixte', isVRD = t==='VRD'||t==='Mixte';
+  const p = [{nom:'Phase 1 – Installation de chantier',debut:'',fin:'',desc:'Mise en place base vie, balisage, signalisation.'}];
+  if(isVRD){
+    p.push({nom:'Phase 2 – Terrassement général',debut:'',fin:'',desc:'Décapage, déblais/remblais, évacuation matériaux.'});
+    p.push({nom:'Phase 3 – Réseaux enterrés (EP, EU, AEP)',debut:'',fin:'',desc:'Fouilles, pose réseaux, remblaiement, compactage.'});
+    p.push({nom:'Phase 4 – Voiries et revêtements',debut:'',fin:'',desc:'Bordures, sous-couche, enrobé ou pavage.'});
+  }
+  if(isEV){
+    const n=p.length+1;
+    p.push({nom:`Phase ${n} – Préparation des sols EV`,debut:'',fin:'',desc:'Débroussaillage, amendement, drainage.'});
+    p.push({nom:`Phase ${n+1} – Plantations et engazonnement`,debut:'',fin:'',desc:'Arbres, arbustes, massifs, gazon.'});
+  }
+  p.push({nom:'Phase finale – Finitions et réception',debut:'',fin:'',desc:'Nettoyage, levée des réserves, réception.'});
+  return p;
+}
+
+function renderPhases() {
+  if(!S.phases.length) S.phases = defPhases(S.typeChantier);
+  document.getElementById('phases-container').innerHTML = S.phases.map((ph,i) => `
+    <div class="pr">
+      <input value="${ph.nom}" onchange="S.phases[${i}].nom=this.value" placeholder="Nom de la phase" style="font-weight:600">
+      <input type="date" value="${ph.debut}" onchange="S.phases[${i}].debut=this.value">
+      <input type="date" value="${ph.fin}" onchange="S.phases[${i}].fin=this.value">
+      <button class="prn" onclick="rmPhase(${i})">×</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <input value="${ph.desc}" onchange="S.phases[${i}].desc=this.value" placeholder="Description de la phase" style="font-size:12px;color:var(--ink3)">
+    </div>
+  `).join('');
+}
+function addPhase() { S.phases.push({nom:'Nouvelle phase',debut:'',fin:'',desc:''}); renderPhases(); }
+function rmPhase(i) { S.phases.splice(i,1); renderPhases(); }
+
+// ── Risques ─────────────────────────────────────────────────────────────────────
+const MESURES_PAR_RISQUE = {
+  // EV
+  're1': ['Port des EPI obligatoires (chaussures de sécurité)','Balisage des zones à risque','Rangement et entretien des outils','Nettoyage régulier des zones de circulation','Formation sécurité des opérateurs'],
+  're2': ['Port de gants anti-coupures','Utilisation d\'outils adaptés et vérifiés','Formation à l\'utilisation des outils tranchants','Rangement sécurisé du matériel tranchant','Vérification de l\'état des lames avant utilisation'],
+  're3': ['Lecture obligatoire des fiches de données sécurité','Port de combinaison et gants résistants','Pulvérisation hors vent fort et par temps frais','Formation habilitation phytosanitaire (certiphyto)','Rinçage immédiat en cas de contact cutané'],
+  're4': ['Vérification quotidienne des engins (état général, freins, klaxon)','Délimitation stricte des zones de manœuvre','Présence d\'un signaleur lors des manœuvres','Formation et habilitation des conducteurs d\'engins','Gilet haute visibilité obligatoire à proximité des engins'],
+  're5': ['Rotation des tâches pour limiter la répétition','Formation aux gestes et postures','Utilisation d\'aides à la manutention','Pauses régulières et hydratation','Limitation du port de charges à 25 kg'],
+  're6': ['Mise à disposition d\'eau fraîche et zones d\'ombre','Adaptation des horaires de travail en période de canicule','Application de crème solaire','Port de vêtements adaptés (chapeau, manches longues légères)','Surveillance mutuelle des signes de malaise'],
+  're7': ['Recenser les végétaux urticants et les signaler','Port de gants et vêtements couvrants','Trousse de soins accessible sur le chantier','Information du personnel sur les risques allergènes','Protocole de prise en charge en cas de choc anaphylactique'],
+  // VRD
+  'rv1': ['Étaiement ou blindage systématique des tranchées > 1,30 m','Vérification de la stabilité des parois avant intervention','Interdiction de travail seul en fond de fouille','Évacuation immédiate en cas de risque d\'effondrement','Formation et habilitation des personnels aux travaux en fouille'],
+  'rv2': ['Délimitation des zones de manœuvre des engins','Gilet haute visibilité obligatoire','Présence d\'un signaleur lors des manœuvres à proximité du personnel','Contact visuel ou radio entre conducteur et personnel','Vitesse limitée à 10 km/h sur le chantier'],
+  'rv3': ['Consultation du DICT avant tous travaux','Détection électromagnétique avant fouille','Fouille manuelle à l\'approche des réseaux','Marquage au sol des réseaux détectés','Protocole d\'urgence en cas d\'atteinte réseau'],
+  'rv4': ['Vérification de la présence de lignes aériennes (DICT)','Respect des distances de sécurité (3 m BT / 5 m HT)','Formation habilitation électrique (B0/H0)','Signalement et balisage des lignes aériennes','Coordination avec Enedis si travaux proches'],
+  'rv5': ['Mise en place de garde-corps ou barrières rigides en bord de fouille','Éclairage adapté lors de travaux en conditions de faible luminosité','Interdiction de circulation sur les bordures de tranchée','Comblements provisoires des tranchées inutilisées','Port obligatoire du casque de chantier'],
+  'rv6': ['Utilisation d\'engins conformes aux normes vibratoires','Alternance des tâches exposantes','Port de protections auditives (SNR ≥ 25 dB)','Contrôle régulier du niveau sonore','Information des riverains en cas de nuisances importantes'],
+  'rv7': ['Port obligatoire des lunettes de protection','Écrans de protection autour des zones de projection','Formation sécurité pour les opérateurs d\'engins','Balisage des zones de travail','Éloignement des tiers lors d\'opérations à risque'],
+  'rv8': ['Plan de signalisation temporaire homologué','Coordination avec les services de voirie','Personnel de signalement formé (gilets HV)','Barrières et cones de déviation conformes','Respect scrupuleux du PPSR (plan de prévention signalisation routière)'],
+  'rv9': ['Limitation du port manuel à 25 kg par personne','Utilisation de chariots, palettes et aides mécaniques','Formation aux gestes et postures','Rotation des équipes sur les tâches lourdes','Vérification de l\'adéquation des EPI (ceinture lombaire si nécessaire)'],
+  // Communs
+  'rc1': ['Réunion de coordination inter-entreprises hebdomadaire','Plan de prévention commun partagé','Délimitation des zones d\'intervention par entreprise','Communication radio entre chefs d\'équipe','Registre des interventions tenu à jour'],
+  'rc2': ['Consultation météo quotidienne avant démarrage','Arrêt des travaux exposés en cas de vent > 72 km/h ou foudre','Bâches et calages préventifs des éléments en cours','Procédure de repli d\'urgence connue de tous','Adaptation des EPI selon les conditions climatiques'],
+  'rc3': ['Extincteurs présents et contrôlés sur le chantier','Interdiction de fumer dans les zones à risque','Formation des équipes à l\'utilisation des extincteurs','Vérification des engins (absence de fuite carburant)','Numéro des pompiers affiché sur la base vie'],
+};
+
+const MESURES_DEFAULT = ['Port des EPI adaptés','Formation et sensibilisation du personnel','Balisage et signalisation de la zone','Vérification du matériel avant utilisation','Supervision renforcée'];
+
+const REV = [
+  {id:'re1',nom:'Chute de plain-pied',g:'Modérée'},
+  {id:'re2',nom:'Coupures / blessures par outils tranchants',g:'Modérée'},
+  {id:'re3',nom:'Exposition aux produits phytosanitaires',g:'Élevée'},
+  {id:'re4',nom:'Risques liés aux engins (tracteurs, tondeuses)',g:'Élevée'},
+  {id:'re5',nom:'Risques musculo-squelettiques',g:'Modérée'},
+  {id:'re6',nom:'Exposition UV / chaleur / canicule',g:'Modérée'},
+  {id:'re7',nom:'Allergie / piqûres insectes et végétaux urticants',g:'Modérée'},
+];
+const RVRD = [
+  {id:'rv1',nom:'Effondrement de tranchée / fouille',g:'Très élevée'},
+  {id:'rv2',nom:'Heurts par engins de terrassement',g:'Très élevée'},
+  {id:'rv3',nom:'Atteinte aux réseaux enterrés (gaz, élec., eau)',g:'Très élevée'},
+  {id:'rv4',nom:'Risques électriques (lignes aériennes HT/BT)',g:'Très élevée'},
+  {id:'rv5',nom:'Chute dans les fouilles et tranchées',g:'Élevée'},
+  {id:'rv6',nom:'Vibrations et bruit',g:'Modérée'},
+  {id:'rv7',nom:'Projection de matériaux',g:'Modérée'},
+  {id:'rv8',nom:'Circulation routière (chantier en bord de voie)',g:'Très élevée'},
+  {id:'rv9',nom:'Manutention manuelle de charges lourdes',g:'Modérée'},
+];
+const RC = [
+  {id:'rc1',nom:'Co-activité avec d\'autres entreprises',g:'Élevée'},
+  {id:'rc2',nom:'Risques climatiques (vent, foudre, gel, canicule)',g:'Modérée'},
+  {id:'rc3',nom:'Incendie / explosion',g:'Élevée'},
+];
+// Risques personnalisés
+if(!S.customRisks) S.customRisks = [];
+
+const GCLS = {'Très élevée':'gte','Élevée':'ge','Modérée':'gm','Faible':'gf'};
+const PROBA_VALS = ['Faible','Modérée','Élevée','Très élevée'];
+
+if(!S.risquesEV) S.risquesEV = REV.map(r=>r.id);
+
+function getProbaClass(g){return 'pg-'+(GCLS[g]||'gf');}
+
+function getMesures(id){
+  return MESURES_PAR_RISQUE[id] || MESURES_DEFAULT;
+}
+
+function rList(list, containerId, key) {
+  if(!S[key]||!S[key].length) S[key]=list.map(r=>r.id);
+  document.getElementById(containerId).innerHTML = list.map(r => buildRiskRow(r, key)).join('');
+}
+
+
+function buildRiskRow(r, key) {
+  const checked = S[key] ? S[key].includes(r.id) : false;
+  const proba = S.probas[r.id] || r.g;
+  const selMesures = S.mesures[r.id] || [];
+  const mesuresList = getMesures(r.id);
+  const pcls = getProbaClass(proba);
+  const nSel = selMesures.length;
+  const isCustom = key === 'risquesCustom';
+
+  const mesuresHTML = mesuresList.map((m,i) => {
+    const mId = r.id+'_m'+i;
+    const inputId = 'mi_'+mId;
+    const isSel = selMesures.includes(mId);
+    return `<div class="mesure-item${isSel?' sel':''}" data-mid="${mId}">
+      <input type="checkbox" id="${inputId}" data-risk-id="${r.id}" data-mid="${mId}" ${isSel?'checked':''}>
+      <label for="${inputId}">${m}</label>
+    </div>`;
+  }).join('');
+
+  const customMesures = (S.mesures[r.id+'_custom']||[]).map((m,i) => {
+    const mId = r.id+'_c'+i;
+    const inputId = 'mi_'+mId;
+    const isSel = selMesures.includes(mId);
+    return `<div class="mesure-item${isSel?' sel':''}" data-mid="${mId}" style="grid-column:1/-1">
+      <input type="checkbox" id="${inputId}" data-risk-id="${r.id}" data-mid="${mId}" ${isSel?'checked':''}>
+      <label for="${inputId}">${m} <em style="color:var(--ink4)">(personnalisée)</em></label>
+    </div>`;
+  }).join('');
+
+  return `<div class="ri${checked?' checked':''}" id="ri-${r.id}">
+    <div class="ri-header">
+      <input type="checkbox" id="chk-${r.id}" ${checked?'checked':''} onchange="togR('${key}','${r.id}',this.checked,'ri-${r.id}')">
+      <label class="ri-label" for="chk-${r.id}">${r.nom}</label>
+      <div class="ri-proba">
+        <select class="${pcls}" onchange="changeProba('${r.id}',this)">
+          ${PROBA_VALS.map(p=>`<option value="${p}"${p===proba?' selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      ${isCustom?`<button type="button" class="ri-del" title="Supprimer ce risque" onclick="delCustomRisk('${r.id}')">🗑️</button>`:''}
+      <button type="button" class="toggle-mesures" onclick="toggleBody('${r.id}')" title="Mesures de prévention">${checked?'▾':'▸'} Mesures${nSel>0?` <span style="background:var(--or);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px">${nSel}</span>`:''}</button>
+    </div>
+    <div class="ri-body" id="body-${r.id}">
+      <div class="mesures-label">
+        Mesures de prévention associées
+        <button type="button" class="toggle-mesures" onclick="selectAllMesures('${r.id}')">Tout sélectionner</button>
+      </div>
+      <div class="mesures-grid" id="mesures-${r.id}">${mesuresHTML}${customMesures}</div>
+      <div class="mesure-custom-add">
+        <input id="newm-${r.id}" placeholder="Ajouter une mesure personnalisée…">
+        <button type="button" onclick="addCustomMesure('${r.id}')">+ Ajouter</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleBody(id) {
+  const body = document.getElementById('body-'+id);
+  if (body) body.classList.toggle('open');
+}
+
+function togR(k, id, ch, riId) {
+  if(!S[k]) S[k] = [];
+  if(ch){
+    if(!S[k].includes(id)) S[k].push(id);
+  } else {
+    S[k] = S[k].filter(x=>x!==id);
+  }
+  const riEl = document.getElementById(riId);
+  if(riEl) riEl.classList.toggle('checked', ch);
+  const body = document.getElementById('body-'+id);
+  if(body && ch) body.classList.add('open');
+  updateMesuresBadge(id);
+  saveData();
+}
+
+function changeProba(id, sel) {
+  S.probas[id] = sel.value;
+  sel.className = getProbaClass(sel.value);
+  saveData();
+}
+
+function togMesure(riskId, mId, checked) {
+  if(!S.mesures[riskId]) S.mesures[riskId] = [];
+  if(checked){
+    if(!S.mesures[riskId].includes(mId)) S.mesures[riskId].push(mId);
+  } else {
+    S.mesures[riskId] = S.mesures[riskId].filter(x=>x!==mId);
+  }
+  const item = document.querySelector(`.mesure-item[data-mid="${mId}"]`);
+  if(item) item.classList.toggle('sel', checked);
+  updateMesuresBadge(riskId);
+  saveData();
+}
+
+function updateMesuresBadge(riskId) {
+  const btn = document.querySelector(`#ri-${riskId} .toggle-mesures`);
+  if(!btn) return;
+  const riEl = document.getElementById('ri-'+riskId);
+  const ch = riEl && riEl.classList.contains('checked');
+  const nSel = (S.mesures[riskId]||[]).length;
+  btn.innerHTML = `${ch?'▾':'▸'} Mesures${nSel>0?` <span style="background:var(--or);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px">${nSel}</span>`:''}`;
+}
+
+function selectAllMesures(riskId) {
+  const container = document.getElementById('mesures-'+riskId);
+  if(!container) return;
+  const allIds = [];
+  container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.checked = true;
+    const mId = cb.dataset.mid;
+    if (mId) allIds.push(mId);
+    const item = cb.closest('.mesure-item');
+    if(item) item.classList.add('sel');
+  });
+  S.mesures[riskId] = allIds;
+  updateMesuresBadge(riskId);
+  saveData();
+}
+
+document.addEventListener('change', function(e){
+  const t = e.target;
+  if (t.matches('.mesure-item input[type="checkbox"][data-risk-id]')) {
+    togMesure(t.dataset.riskId, t.dataset.mid, t.checked);
+  }
+});
+function addCustomMesure(riskId) {
+  const inp = document.getElementById('newm-'+riskId);
+  const val = inp ? inp.value.trim() : '';
+  if(!val) return;
+  if(!S.mesures[riskId+'_custom']) S.mesures[riskId+'_custom'] = [];
+  S.mesures[riskId+'_custom'].push(val);
+  inp.value = '';
+  renderRisques();
+}
+
+function addCustomRisk() {
+  const nom = document.getElementById('newRiskNom').value.trim();
+  const g   = document.getElementById('newRiskProba').value;
+  if(!nom) { document.getElementById('newRiskNom').focus(); return; }
+  const id = 'cu'+(Date.now());
+  if(!S.customRisks) S.customRisks = [];
+  S.customRisks.push({id, nom, g});
+  if(!S.risquesCustom) S.risquesCustom = [];
+  S.risquesCustom.push(id);
+  document.getElementById('newRiskNom').value = '';
+  renderRisques();
+}
+
+function delCustomRisk(id) {
+  S.customRisks = (S.customRisks||[]).filter(r=>r.id!==id);
+  S.risquesCustom = (S.risquesCustom||[]).filter(x=>x!==id);
+  renderRisques();
+}
+
+function renderRisques() {
+  const isEV=S.typeChantier==='EV'||S.typeChantier==='Mixte';
+  const isVRD=S.typeChantier==='VRD'||S.typeChantier==='Mixte';
+  const evsec=document.getElementById('sec-ev'), vrdsec=document.getElementById('sec-vrd');
+  if(isEV){
+    evsec.innerHTML=`<div class="card"><div class="ct">🌿 Risques Espaces Verts</div><div id="list-ev"></div></div>`;
+    rList(REV,'list-ev','risquesEV');
+  }else evsec.innerHTML='';
+  if(isVRD){
+    vrdsec.innerHTML=`<div class="card"><div class="ct">🏗️ Risques VRD</div><div id="list-vrd"></div></div>`;
+    rList(RVRD,'list-vrd','risquesVRD');
+  }else vrdsec.innerHTML='';
+  rList(RC,'list-communs','risquesCommuns');
+  // Custom risks
+  let customSec = document.getElementById('sec-custom');
+  if(!customSec){
+    const commCard = document.querySelector('#step4 .card:last-of-type');
+    customSec = document.createElement('div');
+    customSec.id = 'sec-custom';
+    commCard.after(customSec);
+  }
+  if(S.customRisks && S.customRisks.length){
+    customSec.innerHTML = `<div class="card"><div class="ct">✏️ Risques personnalisés</div><div id="list-custom"></div></div>`;
+    const listEl = document.getElementById('list-custom');
+    listEl.innerHTML = S.customRisks.map(r=>buildRiskRow(r,'risquesCustom')).join('');
+  } else {
+    customSec.innerHTML = '';
+  }
+}
+
+// ── Résumé ──────────────────────────────────────────────────────────────────────
+function renderSummary() {
+  const fmtD = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('fr-FR'); };
+  const type = {EV:'Espaces Verts',VRD:'VRD',Mixte:'EV + VRD'}[S.typeChantier];
+  const cat = S.categorie==='2eme'?'2ème catégorie':'1ère catégorie';
+  document.getElementById('summary').innerHTML = [
+    ['Chantier', v('nomChantier')||'(non renseigné)'],
+    ['Référence', v('referenceDossier')||'—'],
+    ['Entreprise', v('nomEntreprise')||'(non renseigné)'],
+    ['Type / Catégorie', `${type} — ${cat}`],
+    ['Responsable', v('responsableChantier')||'—'],
+    ['Dates', `${fmtD(v('dateDebut'))} → ${fmtD(v('dateFin'))}`],
+    ['Effectif total', v('effectifTotal')?v('effectifTotal')+' personnes':'—'],
+  ].map(([l,val])=>`<div class="sc"><div class="sl">${l}</div><div class="sv">${val}</div></div>`).join('');
+
+  const isEV=S.typeChantier==='EV'||S.typeChantier==='Mixte';
+  const isVRD=S.typeChantier==='VRD'||S.typeChantier==='Mixte';
+  const is2=S.categorie==='2eme';
+  document.getElementById('contenu').innerHTML = [
+    [true,'Page de garde professionnelle'],
+    [true,'1. Identification chantier & intervenants'],
+    [true,`2. Description des travaux & phasage (${S.phases.length} phases)`],
+    [true,`3. Analyse des risques ${isEV?'EV':''}${isEV&&isVRD?'+':''}${isVRD?'VRD':''} + communs`],
+    [true,'4. EPI obligatoires avec tableau des normes'],
+    [true,'5. Organisation des secours'],
+    [true,'6. Formations et habilitations requises'],
+    [true,'7. Procédures d\'urgence'],
+    [true,'8. Page de signatures'],
+    [is2,'9. Registre des modifications (2ème cat.)'],
+  ].map(([ok,txt])=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${ok?'#F0FDF4':'#F9FAFB'};border-radius:6px;font-size:12px;color:${ok?'#166534':'#9CA3AF'}"><span>${ok?'✅':'—'}</span><span>${txt}</span></div>`).join('');
+}
+
+// ── Collect ─────────────────────────────────────────────────────────────────────
+function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+
+function collectData() {
+  const fmtD = s => { if(!s) return ''; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('fr-FR'); };
+  return {
+    typeChantier:S.typeChantier, categorie:S.categorie,
+    nomChantier:v('nomChantier'), nomSauvegarde:v('nomSauvegarde'), referenceDossier:v('referenceDossier'), adresseChantier:v('adresseChantier'),
+    dateDebut:fmtD(v('dateDebut')), dateFin:fmtD(v('dateFin')),
+    duree:v('duree'), montant:v('montant'),
+    maitreouvrage:v('maitreouvrage'), maitreoeuvre:v('maitreoeuvre'),
+    coordonnateur:v('coordonnateur'), descriptionTravaux:v('descriptionTravaux'),
+    nomEntreprise:v('nomEntreprise'), adresseEntreprise:v('adresseEntreprise'),
+    siretEntreprise:v('siretEntreprise'), telEntreprise:v('telEntreprise'),
+    emailEntreprise:v('emailEntreprise'), responsableChantier:v('responsableChantier'),
+    telResponsable:v('telResponsable'), effectifTotal:v('effectifTotal'),
+    effectifMaxi:v('effectifMaxi'), nbSoustraitants:v('nbSoustraitants'),
+    nomSST:v('nomSST'), phases:S.phases,
+    hopital:v('hopital'), medecinTravail:v('medecinTravail'),
+    locTrousse:v('locTrousse'), locExtincteur:v('locExtincteur'),
+    planEvacuation:v('planEvacuation'), contactGrdf:v('contactGrdf'),
+    contactEnedis:v('contactEnedis'), contactMairie:v('contactMairie'),
+    contactPolice:v('contactPolice'),
+  };
+}
+
+// ── Génération ──────────────────────────────────────────────────────────────────
+async function generatePPSPS() {
+  const btn = document.getElementById('btn-gen');
+  const st  = document.getElementById('gen-status');
+  btn.disabled = true;
+  st.innerHTML = `<div class="stmsg stld"><div class="spin"></div>Génération du document PPSPS en cours…</div>`;
+  saveData(false);
+  const data = collectData();
+  try {
+    const res = await fetch('http://localhost:3737/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safe = (data.nomChantier||'chantier').replace(/[^a-z0-9]/gi,'_').toLowerCase().substring(0,40);
+    a.href=url; a.download=`PPSPS_${safe}.docx`; a.click();
+    URL.revokeObjectURL(url);
+    st.innerHTML = `<div class="stmsg stok">✅ Document téléchargé avec succès ! Pensez à le faire valider par votre responsable prévention avant de le transmettre au CSPS.</div>`;
+  } catch(e) {
+    st.innerHTML = `<div class="stmsg sterr">❌ Erreur de connexion au serveur local. Assurez-vous d'avoir lancé le fichier <strong>demarrer_ppsps.bat</strong> (Windows) ou <strong>demarrer_ppsps.sh</strong> (Mac/Linux) avant d'utiliser cette application.</div>`;
+  }
+  btn.disabled = false;
+}
+
+// ── Phases — sélection rapide ────────────────────────────────────────────────
+function addPhaseFromSelect() {
+  const sel = document.getElementById('phaseSelect');
+  const val = sel.value;
+  if (!val) return;
+  const parts = val.split('|');
+  const nom = parts[0] || 'Nouvelle phase';
+  const desc = parts[1] || '';
+  // Numéroter automatiquement
+  const n = S.phases.length + 1;
+  S.phases.push({ nom: 'Phase ' + n + ' – ' + nom, debut: '', fin: '', desc: desc });
+  renderPhases();
+  sel.value = '';
+}
+
+// ── Description travaux — sélection rapide ───────────────────────────────────
+function addDescFromSelect() {
+  const sel = document.getElementById('descSelect');
+  const val = sel.value;
+  if (!val) return;
+  const ta = document.getElementById('descriptionTravaux');
+  const current = ta.value.trim();
+  ta.value = current ? current + '\n' + val : val;
+  sel.value = '';
+  ta.focus();
+}
+
+
+// ── Persistance locale / export-import ─────────────────────────────────────────
+const STORAGE_KEY = 'ppsps_data_v2';
+let saveTimer = null;
+
+function getProjectName() {
+  return v('nomSauvegarde') || v('nomChantier') || 'Nouveau PPSPS';
+}
+
+function updateProjectHeader() {
+  const el = document.getElementById('project-name-display');
+  if (el) el.textContent = getProjectName();
+}
+
+function setSaveStatus(state, msg='') {
+  const badge = document.getElementById('autosave-status');
+  const txt = document.getElementById('last-save-text');
+  if (!badge || !txt) return;
+  badge.className = 'autosave-badge ' + (state || '');
+  if (state === 'saved') badge.textContent = '● Sauvegardé';
+  else if (state === 'pending') badge.textContent = '● Modifications en attente';
+  else badge.textContent = '● Aucune sauvegarde';
+  txt.textContent = msg || 'Les données sont sauvegardées localement sur ce navigateur.';
+}
+
+function buildSavePayload() {
+  const fields = {};
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.id && el.type !== 'file') fields[el.id] = el.value;
+  });
+  return {
+    version: 2,
+    savedAt: new Date().toISOString(),
+    projectName: getProjectName(),
+    S: JSON.parse(JSON.stringify(S)),
+    fields
+  };
+}
+
+function applyPayload(data) {
+  if (!data) return;
+  if (data.S) {
+    S.typeChantier = data.S.typeChantier || S.typeChantier;
+    S.categorie = data.S.categorie || S.categorie;
+    S.phases = Array.isArray(data.S.phases) ? data.S.phases : S.phases;
+    S.customRisks = Array.isArray(data.S.customRisks) ? data.S.customRisks : [];
+    S.risquesEV = Array.isArray(data.S.risquesEV) ? data.S.risquesEV : [];
+    S.risquesVRD = Array.isArray(data.S.risquesVRD) ? data.S.risquesVRD : [];
+    S.risquesCommuns = Array.isArray(data.S.risquesCommuns) ? data.S.risquesCommuns : [];
+    S.risquesCustom = Array.isArray(data.S.risquesCustom) ? data.S.risquesCustom : [];
+    S.probas = data.S.probas || {};
+    S.mesures = data.S.mesures || {};
+  }
+  if (data.fields) {
+    Object.entries(data.fields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+  }
+  selType(S.typeChantier || 'EV');
+  selCat(S.categorie || '1ere');
+  renderPhases();
+  renderRisques();
+  updateProjectHeader();
+}
+
+function saveData(showFeedback = false) {
+  const payload = buildSavePayload();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  const when = new Date(payload.savedAt).toLocaleString('fr-FR');
+  setSaveStatus('saved', 'Dernière sauvegarde : ' + when);
+  updateProjectHeader();
+  if (showFeedback) {
+    const st = document.getElementById('gen-status');
+    if (st) st.innerHTML = `<div class="stmsg stok">✅ Données sauvegardées localement.</div>`;
+    setTimeout(() => {
+      const st2 = document.getElementById('gen-status');
+      if (st2 && st2.textContent.includes('Données sauvegardées localement')) st2.innerHTML = '';
+    }, 2500);
+  }
+}
+
+function scheduleSave() {
+  updateProjectHeader();
+  setSaveStatus('pending', 'Modifications détectées. Sauvegarde automatique en cours…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveData(false), 500);
+}
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    updateProjectHeader();
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    applyPayload(data);
+    const when = data.savedAt ? new Date(data.savedAt).toLocaleString('fr-FR') : 'date inconnue';
+    setSaveStatus('saved', 'Dernière sauvegarde : ' + when);
+  } catch (e) {
+    console.error('Erreur de chargement sauvegarde', e);
+    setSaveStatus('', 'Sauvegarde locale illisible.');
+  }
+}
+
+function exportData() {
+  const payload = buildSavePayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safe = getProjectName().replace(/[^a-z0-9_\-]+/gi,'_').replace(/^_+|_+$/g,'').substring(0,60) || 'ppsps';
+  a.href = url;
+  a.download = safe + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  saveData(false);
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      applyPayload(data);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const when = new Date().toLocaleString('fr-FR');
+      setSaveStatus('saved', 'Import effectué le ' + when);
+      updateProjectHeader();
+      goTo(0);
+    } catch (err) {
+      alert("Le fichier importé n'est pas un JSON valide.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (!confirm("Supprimer toutes les données saisies pour ce PPSPS ?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id) scheduleSave();
+});
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.id) scheduleSave();
+});
+document.addEventListener('DOMContentLoaded', function() {
+  const importer = document.getElementById('import-file');
+  if (importer) {
+    importer.addEventListener('change', function() {
+      if (this.files && this.files[0]) importData(this.files[0]);
+      this.value = '';
+    });
+  }
+  loadData();
+});
+
+
+// Init
+selType('EV'); selCat('1ere');
+</script>
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur SOGED — EV & VRD</title>
+<style>
+  :root {
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --green-dark: #14532d;
+    --grey: #f9fafb;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f3f4f6; color: var(--text); }
+
+  header {
+    background: var(--green-dark);
+    color: white;
+    padding: 22px 32px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  header .icon { font-size: 2.2rem; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p { font-size: 0.85rem; color: #bbf7d0; margin-top: 3px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: var(--green);
+    color: white;
+    padding: 13px 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-body { padding: 20px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .span2 { grid-column: span 2; }
+
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input, select, textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.92rem; font-family: Arial, sans-serif;
+    color: var(--text); background: white; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green); }
+  textarea { resize: vertical; min-height: 72px; }
+
+  .field { margin-bottom: 14px; }
+
+  /* Type chantier toggle */
+  .toggle-group { display: flex; gap: 10px; flex-wrap: wrap; }
+  .toggle-btn {
+    padding: 8px 18px; border-radius: 20px; border: 2px solid var(--border);
+    background: white; cursor: pointer; font-size: 0.88rem; font-weight: 600;
+    color: var(--muted); transition: all 0.15s;
+  }
+  .toggle-btn.active { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+
+  /* Tableau déchets dynamique */
+  .dechet-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 12px; }
+  .dechet-table th {
+    background: var(--green); color: white; padding: 8px 10px;
+    text-align: left; font-weight: 600; font-size: 0.78rem;
+  }
+  .dechet-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .dechet-table tr:nth-child(even) td { background: var(--grey); }
+  .dechet-table input, .dechet-table select { padding: 5px 8px; font-size: 0.82rem; }
+  .btn-add {
+    background: var(--green-light); color: var(--green-dark); border: 1px dashed var(--green);
+    padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    font-weight: 600; width: 100%; margin-top: 6px;
+  }
+  .btn-add:hover { background: #bbf7d0; }
+  .btn-del { background: #fee2e2; color: #b91c1c; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 0.8rem; }
+
+  /* Filières */
+  .filiere-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .filiere-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; }
+  .filiere-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--green); }
+
+  /* Bouton générer */
+  #btn-generate {
+    width: 100%; padding: 16px; background: var(--green); color: white;
+    border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.03em; transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  #btn-generate:hover { background: var(--green-dark); }
+  #btn-generate:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  #status {
+    margin-top: 16px; padding: 14px 18px; border-radius: 8px;
+    font-size: 0.92rem; display: none;
+  }
+  #status.loading { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+  #status.error   { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; }
+  #status.success { background: var(--green-light); border: 1px solid #6ee7b7; color: var(--green-dark); }
+
+  .info-box {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+    padding: 10px 14px; font-size: 0.82rem; color: #1e40af; margin-top: 10px;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .btn-secondary {
+    width: 100%; padding: 13px 16px; background: white; color: var(--green-dark);
+    border: 2px solid var(--green); border-radius: 10px; font-size: 0.98rem;
+    font-weight: 700; cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-secondary:hover { background: var(--green-light); }
+  #file-loader { display: none; }
+
+  @media (max-width: 600px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .span2 { grid-column: span 1; }
+    .filiere-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="icon">♻️</div>
+  <div>
+    <h1>Générateur SOGED</h1>
+    <p>Schéma d'Organisation et de Gestion des Déchets — Chantiers EV & VRD</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 1. Identification -->
+  <div class="card">
+    <div class="card-header">📋 1. Identification du chantier et de l'entreprise</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Nom de l'opération *</label><input type="text" id="nomChantier" placeholder="Ex : Aménagement parc des Bruyères"></div>
+        <div class="field"><label>Adresse du chantier *</label><input type="text" id="adresseChantier" placeholder="Rue, ville, code postal"></div>
+        <div class="field"><label>Maître d'ouvrage</label><input type="text" id="maitreOuvrage" placeholder="Nom du maître d'ouvrage"></div>
+        <div class="field"><label>Maître d'œuvre</label><input type="text" id="maitreOeuvre" placeholder="Nom du maître d'œuvre"></div>
+        <div class="field"><label>Raison sociale entreprise *</label><input type="text" id="nomEntreprise" placeholder="Votre société"></div>
+        <div class="field"><label>SIRET</label><input type="text" id="siret" placeholder="XXX XXX XXX XXXXX"></div>
+        <div class="field"><label>Responsable environnement</label><input type="text" id="responsableEnv" placeholder="Nom, prénom"></div>
+        <div class="field"><label>Téléphone responsable</label><input type="text" id="telResponsable" placeholder="06 XX XX XX XX"></div>
+        <div class="field"><label>Date de début</label><input type="date" id="dateDebut"></div>
+        <div class="field"><label>Date de fin prévisionnelle</label><input type="date" id="dateFin"></div>
+        <div class="field"><label>Durée prévisionnelle</label><input type="text" id="duree" placeholder="Ex : 6 semaines"></div>
+        <div class="field"><label>Montant estimatif des travaux</label><input type="text" id="montant" placeholder="Ex : 120 000 €"></div>
+      </div>
+
+      <div class="field" style="margin-top:8px;">
+        <label>Type de chantier *</label>
+        <div class="toggle-group">
+          <button class="toggle-btn" data-val="EV" onclick="selectType(this)">🌿 Espaces Verts</button>
+          <button class="toggle-btn" data-val="VRD" onclick="selectType(this)">🏗️ VRD</button>
+          <button class="toggle-btn active" data-val="Mixte" onclick="selectType(this)">🌿🏗️ EV & VRD</button>
+        </div>
+        <input type="hidden" id="typeChantier" value="Mixte">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Déchets produits -->
+  <div class="card">
+    <div class="card-header">🗑️ 2. Inventaire des déchets produits</div>
+    <div class="card-body">
+      <p style="font-size:0.87rem;color:var(--muted);margin-bottom:14px;">Les déchets ci-dessous sont pré-remplis selon le type de chantier. Modifiez ou ajoutez des lignes selon les spécificités du chantier.</p>
+      <table class="dechet-table">
+        <thead>
+          <tr>
+            <th style="width:22%">Désignation</th>
+            <th style="width:12%">Code déchet</th>
+            <th style="width:10%">Type</th>
+            <th style="width:14%">Volume estimé</th>
+            <th style="width:22%">Mode d'élimination</th>
+            <th style="width:16%">Prestataire / Exutoire</th>
+            <th style="width:4%"></th>
+          </tr>
+        </thead>
+        <tbody id="dechet-body"></tbody>
+      </table>
+      <button class="btn-add" onclick="addDechet()">+ Ajouter un déchet</button>
+      <div class="info-box">💡 Les codes déchets sont issus du catalogue européen des déchets (CED/Annexe II — arrêté du 7 juillet 2005).</div>
+    </div>
+  </div>
+
+  <!-- 3. Tri et collecte -->
+  <div class="card">
+    <div class="card-header">🔄 3. Organisation du tri et de la collecte sur chantier</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Emplacement zone de tri</label><input type="text" id="zoneTriEmplacement" placeholder="Ex : angle NE du chantier, zone base vie"></div>
+        <div class="field"><label>Responsable du tri sur chantier</label><input type="text" id="responsableTri" placeholder="Nom, fonction"></div>
+      </div>
+      <div class="field"><label>Contenants prévus (bennes, big-bags, fûts…)</label>
+        <textarea id="contenants" placeholder="Ex : 1 benne 8m³ DIB, 2 big-bags végétaux, 1 fût 200L huiles usagées, 1 bac gravats inertes..."></textarea>
+      </div>
+      <div class="field"><label>Fréquence d'enlèvement</label>
+        <select id="frequenceEnlevement">
+          <option value="">-- Sélectionner --</option>
+          <option>À la demande</option>
+          <option>Hebdomadaire</option>
+          <option>Bihebdomadaire</option>
+          <option>À la fin du chantier</option>
+          <option>Selon remplissage</option>
+        </select>
+      </div>
+      <div class="field"><label>Consignes de tri affichées sur site</label>
+        <select id="affichageTri">
+          <option value="Oui">Oui — affichage prévu</option>
+          <option value="Non">Non</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Filières d'élimination -->
+  <div class="card">
+    <div class="card-header">♻️ 4. Filières d'élimination et valorisation</div>
+    <div class="card-body">
+      <p style="font-size:0.87rem;color:var(--muted);margin-bottom:12px;">Cochez les filières mobilisées pour ce chantier :</p>
+      <div class="filiere-list" id="filiere-list">
+        <label class="filiere-item"><input type="checkbox" checked value="Déchetterie professionnelle"> Déchetterie professionnelle</label>
+        <label class="filiere-item"><input type="checkbox" checked value="Centre de tri / recyclage"> Centre de tri / recyclage</label>
+        <label class="filiere-item"><input type="checkbox" value="Plateforme compostage végétaux"> Plateforme de compostage (végétaux)</label>
+        <label class="filiere-item"><input type="checkbox" value="Broyage / valorisation bois"> Broyage / valorisation bois</label>
+        <label class="filiere-item"><input type="checkbox" value="Centre stockage inertes (ISDI)"> Centre de stockage inertes (ISDI)</label>
+        <label class="filiere-item"><input type="checkbox" value="ISDND (déchets non dangereux)"> ISDND (déchets non dangereux)</label>
+        <label class="filiere-item"><input type="checkbox" value="ISDD (déchets dangereux)"> ISDD (déchets dangereux)</label>
+        <label class="filiere-item"><input type="checkbox" value="Collecteur agréé huiles usagées"> Collecteur agréé huiles usagées</label>
+        <label class="filiere-item"><input type="checkbox" value="Filière DEEE (équipements élec.)"> Filière DEEE (équipements élec.)</label>
+        <label class="filiere-item"><input type="checkbox" value="Réutilisation / réemploi sur chantier"> Réutilisation / réemploi sur site</label>
+      </div>
+      <div class="field" style="margin-top:16px;"><label>Coordonnées du ou des prestataire(s) principal/aux</label>
+        <textarea id="prestataires" placeholder="Nom, adresse, téléphone du/des collecteur(s) / exutoire(s) retenu(s)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Déchets dangereux -->
+  <div class="card">
+    <div class="card-header">⚠️ 5. Gestion des déchets dangereux</div>
+    <div class="card-body">
+      <div class="field"><label>Présence de déchets dangereux sur le chantier ?</label>
+        <select id="dechetsDangereux" onchange="toggleDD()">
+          <option value="Non">Non</option>
+          <option value="Oui">Oui</option>
+        </select>
+      </div>
+      <div id="dd-details" style="display:none;">
+        <div class="grid2">
+          <div class="field"><label>Nature des déchets dangereux</label>
+            <textarea id="natureDangereuse" placeholder="Ex : huiles de vidange, filtres, chiffons souillés, peintures, produits phytosanitaires..."></textarea>
+          </div>
+          <div class="field"><label>Mode de stockage sur site</label>
+            <textarea id="stockageDangereux" placeholder="Ex : rétention étanche 110%, local ventilé, étiquetage réglementaire..."></textarea>
+          </div>
+        </div>
+        <div class="field"><label>Collecteur agréé déchets dangereux</label>
+          <input type="text" id="collecteurDD" placeholder="Nom, n° agrément préfectoral, téléphone"></div>
+        <div class="field"><label>BSD (Bordereau de Suivi des Déchets)</label>
+          <select id="bsd">
+            <option value="Oui — bordereau papier">Oui — bordereau papier (CERFA n°12571)</option>
+            <option value="Oui — Trackdéchets (dématérialisé)">Oui — Trackdéchets (dématérialisé)</option>
+            <option value="Non applicable">Non applicable</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Terres excavées -->
+  <div class="card">
+    <div class="card-header">🏔️ 6. Gestion des terres excavées et matériaux inertes</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Volume de terres estimé</label><input type="text" id="volumeTerres" placeholder="Ex : 350 m³"></div>
+        <div class="field"><label>Nature des terres</label>
+          <select id="natureTerres">
+            <option>Terres végétales non polluées</option>
+            <option>Terres argileuses / limoneux</option>
+            <option>Terres potentiellement polluées</option>
+            <option>Matériaux de démolition (béton, enrobé)</option>
+            <option>Mélange terres et gravats</option>
+          </select>
+        </div>
+        <div class="field"><label>Destination des terres excavées</label>
+          <select id="destinationTerres">
+            <option>Réutilisation sur le chantier (remblai)</option>
+            <option>Envoi vers ISDI (centre inertes)</option>
+            <option>Plateforme de valorisation des terres</option>
+            <option>Réemploi sur autre chantier (traçabilité)</option>
+            <option>Mise en dépôt provisoire autorisé</option>
+          </select>
+        </div>
+        <div class="field"><label>Analyse préalable des terres requise ?</label>
+          <select id="analyseTerres">
+            <option value="Non">Non — terrain sans historique industriel</option>
+            <option value="Oui">Oui — site potentiellement pollué (BASIAS/BASOL)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Exutoire retenu (ISDI / plateforme)</label>
+        <input type="text" id="exutoireTerres" placeholder="Nom du site, adresse, numéro d'autorisation"></div>
+    </div>
+  </div>
+
+  <!-- 7. Objectifs et indicateurs -->
+  <div class="card">
+    <div class="card-header">📊 7. Objectifs de valorisation et indicateurs de suivi</div>
+    <div class="card-body">
+      <div class="grid3">
+        <div class="field"><label>Taux de valorisation visé (%)</label>
+          <input type="number" id="tauxValorisation" min="0" max="100" placeholder="Ex : 70" value="70"></div>
+        <div class="field"><label>Volume global déchets estimé</label>
+          <input type="text" id="volumeGlobal" placeholder="Ex : 15 m³ ou 2 tonnes"></div>
+        <div class="field"><label>Coût estimé gestion déchets</label>
+          <input type="text" id="coutDechets" placeholder="Ex : 1 500 €"></div>
+      </div>
+      <div class="field"><label>Indicateurs de suivi prévus</label>
+        <textarea id="indicateurs" placeholder="Ex : registre hebdomadaire des enlèvements, pesées à l'exutoire, taux de tri mensuel, bilan en fin de chantier..."></textarea>
+      </div>
+      <div class="field"><label>Fréquence du bilan déchets</label>
+        <select id="frequenceBilan">
+          <option>Mensuel</option>
+          <option>En fin de chantier uniquement</option>
+          <option>Hebdomadaire</option>
+          <option>Trimestriel</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Formation et sensibilisation -->
+  <div class="card">
+    <div class="card-header">🎓 8. Formation et sensibilisation du personnel</div>
+    <div class="card-body">
+      <div class="grid2">
+        <div class="field"><label>Formation tri des déchets prévue ?</label>
+          <select id="formationTri">
+            <option value="Oui — briefing chantier avant démarrage">Oui — briefing avant démarrage</option>
+            <option value="Oui — formation spécifique">Oui — formation spécifique</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+        <div class="field"><label>Livret / fiche de sensibilisation remis ?</label>
+          <select id="livretSensibilisation">
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Observations / engagements particuliers</label>
+        <textarea id="engagements" placeholder="Ex : chantier à faibles nuisances (CQFD), démarche HQE, label Effinature, objectif zéro déchet en décharge..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sauvegarde / rechargement -->
+  <div class="toolbar">
+    <button class="btn-secondary" type="button" onclick="saveFormData()">
+      <span>💾</span> Sauvegarder la saisie (.json)
+    </button>
+    <button class="btn-secondary" type="button" onclick="document.getElementById('file-loader').click()">
+      <span>📂</span> Recharger une sauvegarde
+    </button>
+    <input type="file" id="file-loader" accept="application/json,.json" onchange="loadFormData(event)">
+  </div>
+
+  <!-- Bouton -->
+  <button id="btn-generate" onclick="generateSOGED()">
+    <span>📄</span> Générer le SOGED (.docx)
+  </button>
+  <div id="status"></div>
+
+</div>
+
+<script>
+// ─── Type chantier ────────────────────────────────────────────────────────────
+function selectType(btn) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('typeChantier').value = btn.dataset.val;
+  populateDechets(btn.dataset.val);
+}
+
+// ─── Déchets pré-remplis ──────────────────────────────────────────────────────
+const DECHETS_EV = [
+  {nom:'Végétaux / déchets verts (tonte, taille)', code:'02 01 03', type:'DND', vol:'', mode:'Compostage / broyage', prest:''},
+  {nom:'Bois (souches, branchages, palettes)', code:'02 01 07', type:'DND', vol:'', mode:'Valorisation énergétique / broyage', prest:''},
+  {nom:'Emballages plastiques (films, pots)', code:'15 01 02', type:'DND', vol:'', mode:'Centre de tri', prest:''},
+  {nom:'Emballages papier / carton', code:'15 01 01', type:'DND', vol:'', mode:'Recyclage', prest:''},
+  {nom:'Produits phytosanitaires non utilisés', code:'02 01 08*', type:'DD', vol:'', mode:'Collecteur agréé / ISDD', prest:''},
+  {nom:'Emballages souillés (phyto, peintures)', code:'15 01 10*', type:'DD', vol:'', mode:'Collecteur agréé ISDD', prest:''},
+  {nom:'Huiles et lubrifiants usagés', code:'13 02 06*', type:'DD', vol:'', mode:'Collecteur agréé huiles', prest:''},
+];
+const DECHETS_VRD = [
+  {nom:'Terres excavées non polluées', code:'17 05 04', type:'Inerte', vol:'', mode:'ISDI / réemploi', prest:''},
+  {nom:'Graves, sables, limons', code:'17 05 06', type:'Inerte', vol:'', mode:'Réemploi / ISDI', prest:''},
+  {nom:'Béton, gravats de démolition', code:'17 01 01', type:'Inerte', vol:'', mode:'Centre de recyclage inertes', prest:''},
+  {nom:'Enrobés bitumineux sans goudron', code:'17 03 02', type:'Inerte', vol:'', mode:'Recyclage / ISDI', prest:''},
+  {nom:'Acier / ferraille (armatures, tuyaux)', code:'17 04 05', type:'DND', vol:'', mode:'Ferrailleur / recyclage', prest:''},
+  {nom:'Tuyaux et câbles PVC / PE', code:'17 02 03', type:'DND', vol:'', mode:'Centre de tri', prest:''},
+  {nom:'Huiles hydrauliques engins', code:'13 01 10*', type:'DD', vol:'', mode:'Collecteur agréé huiles', prest:''},
+  {nom:'Terres potentiellement polluées', code:'17 05 03*', type:'DD', vol:'', mode:'Analyse + ISDD selon résultat', prest:''},
+];
+const DECHETS_COMMUNS = [
+  {nom:'DIB (Déchets Industriels Banals)', code:'20 03 01', type:'DND', vol:'', mode:'Déchetterie prof. / ISDND', prest:''},
+  {nom:'Aciers / métaux ferreux divers', code:'17 04 05', type:'DND', vol:'', mode:'Ferrailleur', prest:''},
+  {nom:'Emballages mélangés', code:'15 01 06', type:'DND', vol:'', mode:'Centre de tri', prest:''},
+];
+
+function populateDechets(type) {
+  let list = [...DECHETS_COMMUNS];
+  if (type === 'EV') list = [...DECHETS_EV, ...DECHETS_COMMUNS];
+  else if (type === 'VRD') list = [...DECHETS_VRD, ...DECHETS_COMMUNS];
+  else list = [...DECHETS_EV, ...DECHETS_VRD, ...DECHETS_COMMUNS];
+  const tbody = document.getElementById('dechet-body');
+  tbody.innerHTML = '';
+  list.forEach(d => addDechet(d));
+}
+
+let dechetId = 0;
+function addDechet(d = {}) {
+  const id = dechetId++;
+  const types = ['Inerte','DND','DD'].map(t =>
+    `<option ${(d.type||'DND')===t?'selected':''}>${t}</option>`).join('');
+  const tr = document.createElement('tr');
+  tr.id = 'dr-' + id;
+  tr.innerHTML = `
+    <td><input type="text" value="${d.nom||''}" placeholder="Désignation" class="d-nom"></td>
+    <td><input type="text" value="${d.code||''}" placeholder="XX XX XX" class="d-code" style="width:90px"></td>
+    <td><select class="d-type">${types}</select></td>
+    <td><input type="text" value="${d.vol||''}" placeholder="m³ / kg" class="d-vol"></td>
+    <td><input type="text" value="${d.mode||''}" placeholder="Filière" class="d-mode"></td>
+    <td><input type="text" value="${d.prest||''}" placeholder="Prestataire" class="d-prest"></td>
+    <td><button class="btn-del" onclick="document.getElementById('dr-${id}').remove()">✕</button></td>
+  `;
+  document.getElementById('dechet-body').appendChild(tr);
+}
+
+function toggleDD() {
+  document.getElementById('dd-details').style.display =
+    document.getElementById('dechetsDangereux').value === 'Oui' ? 'block' : 'none';
+}
+
+function getFilieres() {
+  return [...document.querySelectorAll('#filiere-list input[type=checkbox]:checked')]
+    .map(cb => cb.value);
+}
+
+function getDechets() {
+  return [...document.querySelectorAll('#dechet-body tr')].map(tr => ({
+    nom: tr.querySelector('.d-nom')?.value || '',
+    code: tr.querySelector('.d-code')?.value || '',
+    type: tr.querySelector('.d-type')?.value || '',
+    vol: tr.querySelector('.d-vol')?.value || '',
+    mode: tr.querySelector('.d-mode')?.value || '',
+    prest: tr.querySelector('.d-prest')?.value || '',
+  })).filter(d => d.nom);
+}
+
+function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = value ?? '';
+}
+
+function getFormData() {
+  return {
+    nomChantier: val('nomChantier'), adresseChantier: val('adresseChantier'),
+    maitreOuvrage: val('maitreOuvrage'), maitreOeuvre: val('maitreOeuvre'),
+    nomEntreprise: val('nomEntreprise'), siret: val('siret'),
+    responsableEnv: val('responsableEnv'), telResponsable: val('telResponsable'),
+    dateDebut: val('dateDebut'), dateFin: val('dateFin'),
+    duree: val('duree'), montant: val('montant'),
+    typeChantier: val('typeChantier'),
+    zoneTriEmplacement: val('zoneTriEmplacement'), responsableTri: val('responsableTri'),
+    contenants: val('contenants'), frequenceEnlevement: val('frequenceEnlevement'),
+    affichageTri: val('affichageTri'),
+    prestataires: val('prestataires'),
+    dechetsDangereux: val('dechetsDangereux'),
+    natureDangereuse: val('natureDangereuse'), stockageDangereux: val('stockageDangereux'),
+    collecteurDD: val('collecteurDD'), bsd: val('bsd'),
+    volumeTerres: val('volumeTerres'), natureTerres: val('natureTerres'),
+    destinationTerres: val('destinationTerres'), analyseTerres: val('analyseTerres'),
+    exutoireTerres: val('exutoireTerres'),
+    tauxValorisation: val('tauxValorisation'), volumeGlobal: val('volumeGlobal'),
+    coutDechets: val('coutDechets'), indicateurs: val('indicateurs'),
+    frequenceBilan: val('frequenceBilan'),
+    formationTri: val('formationTri'), livretSensibilisation: val('livretSensibilisation'),
+    engagements: val('engagements'),
+    dechets: getDechets(),
+    filieres: getFilieres(),
+  };
+}
+
+function applyFormData(data = {}) {
+  const ids = [
+    'nomChantier','adresseChantier','maitreOuvrage','maitreOeuvre','nomEntreprise','siret',
+    'responsableEnv','telResponsable','dateDebut','dateFin','duree','montant','typeChantier',
+    'zoneTriEmplacement','responsableTri','contenants','frequenceEnlevement','affichageTri',
+    'prestataires','dechetsDangereux','natureDangereuse','stockageDangereux','collecteurDD','bsd',
+    'volumeTerres','natureTerres','destinationTerres','analyseTerres','exutoireTerres',
+    'tauxValorisation','volumeGlobal','coutDechets','indicateurs','frequenceBilan',
+    'formationTri','livretSensibilisation','engagements'
+  ];
+  ids.forEach(id => setValue(id, data[id] ?? ''));
+
+  const type = data.typeChantier || 'Mixte';
+  const btn = document.querySelector(`.toggle-btn[data-val="${type}"]`);
+  if (btn) selectType(btn); else populateDechets('Mixte');
+
+  const tbody = document.getElementById('dechet-body');
+  tbody.innerHTML = '';
+  if (Array.isArray(data.dechets) && data.dechets.length) {
+    data.dechets.forEach(d => addDechet(d));
+  } else {
+    populateDechets(type);
+  }
+
+  const checked = new Set(Array.isArray(data.filieres) ? data.filieres : []);
+  document.querySelectorAll('#filiere-list input[type=checkbox]').forEach(cb => {
+    cb.checked = checked.has(cb.value);
+  });
+
+  toggleDD();
+}
+
+function saveFormData() {
+  const status = document.getElementById('status');
+  const payload = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    application: 'Generateur SOGED EV VRD',
+    data: getFormData()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const chantier = (payload.data.nomChantier || 'chantier').replace(/[^a-z0-9-_]+/gi, '_');
+  a.download = `SOGED_sauvegarde_${chantier}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  status.style.display = 'block';
+  status.className = 'success';
+  status.textContent = '✅ Saisie sauvegardée avec succès.';
+}
+
+function loadFormData(event) {
+  const file = event.target.files?.[0];
+  const status = document.getElementById('status');
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const raw = JSON.parse(e.target.result);
+      const data = raw?.data ?? raw;
+      applyFormData(data);
+      status.style.display = 'block';
+      status.className = 'success';
+      status.textContent = '✅ Sauvegarde rechargée avec succès.';
+    } catch (err) {
+      status.style.display = 'block';
+      status.className = 'error';
+      status.textContent = '❌ Fichier de sauvegarde invalide : ' + err.message;
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+async function generateSOGED() {
+  const btn = document.getElementById('btn-generate');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.className = 'loading';
+  status.textContent = '⏳ Génération en cours…';
+
+  const payload = getFormData();
+
+  try {
+    const resp = await fetch('/generate-soged', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) { const t = await resp.text(); throw new Error(t); }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `SOGED_${(payload.nomChantier||'chantier').replace(/\s+/g,'_')}.docx`;
+    a.click(); URL.revokeObjectURL(url);
+    status.className = 'success';
+    status.textContent = '✅ SOGED généré et téléchargé avec succès !';
+  } catch(e) {
+    status.className = 'error';
+    status.textContent = '❌ Erreur : ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+// Init
+populateDechets('Mixte');
+</script>
+</body>
+</html>

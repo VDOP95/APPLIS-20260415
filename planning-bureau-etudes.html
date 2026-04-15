@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning Bureau d'Études</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1814;
+  --ink2: #3d3a34;
+  --ink3: #7a756c;
+  --ink4: #b8b3aa;
+  --paper: #faf8f4;
+  --paper2: #f2efe9;
+  --paper3: #e8e4dc;
+  --line: rgba(26,24,20,.09);
+  --line2: rgba(26,24,20,.16);
+  --gold: #c8922a;
+  --gold-light: #f5e6c8;
+  --teal: #2a7c6f;
+  --teal-light: #d0ede9;
+  --coral: #c44c3a;
+  --coral-light: #fce8e5;
+  --blue: #2d5fa6;
+  --blue-light: #dde8f8;
+  --green: #3a7a4a;
+  --green-light: #daf0e0;
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(26,24,20,.08), 0 1px 3px rgba(26,24,20,.06);
+  --shadow-lg: 0 8px 32px rgba(26,24,20,.12), 0 2px 8px rgba(26,24,20,.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ——— LAYOUT ——— */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 58px;
+  gap: 16px;
+}
+
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  letter-spacing: -.3px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo span { color: var(--gold); }
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.toolbar {
+  background: var(--paper2);
+  border-bottom: 1px solid var(--line2);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.main { flex: 1; padding: 24px 28px; }
+
+/* ——— BUTTONS ——— */
+button {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  border-radius: 7px;
+  transition: all .15s;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 16px;
+  font-weight: 500;
+}
+.btn-primary:hover { background: var(--ink2); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--ink2);
+  padding: 7px 14px;
+  border: 1px solid var(--line2);
+}
+.btn-outline:hover { background: var(--paper3); }
+
+.btn-icon {
+  background: transparent;
+  padding: 6px;
+  color: var(--ink3);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+}
+.btn-icon:hover { background: var(--paper3); color: var(--ink); }
+.btn-icon.danger:hover { background: var(--coral-light); color: var(--coral); }
+
+/* ——— FORM ELEMENTS ——— */
+input, select, textarea {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--paper);
+  border: 1px solid var(--line2);
+  border-radius: 7px;
+  padding: 7px 10px;
+  color: var(--ink);
+  transition: border-color .15s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(200,146,42,.12);
+}
+textarea { resize: vertical; min-height: 60px; }
+
+label { font-size: 11px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+
+/* ——— MODAL ——— */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(26,24,20,.45);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 28px;
+  width: min(660px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(12px) scale(.98); } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.modal-grid .full { grid-column: 1 / -1; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+/* ——— FILTERS / SEARCH ——— */
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 280px;
+}
+.search-box input { width: 100%; padding-left: 32px; }
+.search-icon {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  color: var(--ink4); pointer-events: none;
+}
+
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--line2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink2);
+  transition: all .15s;
+}
+.filter-chip:hover, .filter-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ——— VIEW TABS ——— */
+.view-tabs { display: flex; gap: 2px; background: var(--paper3); border-radius: 8px; padding: 3px; }
+.view-tab { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--ink3); cursor: pointer; background: transparent; transition: all .15s; }
+.view-tab.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+
+/* ——— CHAPTER GROUPS ——— */
+.chapter-group { margin-bottom: 28px; }
+.chapter-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line);
+}
+.chapter-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.chapter-count {
+  background: var(--paper3);
+  color: var(--ink3);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.chapter-total {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink3);
+}
+
+/* ——— AFFAIRE CARD ——— */
+.affaires-list { display: flex; flex-direction: column; gap: 8px; }
+
+.affaire-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  transition: box-shadow .15s, border-color .15s;
+  cursor: pointer;
+  position: relative;
+}
+.affaire-card:hover { box-shadow: var(--shadow); border-color: var(--line2); }
+.affaire-card.urgent { border-left: 3px solid var(--coral); }
+.affaire-card.high { border-left: 3px solid var(--gold); }
+.affaire-card.normal { border-left: 3px solid var(--blue); }
+.affaire-card.low { border-left: 3px solid var(--ink4); }
+.affaire-card.done { opacity: .65; }
+
+.priority-badge {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.p-urgent { background: var(--coral-light); color: var(--coral); }
+.p-high { background: var(--gold-light); color: var(--gold); }
+.p-normal { background: var(--blue-light); color: var(--blue); }
+.p-low { background: var(--paper3); color: var(--ink3); }
+
+.affaire-body { min-width: 0; }
+.affaire-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.affaire-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.meta-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--ink3);
+}
+.affaire-comment {
+  font-size: 12px;
+  color: var(--ink3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+/* Progress bar */
+.progress-wrap { display: flex; align-items: center; gap: 8px; }
+.progress-track {
+  flex: 1;
+  height: 5px;
+  background: var(--paper3);
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 200px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .3s;
+}
+.progress-label { font-size: 11px; font-weight: 600; color: var(--ink3); min-width: 30px; }
+
+/* Assignees */
+.assignees { display: flex; gap: 4px; flex-wrap: wrap; }
+.avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid var(--paper);
+}
+
+/* Right section */
+.affaire-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 130px;
+}
+.deadline {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.deadline.overdue { background: var(--coral-light); color: var(--coral); }
+.deadline.soon { background: var(--gold-light); color: var(--gold); }
+.deadline.ok { background: var(--green-light); color: var(--green); }
+.deadline.none { background: var(--paper3); color: var(--ink3); }
+
+.affaire-actions { display: flex; gap: 2px; }
+
+/* Status badge */
+.status-chip {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.s-todo { background: var(--paper3); color: var(--ink3); }
+.s-wip { background: var(--blue-light); color: var(--blue); }
+.s-review { background: var(--gold-light); color: var(--gold); }
+.s-done { background: var(--green-light); color: var(--green); }
+
+/* ——— KANBAN VIEW ——— */
+.kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kanban-col {
+  background: var(--paper2);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 200px;
+}
+.kanban-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.kanban-col-title { font-weight: 600; font-size: 13px; }
+.kanban-col-count {
+  background: var(--paper3);
+  color: var(--ink3);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+.kanban-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 13px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: box-shadow .15s;
+}
+.kanban-card:hover { box-shadow: var(--shadow); }
+.kanban-card-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.kanban-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+
+/* ——— STATS BAR ——— */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 18px;
+  flex: 1;
+  min-width: 130px;
+}
+.stat-val { font-size: 24px; font-weight: 700; font-family: 'DM Serif Display', serif; }
+.stat-lbl { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+
+/* ——— SCROLLABLE COLORS FOR AVATARS ——— */
+.av-0 { background: #dde8f8; color: #2d5fa6; }
+.av-1 { background: #daf0e0; color: #3a7a4a; }
+.av-2 { background: #fce8e5; color: #c44c3a; }
+.av-3 { background: #f5e6c8; color: #c8922a; }
+.av-4 { background: #d0ede9; color: #2a7c6f; }
+
+/* ——— EMPTY STATE ——— */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink4);
+}
+.empty-state p { margin-top: 8px; font-size: 13px; }
+
+/* ——— DRAG HANDLE ——— */
+.drag-handle { cursor: grab; color: var(--ink4); padding: 4px; border-radius: 4px; }
+.drag-handle:hover { color: var(--ink3); background: var(--paper3); }
+.affaire-card.dragging { opacity: .5; }
+
+/* ——— RESPONSIVE ——— */
+@media(max-width:768px) {
+  header { padding: 0 16px; }
+  .toolbar { padding: 10px 16px; }
+  .main { padding: 16px; }
+  .affaire-card { grid-template-columns: 28px 1fr; }
+  .affaire-right { display: none; }
+  .kanban { grid-template-columns: 1fr 1fr; }
+  .modal-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="2" width="7" height="9" rx="2" fill="var(--gold)"/>
+      <rect x="11" y="2" width="7" height="5" rx="2" fill="rgba(255,255,255,.4)"/>
+      <rect x="11" y="9" width="7" height="9" rx="2" fill="rgba(255,255,255,.25)"/>
+      <rect x="2" y="13" width="7" height="5" rx="2" fill="rgba(255,255,255,.3)"/>
+    </svg>
+    Bureau d'Études <span>/ Planning</span>
+  </div>
+  <div class="header-actions">
+    <div id="cloud-status" style="font-size:11px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.92);white-space:nowrap">☁️ Connexion…</div>
+    <button class="btn-outline" style="border-color:rgba(255,255,255,.2);color:var(--paper);background:rgba(255,255,255,.08)" onclick="openExportModal()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:middle;margin-right:4px"><rect x="1" y="1" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 4.5h2M3.5 6.5h6M3.5 8.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Exporter Excel
+    </button>
+    <button class="btn-outline" style="border-color:rgba(255,255,255,.2);color:var(--paper);background:rgba(255,255,255,.08)" onclick="sauvegarderJSON()" title="Sauvegarder toutes vos données dans un fichier">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:middle;margin-right:4px"><path d="M2 10.5h9M6.5 2v6M4 6l2.5 2.5L9 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Sauvegarder
+    </button>
+    <button class="btn-outline" style="border-color:rgba(255,255,255,.2);color:var(--paper);background:rgba(255,255,255,.08)" onclick="document.getElementById('import-json').click()" title="Charger une sauvegarde">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:middle;margin-right:4px"><path d="M2 10.5h9M6.5 8V2M4 4.5L6.5 2 9 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Charger
+    </button>
+    <input type="file" id="import-json" accept=".json" style="display:none" onchange="chargerJSON(event)">
+    <button class="btn-primary" style="background:var(--gold);color:var(--ink);font-weight:600" onclick="openModal()">+ Nouvelle affaire</button>
+  </div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-box">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <input type="text" id="search" placeholder="Rechercher une affaire…" oninput="applyFilters()">
+  </div>
+
+  <select id="filter-chapter" onchange="applyFilters()" style="min-width:140px">
+    <option value="">Tous les chapitres</option>
+  </select>
+
+  <select id="filter-assignee" onchange="applyFilters()" style="min-width:140px">
+    <option value="">Tous les collaborateurs</option>
+  </select>
+
+  <select id="filter-status" onchange="applyFilters()" style="min-width:120px">
+    <option value="">Tous les statuts</option>
+    <option value="todo">À faire</option>
+    <option value="wip">En cours</option>
+    <option value="review">À valider</option>
+    <option value="done">Terminé</option>
+  </select>
+
+  <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+    <div class="view-tabs">
+      <button class="view-tab active" id="view-list-btn" onclick="setView('list')">≡ Liste</button>
+      <button class="view-tab" id="view-kanban-btn" onclick="setView('kanban')">⊞ Kanban</button>
+    </div>
+    <button class="btn-outline" onclick="openChapterModal()" title="Gérer les chapitres">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle">
+        <rect x="1" y="2.5" width="12" height="1.5" rx=".75" fill="currentColor"/>
+        <rect x="1" y="6.25" width="8" height="1.5" rx=".75" fill="currentColor"/>
+        <rect x="1" y="10" width="10" height="1.5" rx=".75" fill="currentColor"/>
+      </svg>
+      Chapitres
+    </button>
+    <button class="btn-outline" onclick="openCollabModal()" title="Gérer les collaborateurs">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle">
+        <circle cx="5.5" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M1 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M10 2.5a2 2 0 0 1 0 4M13 12c0-2-1.3-3.3-3-3.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Équipe
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS -->
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <!-- LIST VIEW -->
+  <div id="view-list">
+    <div id="affaires-container"></div>
+  </div>
+
+  <!-- KANBAN VIEW -->
+  <div id="view-kanban" style="display:none">
+    <div class="kanban" id="kanban-board"></div>
+  </div>
+
+</div><!-- end .main -->
+</div><!-- end .app -->
+
+<!-- ——— MODAL AFFAIRE ——— -->
+<div class="modal-overlay" id="modal-affaire">
+  <div class="modal">
+    <div class="modal-header">
+      <p class="modal-title" id="modal-title-text">Nouvelle affaire</p>
+      <button class="btn-icon" onclick="closeModal('modal-affaire')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-grid">
+      <div class="full">
+        <label>Intitulé de l'affaire *</label>
+        <input type="text" id="f-title" placeholder="Ex : Étude VRD lotissement Les Acacias" style="width:100%">
+      </div>
+      <div>
+        <label>Chapitre</label>
+        <select id="f-chapter" style="width:100%"></select>
+      </div>
+      <div>
+        <label>Priorité</label>
+        <select id="f-priority" style="width:100%">
+          <option value="urgent">🔴 Urgent</option>
+          <option value="high">🟠 Haute</option>
+          <option value="normal" selected>🔵 Normale</option>
+          <option value="low">⚪ Basse</option>
+        </select>
+      </div>
+      <div>
+        <label>Date limite de réponse</label>
+        <input type="date" id="f-deadline" style="width:100%">
+      </div>
+      <div>
+        <label>Statut</label>
+        <select id="f-status" style="width:100%">
+          <option value="todo">À faire</option>
+          <option value="wip">En cours</option>
+          <option value="review">À valider</option>
+          <option value="done">Terminé</option>
+        </select>
+      </div>
+      <div class="full">
+        <label>Collaborateurs assignés</label>
+        <div id="f-assignees-list" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0"></div>
+      </div>
+      <div class="full">
+        <label>Taux de progression — <span id="f-progress-val">0</span>%</label>
+        <input type="range" id="f-progress" min="0" max="100" step="5" value="0"
+          oninput="document.getElementById('f-progress-val').textContent=this.value"
+          style="width:100%;accent-color:var(--teal)">
+      </div>
+      <div class="full">
+        <label>Commentaire / Remarques</label>
+        <textarea id="f-comment" placeholder="Notes, contexte, précisions…" style="width:100%"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-affaire')">Annuler</button>
+      <button class="btn-primary" onclick="saveAffaire()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ——— MODAL CHAPITRES ——— -->
+<div class="modal-overlay" id="modal-chapters">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <p class="modal-title">Gérer les chapitres</p>
+      <button class="btn-icon" onclick="closeModal('modal-chapters')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input type="text" id="new-chapter" placeholder="Nom du nouveau chapitre…" style="flex:1">
+      <button class="btn-primary" onclick="addChapter()">Ajouter</button>
+    </div>
+    <div id="chapters-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeModal('modal-chapters');applyFilters()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ——— MODAL COLLABORATEURS ——— -->
+<div class="modal-overlay" id="modal-collab">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <p class="modal-title">Gérer l'équipe</p>
+      <button class="btn-icon" onclick="closeModal('modal-collab')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Ajoutez, renommez ou supprimez les membres de l'équipe. Les modifications s'appliquent immédiatement à toutes les affaires.</p>
+    <div id="collab-list-modal" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px"></div>
+    <div style="border-top:1px solid var(--line);padding-top:16px">
+      <p style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Ajouter un membre</p>
+      <div style="display:grid;grid-template-columns:1fr 160px auto;gap:8px;align-items:center">
+        <input type="text" id="new-collab-name" placeholder="Prénom Nom" style="width:100%">
+        <select id="new-collab-role" style="width:100%">
+          <option value="Collaborateur">Collaborateur</option>
+          <option value="Chargé d'affaire">Chargé d'affaire</option>
+          <option value="Directeur">Directeur</option>
+        </select>
+        <button class="btn-primary" onclick="addCollab()">Ajouter</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeModal('modal-collab');renderAll()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ——— MODAL EXPORT EXCEL ——— -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <p class="modal-title">Exporter en Excel</p>
+      <button class="btn-icon" onclick="closeModal('modal-export')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label>Contenu à exporter</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink2);font-weight:400;cursor:pointer">
+            <input type="radio" name="export-type" value="par-personne" checked style="accent-color:var(--teal)">
+            Dossiers par collaborateur (un onglet par personne)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink2);font-weight:400;cursor:pointer">
+            <input type="radio" name="export-type" value="global" style="accent-color:var(--teal)">
+            Tous les dossiers (liste complète)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink2);font-weight:400;cursor:pointer">
+            <input type="radio" name="export-type" value="synthese" style="accent-color:var(--teal)">
+            Les deux (onglet synthèse + onglets par personne)
+          </label>
+        </div>
+      </div>
+      <div>
+        <label>Filtrer par statut</label>
+        <select id="export-status-filter" style="width:100%;margin-top:4px">
+          <option value="">Tous les statuts</option>
+          <option value="todo">À faire</option>
+          <option value="wip" selected>En cours uniquement</option>
+          <option value="review">À valider</option>
+          <option value="done">Terminés</option>
+        </select>
+      </div>
+      <div>
+        <label>Filtrer par chapitre</label>
+        <select id="export-chapter-filter" style="width:100%;margin-top:4px">
+          <option value="">Tous les chapitres</option>
+        </select>
+      </div>
+      <div style="background:var(--teal-light);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--teal);line-height:1.6">
+        Le fichier Excel inclura : intitulé, chapitre, priorité, date butoire, statut, progression, collaborateurs assignés et commentaires. Les colonnes seront formatées et colorées selon la priorité et le statut.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-export')">Annuler</button>
+      <button class="btn-primary" style="background:var(--teal)" onclick="exportExcel()">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="vertical-align:middle;margin-right:4px"><path d="M6.5 1v8M3.5 6l3 3 3-3M1 10v1a1 1 0 001 1h9a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Télécharger .xlsx
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+// ——— STATE ———
+let state = {"affaires": [{"id": "a1", "title": "MONFERMEIL - Parc de la Pelouse", "chapter": "Marchés publics", "priority": "low", "deadline": "", "status": "todo", "progress": 0, "assignees": [], "comment": ""}, {"id": "a2", "title": "EVRY - SAFRAN", "chapter": "Marchés privés", "priority": "high", "deadline": "2026-03-26", "status": "todo", "progress": 0, "assignees": ["c1"], "comment": ""}, {"id": "a3", "title": "CAVP - Complément de plantations du rond-point Aldi", "chapter": "Marchés publics", "priority": "normal", "deadline": "", "status": "todo", "progress": 0, "assignees": ["c1"], "comment": ""}, {"id": "a4", "title": "CONFLANS - Square du Moulin", "chapter": "Marchés publics", "priority": "normal", "deadline": "", "status": "todo", "progress": 0, "assignees": ["c1"], "comment": ""}, {"id": "a5", "title": "CONFLANS - Quai de l'Oise", "chapter": "Marchés publics", "priority": "normal", "deadline": "", "status": "todo", "progress": 0, "assignees": ["c1"], "comment": ""}, {"id": "a6", "title": "MONTSOULT - Parc de l'Eglise", "chapter": "Marchés publics", "priority": "normal", "deadline": "", "status": "review", "progress": 0, "assignees": ["c1", "c2"], "comment": "Programmer un RDV pour aller présenter le projet."}, {"id": "a7", "title": "SOA - GS Le Nôtre - Dossier EXE", "chapter": "Études internes", "priority": "normal", "deadline": "2026-03-20", "status": "wip", "progress": 10, "assignees": ["c3"], "comment": ""}, {"id": "a8", "title": "ASTERIX - H4 ODYSEE - Dossier EXE", "chapter": "Études internes", "priority": "normal", "deadline": "2026-03-20", "status": "todo", "progress": 10, "assignees": ["c1"], "comment": ""}, {"id": "a9", "title": "CAVP - Construction nouveau bâtiment", "chapter": "Marchés publics", "priority": "normal", "deadline": "2026-04-20", "status": "wip", "progress": 35, "assignees": ["c3"], "comment": ""}, {"id": "a10", "title": "CAVP - Bd du Havre - EXE", "chapter": "Études internes", "priority": "normal", "deadline": "", "status": "todo", "progress": 0, "assignees": ["c1"], "comment": ""}, {"id": "a11", "title": "MONTFERMEIL - Marché de création et entretien des EV - MT + PRIX", "chapter": "Marchés publics", "priority": "normal", "deadline": "2026-04-02", "status": "todo", "progress": 0, "assignees": ["c1", "c3"], "comment": ""}], "chapters": ["Marchés publics", "Marchés privés", "Études internes", "Concours"], "collaborateurs": [{"id": "c1", "name": "Adeline MILLET", "role": "Collaborateur", "initials": "AM"}, {"id": "c2", "name": "David ALVES", "role": "Collaborateur", "initials": "DA"}, {"id": "c3", "name": "Julien RIO", "role": "Collaborateur", "initials": "JR"}], "nextId": 12};
+let editingId = null;
+let currentView = 'list';
+let filteredAffaires = [];
+let db = null;
+let planningDoc = null;
+let remoteReady = false;
+let saveTimer = null;
+let lastRemoteHash = '';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDtN_pKJhUaeBcxW797HWoCFwONbhibDAU",
+  authDomain: "planning-be.firebaseapp.com",
+  projectId: "planning-be",
+  storageBucket: "planning-be.firebasestorage.app",
+  messagingSenderId: "510110015647",
+  appId: "1:510110015647:web:53b340f3ff40b68c9182aa"
+};
+
+function updateCloudStatus(label, bg = 'rgba(255,255,255,.10)', color = 'rgba(255,255,255,.92)') {
+  const el = document.getElementById('cloud-status');
+  if (!el) return;
+  el.textContent = label;
+  el.style.background = bg;
+  el.style.color = color;
+}
+
+function getStatePayload() {
+  return JSON.parse(JSON.stringify({
+    affaires: state.affaires || [],
+    chapters: state.chapters || [],
+    collaborateurs: state.collaborateurs || [],
+    nextId: state.nextId || 1
+  }));
+}
+
+function save(force = false) {
+  localStorage.setItem('be_planning', JSON.stringify(state));
+  if (!remoteReady || !planningDoc) return;
+
+  const payload = getStatePayload();
+  const hash = JSON.stringify(payload);
+  if (!force && hash === lastRemoteHash) return;
+
+  updateCloudStatus('☁️ Sauvegarde…', 'rgba(200,146,42,.22)', '#fff');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await planningDoc.set({
+        ...payload,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      lastRemoteHash = hash;
+      updateCloudStatus('☁️ Synchronisé', 'rgba(31,122,79,.28)', '#fff');
+    } catch (err) {
+      console.error(err);
+      updateCloudStatus('☁️ Erreur sync', 'rgba(196,76,58,.28)', '#fff');
+    }
+  }, force ? 0 : 250);
+}
+
+function initFirebaseSync() {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  planningDoc = db.collection('shared_plannings').doc('bureau-etudes');
+
+  planningDoc.onSnapshot(async (doc) => {
+    try {
+      if (doc.exists && doc.data() && Array.isArray(doc.data().affaires)) {
+        const data = doc.data();
+        state = {
+          affaires: data.affaires || [],
+          chapters: data.chapters || [],
+          collaborateurs: data.collaborateurs || [],
+          nextId: data.nextId || 1
+        };
+        lastRemoteHash = JSON.stringify(getStatePayload());
+        remoteReady = true;
+        localStorage.setItem('be_planning', JSON.stringify(state));
+        renderAll();
+        updateCloudStatus('☁️ Synchronisé', 'rgba(31,122,79,.28)', '#fff');
+      } else {
+        remoteReady = true;
+        updateCloudStatus('☁️ Initialisation…', 'rgba(200,146,42,.22)', '#fff');
+        await planningDoc.set({
+          ...getStatePayload(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      remoteReady = true;
+      updateCloudStatus('☁️ Erreur sync', 'rgba(196,76,58,.28)', '#fff');
+    }
+  }, (err) => {
+    console.error(err);
+    remoteReady = true;
+    updateCloudStatus('☁️ Hors ligne', 'rgba(196,76,58,.28)', '#fff');
+    const local = JSON.parse(localStorage.getItem('be_planning') || 'null');
+    if (local) {
+      state = local;
+      renderAll();
+    }
+  });
+}
+
+// ——— INIT ———
+window.onload = () => {
+  const local = JSON.parse(localStorage.getItem('be_planning') || 'null');
+  if (local && Array.isArray(local.affaires)) {
+    state = local;
+  }
+  renderAll();
+  initFirebaseSync();
+};
+
+function daysFromNow(n) {
+  const d = new Date(); d.setDate(d.getDate()+n);
+  return d.toISOString().split('T')[0];
+}
+
+// ——— RENDER ALL ———
+function renderAll() {
+  updateSelectOptions();
+  updateStats();
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const ch = document.getElementById('filter-chapter').value;
+  const as = document.getElementById('filter-assignee').value;
+  const st = document.getElementById('filter-status').value;
+
+  filteredAffaires = state.affaires.filter(a => {
+    if (q && !a.title.toLowerCase().includes(q) && !(a.comment||'').toLowerCase().includes(q)) return false;
+    if (ch && a.chapter !== ch) return false;
+    if (as && !a.assignees.includes(as)) return false;
+    if (st && a.status !== st) return false;
+    return true;
+  });
+
+  if (currentView === 'list') renderList();
+  else renderKanban();
+  updateStats();
+}
+
+// ——— SELECT OPTIONS ———
+function updateSelectOptions() {
+  // Chapter selects
+  ['filter-chapter','f-chapter'].forEach(id => {
+    const el = document.getElementById(id);
+    const cur = el.value;
+    const prefix = id === 'filter-chapter' ? '<option value="">Tous les chapitres</option>' : '<option value="">Sans chapitre</option>';
+    el.innerHTML = prefix + state.chapters.map(c => `<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
+  });
+  // Assignee filter
+  const af = document.getElementById('filter-assignee');
+  const acur = af.value;
+  af.innerHTML = '<option value="">Tous les collaborateurs</option>' +
+    state.collaborateurs.map(c => `<option value="${c.id}"${c.id===acur?' selected':''}>${c.name}</option>`).join('');
+}
+
+// ——— STATS ———
+function updateStats() {
+  const all = filteredAffaires.length ? filteredAffaires : state.affaires;
+  const urgent = all.filter(a => a.priority==='urgent' && a.status!=='done').length;
+  const inProg = all.filter(a => a.status==='wip').length;
+  const done = all.filter(a => a.status==='done').length;
+  const overdue = all.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.status!=='done').length;
+  const avgProg = all.length ? Math.round(all.reduce((s,a)=>s+(a.progress||0),0)/all.length) : 0;
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${all.length}</div><div class="stat-lbl">Affaires totales</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--coral)">${urgent}</div><div class="stat-lbl">Urgentes</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--blue)">${inProg}</div><div class="stat-lbl">En cours</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${done}</div><div class="stat-lbl">Terminées</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:${overdue?'var(--coral)':'var(--ink3)'}">${overdue}</div><div class="stat-lbl">En retard</div></div>
+    <div class="stat-card"><div class="stat-val">${avgProg}%</div><div class="stat-lbl">Avancement moyen</div></div>
+  `;
+}
+
+// ——— LIST VIEW ———
+function renderList() {
+  const container = document.getElementById('affaires-container');
+
+  if (!filteredAffaires.length) {
+    container.innerHTML = `<div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="6" y="8" width="28" height="24" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M13 16h14M13 21h10M13 26h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <p>Aucune affaire ne correspond à vos filtres</p>
+    </div>`;
+    return;
+  }
+
+  // Group by chapter, sorted by priority
+  const priorityOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+  const grouped = {};
+  filteredAffaires.forEach(a => {
+    const ch = a.chapter || 'Sans chapitre';
+    if (!grouped[ch]) grouped[ch] = [];
+    grouped[ch].push(a);
+  });
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => priorityOrder[a.priority]-priorityOrder[b.priority]));
+
+  // Sort chapters to match state.chapters order
+  const chapterOrder = [...state.chapters, 'Sans chapitre'];
+  const sortedGroups = Object.entries(grouped).sort((a,b) => chapterOrder.indexOf(a[0]) - chapterOrder.indexOf(b[0]));
+
+  container.innerHTML = sortedGroups.map(([chapter, affaires]) => {
+    const avgP = Math.round(affaires.reduce((s,a)=>s+(a.progress||0),0)/affaires.length);
+    return `<div class="chapter-group">
+      <div class="chapter-header">
+        <span class="chapter-name">${chapter}</span>
+        <span class="chapter-count">${affaires.length} affaire${affaires.length>1?'s':''}</span>
+        <span class="chapter-total">${avgP}% avancement moyen</span>
+      </div>
+      <div class="affaires-list">
+        ${affaires.map(a => renderCard(a)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCard(a) {
+  const pClass = {urgent:'p-urgent',high:'p-high',normal:'p-normal',low:'p-low'}[a.priority];
+  const pLabel = {urgent:'!!',high:'↑',normal:'→',low:'↓'}[a.priority];
+  const statusClass = {todo:'s-todo',wip:'s-wip',review:'s-review',done:'s-done'}[a.status];
+  const statusLabel = {todo:'À faire',wip:'En cours',review:'À valider',done:'Terminé'}[a.status];
+  const deadlineInfo = getDeadlineInfo(a.deadline);
+  const progressColor = a.progress === 100 ? 'var(--green)' : a.progress >= 60 ? 'var(--teal)' : a.progress >= 30 ? 'var(--gold)' : 'var(--coral)';
+  const cardClass = a.status === 'done' ? 'done' : '';
+
+  const assigneeAvatars = a.assignees.map((id,i) => {
+    const c = state.collaborateurs.find(x=>x.id===id);
+    if (!c) return '';
+    return `<div class="avatar av-${i%5}" title="${c.name} – ${c.role}">${c.initials}</div>`;
+  }).join('');
+
+  return `<div class="affaire-card ${a.priority} ${cardClass}" onclick="openModal('${a.id}')">
+    <div class="priority-badge ${pClass}">${pLabel}</div>
+    <div class="affaire-body">
+      <div class="affaire-title">${a.title}</div>
+      <div class="affaire-meta">
+        <span class="meta-tag">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="2" width="9" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 1v2M7.5 1v2M1 5h9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          ${a.chapter||'Sans chapitre'}
+        </span>
+        <span class="status-chip ${statusClass}">${statusLabel}</span>
+        ${assigneeAvatars ? `<div class="assignees">${assigneeAvatars}</div>` : '<span class="meta-tag" style="color:var(--ink4)">Non assigné</span>'}
+      </div>
+      ${a.comment ? `<div class="affaire-comment">${a.comment}</div>` : ''}
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${a.progress}%;background:${progressColor}"></div>
+        </div>
+        <span class="progress-label">${a.progress}%</span>
+      </div>
+    </div>
+    <div class="affaire-right">
+      <div class="deadline ${deadlineInfo.cls}">${deadlineInfo.label}</div>
+      <div class="affaire-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon" onclick="openModal('${a.id}')" title="Modifier">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 11.5L4 11l7-7L8.5 1.5l-7 7L1 11.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-icon danger" onclick="deleteAffaire('${a.id}')" title="Supprimer">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M5.5 6v4M7.5 6v4M3 3.5l.7 7h5.6l.7-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function getDeadlineInfo(dl) {
+  if (!dl) return { cls: 'none', label: 'Pas de date' };
+  const diff = Math.ceil((new Date(dl) - new Date()) / 86400000);
+  if (diff < 0) return { cls: 'overdue', label: `Dépassé (${-diff}j)` };
+  if (diff === 0) return { cls: 'overdue', label: "Aujourd'hui !" };
+  if (diff <= 7) return { cls: 'soon', label: `Dans ${diff} j` };
+  const d = new Date(dl);
+  return { cls: 'ok', label: d.toLocaleDateString('fr-FR', {day:'2-digit',month:'short'}) };
+}
+
+// ——— KANBAN VIEW ———
+function renderKanban() {
+  const cols = [
+    { status: 'todo', label: 'À faire', color: 'var(--ink4)' },
+    { status: 'wip', label: 'En cours', color: 'var(--blue)' },
+    { status: 'review', label: 'À valider', color: 'var(--gold)' },
+    { status: 'done', label: 'Terminé', color: 'var(--green)' },
+  ];
+  const priorityOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+  document.getElementById('kanban-board').innerHTML = cols.map(col => {
+    const cards = filteredAffaires.filter(a => a.status === col.status)
+      .sort((a,b) => priorityOrder[a.priority]-priorityOrder[b.priority]);
+    return `<div class="kanban-col">
+      <div class="kanban-col-header">
+        <span class="kanban-col-title" style="color:${col.color}">${col.label}</span>
+        <span class="kanban-col-count">${cards.length}</span>
+      </div>
+      ${cards.map(a => {
+        const deadlineInfo = getDeadlineInfo(a.deadline);
+        const assigneeAvatars = a.assignees.slice(0,3).map((id,i) => {
+          const c = state.collaborateurs.find(x=>x.id===id);
+          return c ? `<div class="avatar av-${i%5}" title="${c.name}">${c.initials}</div>` : '';
+        }).join('');
+        const progressColor = a.progress === 100 ? 'var(--green)' : a.progress >= 60 ? 'var(--teal)' : a.progress >= 30 ? 'var(--gold)' : 'var(--coral)';
+        return `<div class="kanban-card" onclick="openModal('${a.id}')">
+          <div class="kanban-card-title">${a.title}</div>
+          <div style="margin-bottom:8px">
+            <div class="progress-track" style="max-width:none">
+              <div class="progress-fill" style="width:${a.progress}%;background:${progressColor}"></div>
+            </div>
+          </div>
+          <div class="kanban-card-meta">
+            <span class="deadline ${deadlineInfo.cls}" style="font-size:11px">${deadlineInfo.label}</span>
+            <div class="assignees">${assigneeAvatars}</div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${!cards.length ? '<p style="font-size:12px;color:var(--ink4);text-align:center;padding:16px 0">Aucune affaire</p>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ——— MODAL AFFAIRE ———
+function openModal(id) {
+  editingId = id || null;
+  const a = id ? state.affaires.find(x => x.id === id) : null;
+  document.getElementById('modal-title-text').textContent = a ? 'Modifier l\'affaire' : 'Nouvelle affaire';
+
+  updateSelectOptions();
+
+  document.getElementById('f-title').value = a ? a.title : '';
+  document.getElementById('f-chapter').value = a ? (a.chapter||'') : '';
+  document.getElementById('f-priority').value = a ? a.priority : 'normal';
+  document.getElementById('f-deadline').value = a ? (a.deadline||'') : '';
+  document.getElementById('f-status').value = a ? a.status : 'todo';
+  document.getElementById('f-progress').value = a ? (a.progress||0) : 0;
+  document.getElementById('f-progress-val').textContent = a ? (a.progress||0) : 0;
+  document.getElementById('f-comment').value = a ? (a.comment||'') : '';
+
+  // Assignees checkboxes
+  const curAssignees = a ? (a.assignees||[]) : [];
+  document.getElementById('f-assignees-list').innerHTML = state.collaborateurs.map(c => `
+    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink2);padding:6px 10px;border:1px solid var(--line2);border-radius:7px;background:${curAssignees.includes(c.id)?'var(--paper3)':'var(--paper)'}">
+      <input type="checkbox" value="${c.id}" ${curAssignees.includes(c.id)?'checked':''} style="accent-color:var(--teal);width:14px;height:14px">
+      <div class="avatar av-${state.collaborateurs.indexOf(c)%5}" style="width:22px;height:22px;font-size:9px">${c.initials}</div>
+      <span>${c.name}</span>
+      <span style="color:var(--ink4);font-size:11px">${c.role}</span>
+    </label>
+  `).join('');
+
+  document.getElementById('modal-affaire').classList.add('open');
+  document.getElementById('f-title').focus();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function saveAffaire() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { document.getElementById('f-title').focus(); return; }
+
+  const assignees = [...document.querySelectorAll('#f-assignees-list input:checked')].map(x => x.value);
+
+  const data = {
+    title,
+    chapter: document.getElementById('f-chapter').value,
+    priority: document.getElementById('f-priority').value,
+    deadline: document.getElementById('f-deadline').value,
+    status: document.getElementById('f-status').value,
+    assignees,
+    progress: parseInt(document.getElementById('f-progress').value),
+    comment: document.getElementById('f-comment').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = state.affaires.findIndex(x => x.id === editingId);
+    state.affaires[idx] = { ...state.affaires[idx], ...data };
+  } else {
+    state.affaires.push({ id: 'a'+(state.nextId++), ...data });
+  }
+
+  save();
+  closeModal('modal-affaire');
+  renderAll();
+}
+
+function deleteAffaire(id) {
+  if (!confirm('Supprimer cette affaire ?')) return;
+  state.affaires = state.affaires.filter(a => a.id !== id);
+  save();
+  renderAll();
+}
+
+// ——— CHAPTERS MODAL ———
+function openChapterModal() {
+  renderChaptersList();
+  document.getElementById('modal-chapters').classList.add('open');
+}
+
+function renderChaptersList() {
+  document.getElementById('chapters-list').innerHTML = state.chapters.map((ch, i) => {
+    const count = state.affaires.filter(a => a.chapter === ch).length;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--paper2);border-radius:7px">
+      <span style="flex:1;font-weight:500">${ch}</span>
+      <span style="font-size:11px;color:var(--ink3)">${count} affaire${count!==1?'s':''}</span>
+      <button class="btn-icon danger" onclick="removeChapter(${i})" title="Supprimer">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 3l7 7M10 3L3 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function addChapter() {
+  const v = document.getElementById('new-chapter').value.trim();
+  if (!v || state.chapters.includes(v)) return;
+  state.chapters.push(v);
+  document.getElementById('new-chapter').value = '';
+  save();
+  renderChaptersList();
+  updateSelectOptions();
+}
+
+function removeChapter(i) {
+  if (!confirm(`Supprimer le chapitre "${state.chapters[i]}" ? Les affaires resteront mais sans chapitre.`)) return;
+  const ch = state.chapters[i];
+  state.affaires.forEach(a => { if (a.chapter === ch) a.chapter = ''; });
+  state.chapters.splice(i, 1);
+  save();
+  renderChaptersList();
+  updateSelectOptions();
+}
+
+// ——— COLLAB MODAL ———
+function openCollabModal() {
+  renderCollabList();
+  document.getElementById('modal-collab').classList.add('open');
+}
+
+function renderCollabList() {
+  const roleColors = {
+    'Collaborateur': 'var(--blue-light)',
+    'Chargé d\'affaire': 'var(--gold-light)',
+    'Directeur': 'var(--coral-light)',
+  };
+  const roleTextColors = {
+    'Collaborateur': 'var(--blue)',
+    'Chargé d\'affaire': 'var(--gold)',
+    'Directeur': 'var(--coral)',
+  };
+  document.getElementById('collab-list-modal').innerHTML = state.collaborateurs.map((c, i) => {
+    const affCount = state.affaires.filter(a => a.assignees.includes(c.id)).length;
+    const bg = roleColors[c.role] || 'var(--paper3)';
+    const tc = roleTextColors[c.role] || 'var(--ink3)';
+    return `<div style="display:grid;grid-template-columns:36px 1fr 150px 60px auto;gap:8px;align-items:center;padding:10px 12px;background:var(--paper2);border-radius:8px;border:1px solid var(--line)">
+      <div class="avatar av-${i%5}" style="width:32px;height:32px;font-size:11px;border:none">${c.initials}</div>
+      <input value="${c.name}" style="width:100%;font-weight:500"
+        onchange="renameCollab('${c.id}', this.value)"
+        onblur="renameCollab('${c.id}', this.value)">
+      <select style="width:100%;font-size:12px" onchange="changeCollabRole('${c.id}', this.value)">
+        <option value="Collaborateur" ${c.role==='Collaborateur'?'selected':''}>Collaborateur</option>
+        <option value="Chargé d'affaire" ${c.role==="Chargé d'affaire"?'selected':''}>Chargé d'affaire</option>
+        <option value="Directeur" ${c.role==='Directeur'?'selected':''}>Directeur</option>
+      </select>
+      <span style="font-size:11px;color:var(--ink3);text-align:center">${affCount} aff.</span>
+      <button class="btn-icon danger" onclick="removeCollab('${c.id}')" title="Supprimer">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 3l7 7M10 3L3 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>`;
+  }).join('') || '<p style="font-size:13px;color:var(--ink4);text-align:center;padding:16px">Aucun collaborateur</p>';
+}
+
+function renameCollab(id, newName) {
+  newName = newName.trim();
+  if (!newName) return;
+  const c = state.collaborateurs.find(x => x.id === id);
+  if (!c || c.name === newName) return;
+  c.name = newName;
+  // Recompute initials from new name
+  const parts = newName.split(' ').filter(Boolean);
+  c.initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : newName.substring(0,2).toUpperCase();
+  save();
+  renderCollabList();
+  updateSelectOptions();
+}
+
+function changeCollabRole(id, newRole) {
+  const c = state.collaborateurs.find(x => x.id === id);
+  if (!c) return;
+  c.role = newRole;
+  save();
+  renderCollabList();
+}
+
+function addCollab() {
+  const name = document.getElementById('new-collab-name').value.trim();
+  if (!name) { document.getElementById('new-collab-name').focus(); return; }
+  const role = document.getElementById('new-collab-role').value;
+  const parts = name.split(' ').filter(Boolean);
+  const initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : name.substring(0,2).toUpperCase();
+  state.collaborateurs.push({ id: 'c'+(state.nextId++), name, role, initials });
+  document.getElementById('new-collab-name').value = '';
+  save();
+  renderCollabList();
+  updateSelectOptions();
+}
+
+function removeCollab(id) {
+  const c = state.collaborateurs.find(x => x.id === id);
+  const affCount = state.affaires.filter(a => a.assignees.includes(id)).length;
+  const msg = affCount > 0
+    ? `Supprimer "${c.name}" ? Il/elle est assigné(e) à ${affCount} affaire(s), qui seront désassignées.`
+    : `Supprimer "${c.name}" ?`;
+  if (!confirm(msg)) return;
+  state.affaires.forEach(a => { a.assignees = a.assignees.filter(x => x !== id); });
+  state.collaborateurs = state.collaborateurs.filter(x => x.id !== id);
+  save();
+  renderCollabList();
+  updateSelectOptions();
+}
+
+// ——— VIEW TOGGLE ———
+function setView(v) {
+  currentView = v;
+  document.getElementById('view-list').style.display = v === 'list' ? 'block' : 'none';
+  document.getElementById('view-kanban').style.display = v === 'kanban' ? 'block' : 'none';
+  document.getElementById('view-list-btn').classList.toggle('active', v === 'list');
+  document.getElementById('view-kanban-btn').classList.toggle('active', v === 'kanban');
+  applyFilters();
+}
+
+// ——— EXPORT EXCEL ———
+function openExportModal() {
+  // Populate chapter filter
+  const sel = document.getElementById('export-chapter-filter');
+  sel.innerHTML = '<option value="">Tous les chapitres</option>' +
+    state.chapters.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('modal-export').classList.add('open');
+}
+
+function getExportData() {
+  const statusFilter = document.getElementById('export-status-filter').value;
+  const chapterFilter = document.getElementById('export-chapter-filter').value;
+  return state.affaires.filter(a => {
+    if (statusFilter && a.status !== statusFilter) return false;
+    if (chapterFilter && a.chapter !== chapterFilter) return false;
+    return true;
+  });
+}
+
+const PRIORITY_LABELS = { urgent: 'Urgent', high: 'Haute', normal: 'Normale', low: 'Basse' };
+const STATUS_LABELS   = { todo: 'À faire', wip: 'En cours', review: 'À valider', done: 'Terminé' };
+
+// Color palettes (ARGB hex for openpyxl-style fills via SheetJS)
+const PRIORITY_FILLS = {
+  urgent: { bg: 'FFFCE8E5', font: 'FFC44C3A' },
+  high:   { bg: 'FFFFF3CD', font: 'FFC8922A' },
+  normal: { bg: 'FFDDE8F8', font: 'FF2D5FA6' },
+  low:    { bg: 'FFF5F5F3', font: 'FF7A756C' },
+};
+const STATUS_FILLS = {
+  todo:   { bg: 'FFF5F5F3', font: 'FF7A756C' },
+  wip:    { bg: 'FFDDE8F8', font: 'FF2D5FA6' },
+  review: { bg: 'FFFFF3CD', font: 'FFC8922A' },
+  done:   { bg: 'FFDAF0E0', font: 'FF3A7A4A' },
+};
+
+function makeHeaderStyle() {
+  return {
+    font: { bold: true, color: { rgb: 'FFFFFFFF' }, sz: 11, name: 'Arial' },
+    fill: { fgColor: { rgb: 'FF1A1814' }, patternType: 'solid' },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    border: {
+      bottom: { style: 'thin', color: { rgb: 'FF444441' } },
+      right:  { style: 'thin', color: { rgb: 'FF444441' } },
+    }
+  };
+}
+
+function makeCellStyle(bg, fontColor, bold = false, center = false) {
+  return {
+    font: { color: { rgb: fontColor }, sz: 10, name: 'Arial', bold },
+    fill: { fgColor: { rgb: bg }, patternType: 'solid' },
+    alignment: { vertical: 'center', horizontal: center ? 'center' : 'left', wrapText: true },
+    border: {
+      bottom: { style: 'hair', color: { rgb: 'FFE8E4DC' } },
+      right:  { style: 'hair', color: { rgb: 'FFE8E4DC' } },
+    }
+  };
+}
+
+function buildAffaireRow(a) {
+  const names = a.assignees.map(id => state.collaborateurs.find(c => c.id === id)?.name || '').filter(Boolean).join(', ');
+  const deadlineDisplay = a.deadline
+    ? new Date(a.deadline).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : '—';
+  const urgency = a.deadline
+    ? Math.ceil((new Date(a.deadline) - new Date()) / 86400000)
+    : null;
+  const urgencyLabel = urgency === null ? '' : urgency < 0 ? `Dépassé (${-urgency}j)` : urgency === 0 ? "Aujourd'hui" : `J-${urgency}`;
+
+  return {
+    data: [
+      a.title,
+      a.chapter || '—',
+      PRIORITY_LABELS[a.priority] || a.priority,
+      deadlineDisplay,
+      urgencyLabel,
+      STATUS_LABELS[a.status] || a.status,
+      a.progress + ' %',
+      names || '—',
+      a.comment || '',
+    ],
+    priority: a.priority,
+    status: a.status,
+    progress: a.progress,
+    overdue: urgency !== null && urgency < 0,
+  };
+}
+
+const COL_HEADERS = ['Intitulé de l\'affaire', 'Chapitre', 'Priorité', 'Date butoire', 'Délai', 'Statut', 'Progression', 'Collaborateurs', 'Commentaires'];
+const COL_WIDTHS  = [42, 20, 12, 14, 12, 12, 12, 28, 36];
+
+function buildSheet(affaires, sheetTitle) {
+  const wb_sheet = {};
+  const range = { s: { r: 0, c: 0 }, e: { r: 0, c: COL_HEADERS.length - 1 } };
+
+  // Title row
+  wb_sheet['A1'] = {
+    v: sheetTitle,
+    t: 's',
+    s: {
+      font: { bold: true, sz: 13, name: 'Arial', color: { rgb: 'FF1A1814' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+      fill: { fgColor: { rgb: 'FFFFF8EE' }, patternType: 'solid' },
+    }
+  };
+  // Merge title across all columns
+  const merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: COL_HEADERS.length - 1 } }];
+
+  // Sub-header: date + count
+  const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  wb_sheet['A2'] = {
+    v: `Généré le ${today} — ${affaires.length} affaire${affaires.length > 1 ? 's' : ''}`,
+    t: 's',
+    s: {
+      font: { italic: true, sz: 9, name: 'Arial', color: { rgb: 'FF7A756C' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+    }
+  };
+  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: COL_HEADERS.length - 1 } });
+
+  // Column headers row (row 3, index 2)
+  COL_HEADERS.forEach((h, ci) => {
+    const addr = XLSX.utils.encode_cell({ r: 2, c: ci });
+    wb_sheet[addr] = { v: h, t: 's', s: makeHeaderStyle() };
+  });
+
+  // Data rows starting at row 4 (index 3)
+  affaires.forEach((a, ri) => {
+    const row = buildAffaireRow(a);
+    const rowBg = ri % 2 === 0 ? 'FFFAF8F4' : 'FFFFFFFF';
+
+    row.data.forEach((val, ci) => {
+      const addr = XLSX.utils.encode_cell({ r: ri + 3, c: ci });
+      let style;
+
+      if (ci === 2) { // Priorité
+        const f = PRIORITY_FILLS[a.priority] || PRIORITY_FILLS.normal;
+        style = makeCellStyle(f.bg, f.font, true, true);
+      } else if (ci === 5) { // Statut
+        const f = STATUS_FILLS[a.status] || STATUS_FILLS.todo;
+        style = makeCellStyle(f.bg, f.font, true, true);
+      } else if (ci === 4) { // Délai
+        const color = row.overdue ? 'FFC44C3A' : 'FF3A7A4A';
+        style = makeCellStyle(rowBg, color, row.overdue, true);
+      } else if (ci === 6) { // Progression
+        const prog = a.progress;
+        const progColor = prog === 100 ? 'FF3A7A4A' : prog >= 60 ? 'FF2A7C6F' : prog >= 30 ? 'FFC8922A' : 'FFC44C3A';
+        style = makeCellStyle(rowBg, progColor, true, true);
+      } else {
+        style = makeCellStyle(rowBg, 'FF1A1814', ci === 0, false);
+      }
+
+      wb_sheet[addr] = { v: val, t: 's', s: style };
+    });
+  });
+
+  const lastRow = affaires.length + 3;
+  range.e.r = Math.max(lastRow, 3);
+
+  // Totals / summary row
+  const sumRow = lastRow;
+  const summaryBg = 'FFF2EFE9';
+  wb_sheet[XLSX.utils.encode_cell({ r: sumRow, c: 0 })] = {
+    v: `TOTAL : ${affaires.length} affaire${affaires.length > 1 ? 's' : ''}`,
+    t: 's', s: makeCellStyle(summaryBg, 'FF1A1814', true)
+  };
+  const avgProg = affaires.length
+    ? Math.round(affaires.reduce((s, a) => s + (a.progress || 0), 0) / affaires.length)
+    : 0;
+  wb_sheet[XLSX.utils.encode_cell({ r: sumRow, c: 6 })] = {
+    v: `Moy. ${avgProg} %`,
+    t: 's', s: makeCellStyle(summaryBg, 'FF2A7C6F', true, true)
+  };
+  const overdueCount = affaires.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.status !== 'done').length;
+  if (overdueCount > 0) {
+    wb_sheet[XLSX.utils.encode_cell({ r: sumRow, c: 4 })] = {
+      v: `${overdueCount} en retard`,
+      t: 's', s: makeCellStyle(summaryBg, 'FFC44C3A', true, true)
+    };
+  }
+  range.e.r = sumRow;
+
+  wb_sheet['!ref'] = XLSX.utils.encode_range(range);
+  wb_sheet['!merges'] = merges;
+  wb_sheet['!cols'] = COL_WIDTHS.map(w => ({ wch: w }));
+  wb_sheet['!rows'] = [
+    { hpt: 26 }, // title
+    { hpt: 14 }, // subtitle
+    { hpt: 32 }, // headers
+    ...Array(affaires.length).fill({ hpt: 22 }),
+    { hpt: 20 }, // total
+  ];
+
+  return wb_sheet;
+}
+
+function exportExcel() {
+  const exportType = document.querySelector('input[name="export-type"]:checked').value;
+  const affaires = getExportData();
+
+  if (!affaires.length) {
+    alert('Aucune affaire ne correspond aux filtres sélectionnés.');
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+  wb.Props = { Title: 'Planning Bureau d\'Études', Author: 'Bureau d\'Études' };
+
+  if (exportType === 'global' || exportType === 'synthese') {
+    const sheet = buildSheet(affaires, 'Planning complet — Bureau d\'Études');
+    XLSX.utils.book_append_sheet(wb, sheet, 'Synthèse complète');
+  }
+
+  if (exportType === 'par-personne' || exportType === 'synthese') {
+    state.collaborateurs.forEach(collab => {
+      const collabAffaires = affaires.filter(a => a.assignees.includes(collab.id));
+      if (!collabAffaires.length) return;
+      // Sort by priority then deadline
+      const pOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+      collabAffaires.sort((a, b) => {
+        const pd = pOrder[a.priority] - pOrder[b.priority];
+        if (pd !== 0) return pd;
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline) - new Date(b.deadline);
+      });
+      const sheetTitle = `Dossiers de ${collab.name} — ${collab.role}`;
+      const sheet = buildSheet(collabAffaires, sheetTitle);
+      // Sheet name max 31 chars, no special chars
+      const safeName = collab.name.replace(/[:\\/\[\]*?]/g, '').substring(0, 28);
+      XLSX.utils.book_append_sheet(wb, sheet, safeName);
+    });
+
+    // Also add "non assignés" if any
+    const unassigned = affaires.filter(a => !a.assignees.length);
+    if (unassigned.length) {
+      const sheet = buildSheet(unassigned, 'Dossiers non assignés');
+      XLSX.utils.book_append_sheet(wb, sheet, 'Non assignés');
+    }
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `planning-BE-${today}.xlsx`);
+  closeModal('modal-export');
+}
+
+// ——— SAUVEGARDE / CHARGEMENT JSON ———
+function sauvegarderJSON() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `planning-BE-sauvegarde-${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Confirmation visuelle
+  const btn = document.querySelector('button[onclick="sauvegarderJSON()"]');
+  const original = btn.innerHTML;
+  btn.innerHTML = '✓ Sauvegardé !';
+  btn.style.background = 'rgba(58,122,74,.3)';
+  setTimeout(() => { btn.innerHTML = original; btn.style.background = 'rgba(255,255,255,.08)'; }, 2000);
+}
+
+function chargerJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const loaded = JSON.parse(e.target.result);
+      if (!loaded.affaires || !loaded.collaborateurs) throw new Error('Format invalide');
+      if (!confirm(`Charger cette sauvegarde ?\n\n${loaded.affaires.length} affaire(s), ${loaded.collaborateurs.length} collaborateur(s).\n\nCela remplacera les données actuelles.`)) return;
+      state = loaded;
+      save(true);
+      renderAll();
+      // Confirmation visuelle
+      const btn = document.querySelector('button[onclick="document.getElementById(\'import-json\').click()"]');
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓ Chargé !';
+      btn.style.background = 'rgba(58,122,74,.3)';
+      setTimeout(() => { btn.innerHTML = original; btn.style.background = 'rgba(255,255,255,.08)'; }, 2000);
+    } catch(err) {
+      alert('Fichier invalide. Veuillez sélectionner un fichier de sauvegarde planning (.json).');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // reset pour pouvoir recharger le même fichier
+}
+
+// ——— KEYBOARD ———
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['modal-affaire','modal-chapters','modal-collab'].forEach(id => {
+      document.getElementById(id).classList.remove('open');
+    });
+  }
+  if ((e.metaKey||e.ctrlKey) && e.key === 'k') { e.preventDefault(); openModal(); }
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
