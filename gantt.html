@@ -532,8 +532,8 @@ button:hover{background:#f5f5f3}
       <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">Livraisons fournisseurs</span>
       <button onclick="addLivr()">+ Livraison</button>
     </div>
-    <div class="row hdr" style="grid-template-columns:1.2fr 1fr 130px 1.2fr 30px">
-      <span>Fournisseur</span><span>Matériaux / Fournitures</span><span>Date de livraison</span><span>Note</span><span></span>
+    <div class="row hdr" style="grid-template-columns:1.1fr 1fr 130px 90px 90px 1.1fr 30px">
+      <span>Fournisseur</span><span>Matériaux / Fournitures</span><span>Date de livraison</span><span>Délai</span><span>Unité</span><span>Note</span><span></span>
     </div>
     <div id="livr-list"></div>
   </div>
@@ -570,28 +570,75 @@ button:hover{background:#f5f5f3}
   <!-- PDF -->
   <div class="tab-pane" id="tab-pdf">
     <label style="font-size:13px;font-weight:500;color:#2C2C2A;text-transform:none;letter-spacing:0;margin-bottom:10px;display:block">
-      Export PDF — impression via le navigateur
+      Export PDF — impression paramétrable via le navigateur
     </label>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
-      <div><label>Jour de début (j+)</label><input type="number" id="pdf-start" value="0" min="0" style="width:100%"></div>
-      <div><label>Jour de fin (j+)</label><input type="number" id="pdf-end" value="60" min="1" style="width:100%"></div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">
+      <div><label>Date de début export</label><input type="date" id="pdf-date-start" style="width:100%"></div>
+      <div><label>Date de fin export</label><input type="date" id="pdf-date-end" style="width:100%"></div>
+
+      <div><label>Mode d'export</label>
+        <select id="pdf-page-mode" style="width:100%">
+          <option value="single">1 page A3</option>
+          <option value="multi" selected>Plusieurs pages A3</option>
+        </select>
+      </div>
+
+      <div><label>Échelle par page</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <input type="number" id="pdf-span-value" min="1" value="8" style="width:100%">
+          <select id="pdf-span-unit" style="width:100%">
+            <option value="weeks" selected>Semaines</option>
+            <option value="months">Mois</option>
+          </select>
+        </div>
+      </div>
+
+      <div><label>Page synthèse (p.1)</label>
+        <select id="pdf-synthese-page" style="width:100%">
+          <option value="1" selected>Oui — planning complet</option>
+          <option value="0">Non</option>
+        </select>
+      </div>
+
+      <div><label>Masquer les plages sans activité</label>
+        <select id="pdf-hide-empty" style="width:100%"><option value="1" selected>Oui</option><option value="0">Non</option></select>
+      </div>
+
       <div><label>Afficher moyens humains</label>
         <select id="pdf-human" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
       </div>
+
       <div><label>Afficher moyens matériels</label>
         <select id="pdf-mat" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
       </div>
+
       <div><label>Afficher avancement</label>
         <select id="pdf-prog" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
       </div>
-      <div style="display:flex;align-items:end">
-        <button class="btn-g" onclick="exportPDF()" style="width:100%;padding:8px">Exporter en PDF (impression)</button>
+
+      <div><label>Lignes par page</label>
+        <input type="number" id="pdf-rows-per-page" min="4" value="12" style="width:100%">
       </div>
     </div>
+
+    <div class="card" style="padding:12px;background:#fafaf8;border-color:#e8e6e2;margin-bottom:14px">
+      <label style="margin-bottom:8px">Chapitres à afficher</label>
+      <div id="pdf-chapters" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"></div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button onclick="selectAllPdfChapters(true)">Tout cocher</button>
+      <button onclick="selectAllPdfChapters(false)">Tout décocher</button>
+      <button class="btn-g" id="btn-export-pdf" type="button" style="padding:8px 18px">Exporter en PDF</button>
+    </div>
+
     <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
-      <strong>Comment ça marche :</strong> cliquez "Exporter en PDF", la boîte d'impression de votre navigateur s'ouvre.<br>
-      Choisissez <strong>Enregistrer en PDF</strong> comme imprimante (ou "Microsoft Print to PDF" sur Windows).<br>
-      Format recommandé : <strong>A3 paysage</strong> — décochez les en-têtes/pieds de page pour un rendu propre.
+      <strong>Structure du PDF généré :</strong><br>
+      <strong>• Page 1 (synthèse)</strong> — Planning complet sur une seule page A3, plages sans activité supprimées, zoom auto-calculé.<br>
+      <strong>• Pages suivantes (détail)</strong> — Planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page).<br>
+      <strong>• Dernière page (tableau)</strong> — Détail tâches et livraisons si "Afficher moyens" activé.<br><br>
+      Cliquez <strong>Exporter en PDF</strong> puis choisissez <strong>Enregistrer en PDF</strong> · Format : <strong>A3 paysage</strong> · Décochez les en-têtes/pieds de page.
     </div>
   </div>
 
@@ -724,16 +771,43 @@ function ensureDefaultFermeture(){
 }
 
 
-function today(){return new Date().toISOString().split('T')[0]}
-function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
-function fmtDate(d){return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}
-function fmtFull(d){return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}
+function parseISODate(v){
+  if(v instanceof Date) return new Date(v.getFullYear(),v.getMonth(),v.getDate(),12,0,0,0);
+  const s=String(v||'').trim();
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3], 12, 0, 0, 0);
+  const d=new Date(s);
+  if(Number.isNaN(d.getTime())) return new Date();
+  return new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0,0);
+}
+function formatISODate(d){
+  const x=parseISODate(d);
+  const y=x.getFullYear();
+  const m=String(x.getMonth()+1).padStart(2,'0');
+  const day=String(x.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today(){return formatISODate(new Date())}
+function addDays(d,n){const r=parseISODate(d);r.setDate(r.getDate()+n);return r}
+function fmtDate(d){return parseISODate(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}
+function fmtFull(d){return parseISODate(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}
+function escapeHtml(v){
+  return String(v ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
 function showTab(name){
   ['tasks','res','livr','cal','pdf'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===name);
-    document.getElementById('tab-'+t+'-btn').classList.toggle('active',t===name);
+    const pane=document.getElementById('tab-'+t);
+    const btn=document.getElementById('tab-'+t+'-btn');
+    if(pane) pane.classList.toggle('active',t===name);
+    if(btn) btn.classList.toggle('active',t===name);
   });
+  if(name==='pdf') ensurePdfUiReady();
 }
 
 function getTravauxTitleIndex(){
@@ -879,7 +953,44 @@ function openMsDropdown(taskIdx,field,resources,anchor){
   document.body.appendChild(panel);
   _openMsPanel=panel;
 }
-function addLivr(){const date=startToDate(0);livraisons.push({id:uid++,supplier:'Fournisseur',items:'Matériaux',date,day:0,note:''});renderLivr();renderGantt()}
+function parseLivrDelayDays(value,unit){
+  const n=Math.max(0,+value||0);
+  return unit==='jours'?n:n*7;
+}
+function getLivrDelayLabel(l){
+  const value=Math.max(0,+l.delayValue||0);
+  const unit=l.delayUnit||'semaines';
+  if(!value)return '0 j';
+  return value+' '+(unit==='jours'?(value>1?'jours':'jour'):(value>1?'semaines':'semaine'));
+}
+function getLivrDelayDays(l){
+  return parseLivrDelayDays(l.delayValue,l.delayUnit||'semaines');
+}
+function getLivrDeliveryDate(l){
+  return parseISODate(livrDateValue(l));
+}
+function getLivrOrderDateObj(l){
+  const n=normalizeLivraison(l);
+  return parseISODate(n.orderDate);
+}
+function getLivrDeliveryDay(l){
+  const p0=parseISODate(document.getElementById('pstart').value||today());
+  const d=getLivrDeliveryDate(l);
+  return Math.max(0, Math.round((d-p0)/86400000));
+}
+function getLivrOrderDay(l){
+  const p0=parseISODate(document.getElementById('pstart').value||today());
+  const d=getLivrOrderDateObj(l);
+  return Math.max(0, Math.round((d-p0)/86400000));
+}
+function getLivrOrderDate(l){
+  return formatISODate(getLivrOrderDateObj(l));
+}
+function addLivr(){
+  const date=startToDate(0);
+  livraisons.push({id:uid++,supplier:'Fournisseur',items:'Matériaux',date,day:0,delayValue:0,delayUnit:'semaines',delayDays:0,note:''});
+  renderLivr();renderGantt()
+}
 function removeLivr(id){livraisons=livraisons.filter(l=>l.id!==id);renderLivr();renderGantt()}
 
 function fermetureDateValue(f){
@@ -1003,10 +1114,21 @@ function livrDateValue(l){
 }
 function normalizeLivraison(l){
   const date=l.date|| (Number.isFinite(l.day)?startToDate(l.day):startToDate(0));
-  return {...l,date,day:dateToStart(date)};
+  const delayUnit=(l.delayUnit==='jours'?'jours':'semaines');
+  const rawDelayValue=Number.isFinite(+l.delayValue)?(+l.delayValue):(
+    Number.isFinite(+l.delayDays)?(delayUnit==='jours'?(+l.delayDays):((+l.delayDays)/7)):0
+  );
+  const delayValue=Math.max(0, rawDelayValue||0);
+  const delayDays=parseLivrDelayDays(delayValue,delayUnit);
+  const deliveryDay=dateToStart(date);
+  const orderDateObj=parseISODate(date);
+  orderDateObj.setDate(orderDateObj.getDate()-delayDays);
+  const orderDate=formatISODate(orderDateObj);
+  const orderDay=dateToStart(orderDate);
+  return {...l,date,day:deliveryDay,delayUnit,delayValue,delayDays,orderDate,orderDay,deliveryDay};
 }
 function normalizeLivraisons(){
-  livraisons=(livraisons||[]).map(normalizeLivraison);
+  livraisons=(livraisons||[]).map(normalizeLivraison).sort((a,b)=>getLivrDeliveryDay(a)-getLivrDeliveryDay(b));
 }
 function renderLivr(){
   normalizeLivraisons();
@@ -1015,12 +1137,17 @@ function renderLivr(){
   livraisons.forEach((l,i)=>{
     const row=document.createElement('div');
     row.className='row';
-    row.style.gridTemplateColumns='1.2fr 1fr 130px 1.2fr 30px';
+    row.style.gridTemplateColumns='1.1fr 1fr 130px 90px 90px 1.1fr 30px';
     row.innerHTML=`
-      <input value="${l.supplier}" onchange="livraisons[${i}].supplier=this.value" style="width:100%">
-      <input value="${l.items}" onchange="livraisons[${i}].items=this.value" style="width:100%">
-      <input type="date" value="${livrDateValue(l)}" onchange="livraisons[${i}].date=this.value;livraisons[${i}].day=dateToStart(this.value);renderGantt()" style="width:100%">
-      <input value="${l.note||''}" onchange="livraisons[${i}].note=this.value" style="width:100%" placeholder="Note">
+      <input value="${l.supplier}" onchange="livraisons[${i}].supplier=this.value;renderGantt()" style="width:100%">
+      <input value="${l.items}" onchange="livraisons[${i}].items=this.value;renderGantt()" style="width:100%">
+      <input type="date" value="${livrDateValue(l)}" onchange="livraisons[${i}]=normalizeLivraison({...livraisons[${i}],date:this.value});renderLivr();renderGantt()" style="width:100%">
+      <input type="number" min="0" value="${Math.max(0,+l.delayValue||0)}" onchange="livraisons[${i}]=normalizeLivraison({...livraisons[${i}],delayValue:Math.max(0,+this.value||0)});renderLivr();renderGantt()" style="width:100%">
+      <select onchange="livraisons[${i}]=normalizeLivraison({...livraisons[${i}],delayUnit:this.value});renderLivr();renderGantt()" style="width:100%">
+        <option value="semaines" ${(l.delayUnit||'semaines')==='semaines'?'selected':''}>Semaines</option>
+        <option value="jours" ${(l.delayUnit||'semaines')==='jours'?'selected':''}>Jours</option>
+      </select>
+      <input value="${l.note||''}" onchange="livraisons[${i}].note=this.value;renderGantt()" style="width:100%" placeholder="Note">
       <button class="btn-del" onclick="removeLivr(${l.id})">×</button>
     `;
     el.appendChild(row);
@@ -1056,9 +1183,9 @@ function renderCal(){
   document.getElementById('ferm-week-list').innerHTML=fermWeeks.map(f=>`<span class="pill" style="background:#E6F1FB;color:#0C447C">S${f.start}${f.end!==f.start?'–S'+f.end:''} – ${f.label} <span onclick="removeFermWeek(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
 }
 
-function pstartDate(){const v=document.getElementById('pstart').value||today();return new Date(v);}
-function startToDate(j){const d=new Date(pstartDate());d.setDate(d.getDate()+j);return d.toISOString().split('T')[0];}
-function dateToStart(dateStr){const ps=pstartDate();const d=new Date(dateStr);const diff=Math.round((d-ps)/86400000);return Math.max(0,diff);}
+function pstartDate(){const v=document.getElementById('pstart').value||today();return parseISODate(v);}
+function startToDate(j){const d=parseISODate(pstartDate());d.setDate(d.getDate()+(+j||0));return formatISODate(d);}
+function dateToStart(dateStr){const ps=parseISODate(pstartDate());const d=parseISODate(dateStr);const diff=Math.round((d-ps)/86400000);return Math.max(0,diff);}
 function resolveStarts(){
   const map={};tasks.forEach(t=>map[t.id]=t);
   const resolved={};
@@ -1124,15 +1251,8 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
   const totalDays=eDay-sDay+1;
   const closed=getClosedDays(pDate,eDay);
   const hasLivr=livraisons.length>0;
-  const livrLaneMap={};
-  let livrLaneCount=0;
-  livraisons.forEach(l=>{
-    const key=livrDateValue(l);
-    if(!livrLaneMap[key]) livrLaneMap[key]=[];
-    livrLaneMap[key].push(l.id);
-    livrLaneCount=Math.max(livrLaneCount, livrLaneMap[key].length);
-  });
-  const livrRowH=hasLivr ? Math.max(ROW_H, 24 + Math.max(1, livrLaneCount) * 14) : 0;
+  const livrLaneCount=livraisons.length;
+  const livrRowH=hasLivr ? Math.max(ROW_H, 28 + Math.max(1, livrLaneCount) * 18) : 0;
   const totalRowsHeight=visibleTasks.length*ROW_H + livrRowH;
   const svgW=LABEL_W+totalDays*DW;
   const svgH=HDR_H+totalRowsHeight+FOOT;
@@ -1280,19 +1400,37 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     s+=`<rect x="0" y="${iy}" width="${svgW}" height="${livrRowH}" fill="#fdf8f0"/>`;
     s+=`<line x1="0" y1="${iy+livrRowH}" x2="${svgW}" y2="${iy+livrRowH}" stroke="#eeecea" stroke-width=".5"/>`;
     s+=`<text x="10" y="${iy+20}" font-size="11" fill="#854F0B" font-weight="bold" font-family="Arial,sans-serif">Livraisons fournisseurs</text>`;
-    livraisons.forEach(l=>{
-      const lDay=Number.isFinite(l.day)?l.day:dateToStart(livrDateValue(l));
-      if(lDay<sDay||lDay>eDay)return;
-      const key=livrDateValue(l);
-      const lane=(livrLaneMap[key]||[]).indexOf(l.id);
-      const ly=iy+34+Math.max(0,lane)*14;
-      const lx=LABEL_W+(lDay-sDay)*DW;
-      s+=`<line x1="${lx+DW/2}" y1="${ly-10}" x2="${lx+DW/2}" y2="${ly+4}" stroke="#EF9F27" stroke-width="2.5"/>`;
-      s+=`<polygon points="${lx+DW/2-7},${ly-10} ${lx+DW/2+7},${ly-10} ${lx+DW/2},${ly+2}" fill="#EF9F27"/>`;
+    livraisons.forEach((l,lane)=>{
+      const deliveryDay=getLivrDeliveryDay(l);
+      const orderDay=getLivrOrderDay(l);
+      if(deliveryDay<sDay&&orderDay<sDay)return;
+      if(deliveryDay>eDay&&orderDay>eDay)return;
+      const ly=iy+34+Math.max(0,lane)*18;
+      const orderX=LABEL_W+(Math.max(orderDay,sDay)-sDay)*DW+DW/2;
+      const deliveryX=LABEL_W+(Math.min(deliveryDay,eDay)-sDay)*DW+DW/2;
+      if(orderDay<=eDay && deliveryDay>=sDay){
+        s+=`<line x1="${orderX}" y1="${ly-2}" x2="${deliveryX}" y2="${ly-2}" stroke="#C58A20" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+      }
+      if(orderDay>=sDay&&orderDay<=eDay){
+        s+=`<rect x="${orderX-5}" y="${ly-7}" width="10" height="10" fill="#7F6A4A" transform="rotate(45,${orderX},${ly-2})" rx="2"/>`;
+      }
+      if(deliveryDay>=sDay&&deliveryDay<=eDay){
+        s+=`<line x1="${deliveryX}" y1="${ly-10}" x2="${deliveryX}" y2="${ly+4}" stroke="#EF9F27" stroke-width="2.5"/>`;
+        s+=`<polygon points="${deliveryX-7},${ly-10} ${deliveryX+7},${ly-10} ${deliveryX},${ly+2}" fill="#EF9F27"/>`;
+      }
       if(DW>=18){
-        const label=(l.supplier||'').substring(0,18);
-        s+=`<rect x="${lx+DW/2+7}" y="${ly-9}" width="${Math.max(26,label.length*5.2+6)}" height="12" rx="3" fill="#fff7ea" opacity=".96"/>`;
-        s+=`<text x="${lx+DW/2+10}" y="${ly}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${label}</text>`;
+        const sup=(l.supplier||'Fournisseur').substring(0,16);
+        const cmdLabel='Cmd '+sup;
+        const livLabel='Liv '+sup;
+        if(orderDay>=sDay&&orderDay<=eDay){
+          s+=`<text x="${orderX+8}" y="${ly-4}" font-size="8.5" fill="#6B5738" font-family="Arial,sans-serif">${cmdLabel}</text>`;
+        }
+        if(deliveryDay>=sDay&&deliveryDay<=eDay){
+          s+=`<text x="${deliveryX+10}" y="${ly}" font-size="8.5" fill="#854F0B" font-family="Arial,sans-serif">${livLabel}</text>`;
+        }
+        if(orderDay<=eDay && deliveryDay>=sDay){
+          s+=`<text x="${Math.max(orderX, LABEL_W)+Math.max(12,(Math.min(deliveryX, LABEL_W+(eDay-sDay)*DW)-Math.max(orderX, LABEL_W))/2)}" y="${ly+10}" text-anchor="middle" font-size="8" fill="#9A7A43" font-family="Arial,sans-serif">${getLivrDelayLabel(l)}</text>`;
+        }
       }
     });
   }
@@ -1316,16 +1454,327 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
   return {svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}">${s}</svg>`,width:svgW,height:svgH};
 }
 
+
+function getProjectStartDate(){
+  return parseISODate(document.getElementById('pstart').value||today());
+}
+function getProjectTotalEndDay(){
+  normalizeLivraisons();
+  const visibleTasks=getVisibleTasks();
+  const starts=resolveStarts();
+  const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
+  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>(starts[t.id]||0)+(t.dur||1))):7);
+  const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
+  return Math.max(taskMax,livrMax)+3;
+}
+function dayToDate(day){
+  return formatISODate(addDays(getProjectStartDate(), day));
+}
+function dateToProjectDay(dateStr){
+  const p=getProjectStartDate();
+  const d=parseISODate(dateStr);
+  return Math.round((d-p)/86400000);
+}
+function getChapterNames(){
+  return tasks.filter(t=>t.type==='title').map(t=>String(t.name||'').trim()).filter(Boolean);
+}
+function ensurePdfUiReady(){
+  updatePdfDateFields();
+  updatePdfChapterList();
+  const wrap=document.getElementById('pdf-chapters');
+  if(wrap && !wrap.querySelector('input[type=checkbox]')){
+    const chapters=getChapterNames();
+    if(chapters.length){
+      wrap.innerHTML=chapters.map(name=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#2C2C2A"><input type="checkbox" value="${escapeHtml(name)}" checked> <span>${escapeHtml(name)}</span></label>`).join('');
+    }
+  }
+}
+function updatePdfDateFields(){
+  const startEl=document.getElementById('pdf-date-start');
+  const endEl=document.getElementById('pdf-date-end');
+  if(!startEl || !endEl) return;
+  const pDate=getProjectStartDate();
+  const totalEnd=getProjectTotalEndDay();
+  if(!startEl.value) startEl.value=formatISODate(pDate);
+  if(!endEl.value) endEl.value=dayToDate(totalEnd);
+}
+function updatePdfChapterList(){
+  const wrap=document.getElementById('pdf-chapters');
+  if(!wrap) return;
+  const existing=new Set(Array.from(wrap.querySelectorAll('input[type=checkbox]:checked')).map(x=>x.value));
+  const chapters=getChapterNames();
+  wrap.innerHTML=chapters.map((name,idx)=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#2C2C2A"><input type="checkbox" value="${escapeHtml(name)}" ${existing.size===0 || existing.has(name)?'checked':''}> <span>${escapeHtml(name)}</span></label>`).join('') || '<span style="font-size:12px;color:#888780">Aucun chapitre détecté.</span>';
+}
+function selectAllPdfChapters(state){
+  document.querySelectorAll('#pdf-chapters input[type=checkbox]').forEach(cb=>cb.checked=!!state);
+}
+function getSelectedPdfChapters(){
+  const vals=Array.from(document.querySelectorAll('#pdf-chapters input[type=checkbox]:checked')).map(x=>x.value);
+  return vals.length ? vals : getChapterNames();
+}
+function filterTasksByChapters(sourceTasks, selectedChapters){
+  if(!selectedChapters || !selectedChapters.length) return sourceTasks.slice();
+  const selected=new Set(selectedChapters.map(v=>String(v).trim()));
+  const out=[];
+  let currentTitleName=null;
+  let keepCurrent=false;
+  sourceTasks.forEach(t=>{
+    if(t.type==='title'){
+      currentTitleName=String(t.name||'').trim();
+      keepCurrent=selected.has(currentTitleName);
+      if(keepCurrent) out.push(JSON.parse(JSON.stringify(t)));
+    } else if(keepCurrent){
+      out.push(JSON.parse(JSON.stringify(t)));
+    }
+  });
+  return out;
+}
+function getFilteredLivraisonsByRange(rangeStartDay, rangeEndDay){
+  return livraisons.filter(l=>{
+    const orderDay=getLivrOrderDay(l);
+    const deliveryDay=getLivrDeliveryDay(l);
+    return (orderDay>=rangeStartDay && orderDay<=rangeEndDay) || (deliveryDay>=rangeStartDay && deliveryDay<=rangeEndDay);
+  }).map(l=>JSON.parse(JSON.stringify(l)));
+}
+function buildPdfChunks(rangeStartDay, rangeEndDay, mode, spanValue, spanUnit){
+  if(mode==='single') return [{startDay:rangeStartDay, endDay:rangeEndDay, label:'Période complète'}];
+  const chunks=[];
+  let cursorDate=parseISODate(dayToDate(rangeStartDay));
+  const endDate=parseISODate(dayToDate(rangeEndDay));
+  while(cursorDate<=endDate){
+    const chunkStartDay=dateToProjectDay(formatISODate(cursorDate));
+    let nextDate;
+    if(spanUnit==='months'){
+      nextDate=new Date(cursorDate.getFullYear(), cursorDate.getMonth()+spanValue, cursorDate.getDate(), 12,0,0,0);
+    }else{
+      nextDate=addDays(cursorDate, spanValue*7);
+    }
+    const chunkEndDate=addDays(nextDate,-1);
+    const chunkEndDay=Math.min(rangeEndDay, dateToProjectDay(formatISODate(chunkEndDate)));
+    chunks.push({startDay:chunkStartDay,endDay:chunkEndDay,label:`Du ${fmtFull(cursorDate)} au ${fmtFull(addDays(getProjectStartDate(),chunkEndDay))}`});
+    cursorDate=nextDate;
+  }
+  return chunks.filter(c=>c.endDay>=c.startDay);
+}
+
+function getBucketKeyForDay(day, spanUnit){
+  const dt=addDays(getProjectStartDate(), day);
+  if(spanUnit==='months') return `${dt.getFullYear()}-${dt.getMonth()}`;
+  return Math.floor(day/7);
+}
+
+function getBucketBoundsFromKey(key, spanUnit, rangeStartDay, rangeEndDay){
+  if(spanUnit==='months'){
+    const [yy, mm] = String(key).split('-').map(Number);
+    const monthStart = new Date(yy, mm, 1, 12, 0, 0, 0);
+    const monthEnd = new Date(yy, mm + 1, 0, 12, 0, 0, 0);
+    return {
+      startDay: Math.max(rangeStartDay, dateToProjectDay(formatISODate(monthStart))),
+      endDay: Math.min(rangeEndDay, dateToProjectDay(formatISODate(monthEnd)))
+    };
+  }
+  const wk = Number(key);
+  return {
+    startDay: Math.max(rangeStartDay, wk * 7),
+    endDay: Math.min(rangeEndDay, wk * 7 + 6)
+  };
+}
+
+function buildActivityAwarePdfChunks(rangeStartDay, rangeEndDay, spanValue, spanUnit, tasksSubset, livrSubset, startsMap){
+  const bucketKeys=[];
+  const seen=new Set();
+  const addBucket=(day)=>{
+    if(day<rangeStartDay || day>rangeEndDay) return;
+    const key=getBucketKeyForDay(day, spanUnit);
+    if(!seen.has(key)){
+      seen.add(key);
+      bucketKeys.push(key);
+    }
+  };
+
+  tasksSubset.forEach(t=>{
+    if(!t || t.type==='title') return;
+    const s=startsMap[t.id];
+    if(s===undefined) return;
+    const e=t.type==='milestone' ? s : s + Math.max(0, (t.dur||0));
+    const rs=Math.max(rangeStartDay, s);
+    const re=Math.min(rangeEndDay, e);
+    for(let day=rs; day<=re; day++) addBucket(day);
+  });
+
+  livrSubset.forEach(l=>{
+    addBucket(getLivrOrderDay(l));
+    addBucket(getLivrDeliveryDay(l));
+  });
+
+  if(!bucketKeys.length) return [];
+
+  bucketKeys.sort((a,b)=>{
+    if(spanUnit==='months'){
+      const [ay,am]=String(a).split('-').map(Number);
+      const [by,bm]=String(b).split('-').map(Number);
+      return (ay-by) || (am-bm);
+    }
+    return Number(a)-Number(b);
+  });
+
+  const chunks=[];
+  let current=[];
+  const isConsecutive=(prevKey, key)=>{
+    if(spanUnit==='months'){
+      const [py,pm]=String(prevKey).split('-').map(Number);
+      const [y,m]=String(key).split('-').map(Number);
+      return (y===py && m===pm+1) || (y===py+1 && pm===11 && m===0);
+    }
+    return Number(key)===Number(prevKey)+1;
+  };
+  const flushGroup=(group)=>{
+    if(!group.length) return;
+    const maxPerChunk=Math.max(1, parseInt(spanValue)||1);
+    let i=0;
+    while(i<group.length){
+      let take=Math.min(maxPerChunk, group.length-i);
+      const remaining=group.length-(i+take);
+      if(remaining>0 && remaining<=2 && take+remaining<=maxPerChunk+2){
+        take+=remaining;
+      }
+      const first=group[i], last=group[i+take-1];
+      const b1=getBucketBoundsFromKey(first, spanUnit, rangeStartDay, rangeEndDay);
+      const b2=getBucketBoundsFromKey(last, spanUnit, rangeStartDay, rangeEndDay);
+      chunks.push({
+        startDay:b1.startDay,
+        endDay:b2.endDay,
+        label:`Du ${fmtFull(addDays(getProjectStartDate(), b1.startDay))} au ${fmtFull(addDays(getProjectStartDate(), b2.endDay))}`
+      });
+      i+=take;
+    }
+  };
+
+  bucketKeys.forEach((key, idx)=>{
+    if(!current.length){ current=[key]; return; }
+    const prev=current[current.length-1];
+    if(isConsecutive(prev, key)) current.push(key);
+    else { flushGroup(current); current=[key]; }
+  });
+  flushGroup(current);
+  return chunks.filter(c=>c.endDay>=c.startDay);
+}
+function chunkHasActivity(tasksSubset, livrSubset, startsMap, startDay, endDay){
+  const hasTask=tasksSubset.some(t=>{
+    if(t.type==='title') return false;
+    const s=startsMap[t.id];
+    if(s===undefined) return false;
+    const e=t.type==='milestone' ? s : s + (t.dur||0);
+    return s<=endDay && e>=startDay;
+  });
+  const hasLivr=livrSubset.some(l=>{
+    const od=getLivrOrderDay(l), dd=getLivrDeliveryDay(l);
+    return (od>=startDay && od<=endDay) || (dd>=startDay && dd<=endDay);
+  });
+  return hasTask || hasLivr;
+}
+
+function taskIntersectsChunk(t, startsMap, startDay, endDay){
+  if(!t || t.type==='title') return false;
+  const s=startsMap[t.id];
+  if(s===undefined) return false;
+  const e=t.type==='milestone' ? s : s + (t.dur||0);
+  return s<=endDay && e>=startDay;
+}
+
+function filterTasksForChunk(sourceTasks, startsMap, startDay, endDay){
+  const out=[];
+  let currentTitle=null;
+  let chapterHasRows=false;
+
+  sourceTasks.forEach(t=>{
+    const clone=JSON.parse(JSON.stringify(t));
+    if(t.type==='title'){
+      if(currentTitle && chapterHasRows){
+        out.push(currentTitle);
+      }
+      currentTitle=clone;
+      chapterHasRows=false;
+      return;
+    }
+    if(taskIntersectsChunk(t, startsMap, startDay, endDay)){
+      if(currentTitle && !chapterHasRows){
+        out.push(currentTitle);
+        chapterHasRows=true;
+      }
+      out.push(clone);
+    }
+  });
+
+  return out;
+}
+
+function splitTasksForPrint(sourceTasks, maxRows){
+  const rowsPerPage=Math.max(4, parseInt(maxRows)||12);
+  const pages=[];
+  let current=[];
+  let currentChapter=null;
+
+  const cloneTask=t=>JSON.parse(JSON.stringify(t));
+  const currentHasRealRows=()=>current.some(r=>r.type!=='title');
+  const pushCurrent=()=>{
+    if(currentHasRealRows()) pages.push(current.map(cloneTask));
+    current=[];
+  };
+
+  sourceTasks.forEach(t=>{
+    const row=cloneTask(t);
+    const isTitle=t.type==='title';
+
+    if(!current.length && !isTitle && currentChapter){
+      current.push(cloneTask(currentChapter));
+    }
+
+    if(current.length>=rowsPerPage){
+      pushCurrent();
+      if(!isTitle && currentChapter){
+        current.push(cloneTask(currentChapter));
+      }
+    }
+
+    if(isTitle){
+      if(current.length && !currentHasRealRows()) current=[];
+      currentChapter=cloneTask(row);
+      if(current.length>=rowsPerPage){
+        pushCurrent();
+      }
+      current.push(row);
+    }else{
+      current.push(row);
+    }
+
+    if(current.length>rowsPerPage){
+      const overflow=current.pop();
+      pushCurrent();
+      if(overflow.type!=='title' && currentChapter){
+        current.push(cloneTask(currentChapter));
+      }
+      current.push(overflow);
+    }
+  });
+
+  pushCurrent();
+  return pages;
+}
+
 function renderGantt(){
+  normalizeLivraisons();
   if(!tasks.length)return;
   const visibleTasks=getVisibleTasks();
   if(!visibleTasks.length)return;
   const DW=parseInt(document.getElementById('zoom').value);
   const ps=document.getElementById('pstart').value||today();
-  const pDate=new Date(ps);
+  const pDate=parseISODate(ps);
   const starts=resolveStarts();
   const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
-  const totalDays=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>starts[t.id]+(t.dur||1))):7)+3;
+  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>starts[t.id]+(t.dur||1))):7);
+  const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
+  const totalDays=Math.max(taskMax,livrMax)+3;
   const {svg}=buildSVG(pDate,DW,0,totalDays);
 
   const usedCats=[...new Set(visibleTasks.map(t=>t.cat).filter(Boolean))];
@@ -1354,7 +1803,7 @@ function renderGantt(){
 
   const name=document.getElementById('pname').value||'Planning de chantier';
   document.getElementById('g-title').textContent=name;
-  document.getElementById('g-sub').textContent=`Démarrage : ${fmtFull(pDate)} · ${usedCats.length} catégories · ${visibleTasks.filter(t=>t.pred).length} liens · ${visibleTasks.filter(t=>t.type==='milestone').length} jalons · ${livraisons.length} livraisons`;
+  document.getElementById('g-sub').textContent=`Démarrage : ${fmtFull(pDate)} · ${usedCats.length} catégories · ${visibleTasks.filter(t=>t.pred).length} liens · ${visibleTasks.filter(t=>t.type==='milestone').length} jalons · ${livraisons.length} livraisons fournisseurs`;
   const scroller=document.getElementById('gantt-scroll');
   const prevScrollLeft=scroller.scrollLeft||0;
   const prevScrollTop=scroller.scrollTop||0;
@@ -1372,180 +1821,236 @@ function renderGantt(){
     syncSticky();
   });
   document.getElementById('gantt-card').style.display='block';
-  document.getElementById('pdf-end').value=totalDays;
+  updatePdfDateFields();
+  updatePdfChapterList();
 }
 
+
 function exportPDF(){
-  const ps=document.getElementById('pstart').value||today();
-  const pDate=new Date(ps);
-  const pdStart=parseInt(document.getElementById('pdf-start').value)||0;
-  const pdEnd=parseInt(document.getElementById('pdf-end').value)||60;
+  normalizeLivraisons();
+  const ps=getProjectStartDate();
+  const startInput=document.getElementById('pdf-date-start').value || formatISODate(ps);
+  const endInput=document.getElementById('pdf-date-end').value || dayToDate(getProjectTotalEndDay());
+  let rangeStartDay=Math.max(0, dateToProjectDay(startInput));
+  let rangeEndDay=Math.max(rangeStartDay, dateToProjectDay(endInput));
+  const pageMode=document.getElementById('pdf-page-mode').value;
+  const spanValue=Math.max(1, parseInt(document.getElementById('pdf-span-value').value)||1);
+  const spanUnit=document.getElementById('pdf-span-unit').value;
+  const hideEmpty=document.getElementById('pdf-hide-empty').value==='1';
   const showH=document.getElementById('pdf-human').value==='1';
   const showM=document.getElementById('pdf-mat').value==='1';
   const showP=document.getElementById('pdf-prog').value==='1';
+  const showSynthese=document.getElementById('pdf-synthese-page').value==='1';
+  const selectedChapters=getSelectedPdfChapters();
   const name=document.getElementById('pname').value||'Planning de chantier';
   const DW=24;
-  const DAYS_PER_SPAN=56; // 8 semaines
-  const MAX_ROWS_PER_PAGE=26;
-
-  document.getElementById('ph-title').textContent=name;
-  document.getElementById('ph-sub').textContent=`Démarrage : ${fmtFull(pDate)} — Export par tranches de 8 semaines — Généré le ${new Date().toLocaleDateString('fr-FR')}`;
+  const PRINT_ROWS_PER_PAGE=Math.max(4, parseInt(document.getElementById('pdf-rows-per-page')?.value)||12);
 
   const ganttScroll=document.getElementById('gantt-scroll');
   const origContent=ganttScroll.innerHTML;
   const origTasks=tasks.slice();
   const origLivr=livraisons.slice();
-  const visibleAll=tasks.slice();
-  const globalStarts=resolveStarts();
+
+  const filteredTasks=filterTasksByChapters(origTasks, selectedChapters);
+  tasks=filteredTasks;
+  livraisons=origLivr.slice();
+
+  const startsMap=resolveStarts();
   const printBlocks=[];
+  let pageNo=0;
 
-  function cloneTask(t){ return JSON.parse(JSON.stringify(t)); }
+  // ══════════════════════════════════════════════════════════
+  // PAGE 1 — SYNTHÈSE : planning complet sur une seule page
+  // Zoom auto-calculé pour tenir sur A3 paysage (sans plages vides)
+  // ══════════════════════════════════════════════════════════
+  if(showSynthese){
+    // Calculer la plage réelle d'activité (sans plages vides) sur l'ensemble du projet
+    const syntheseStartDay = rangeStartDay;
+    const syntheseEndDay   = rangeEndDay;
 
-  function buildSections(visible){
-    const sections=[];
-    let current=null;
-    visible.forEach(t=>{
-      if(t.type==='title'){
-        current={title:t,items:[t]};
-        sections.push(current);
-      }else if(current){
-        current.items.push(t);
-      }else{
-        if(!sections.length||sections[sections.length-1].title){
-          current={title:null,items:[]};
-          sections.push(current);
-        }
-        sections[sections.length-1].items.push(t);
-      }
+    // Identifier les jours actifs pour construire une timeline compressée
+    // On utilise buildActivityAwarePdfChunks en mode "tout sur une tranche"
+    // mais on construit directement le SVG avec un DW adapté
+    const allTasks = filteredTasks;
+    const allLivr  = origLivr;
+
+    // Trouver les "blocs actifs" pour supprimer les plages vides
+    const activityChunks = buildActivityAwarePdfChunks(
+      syntheseStartDay, syntheseEndDay,
+      1, 'days',   // granularité : 1 jour (on va fusionner)
+      allTasks, allLivr, startsMap
+    );
+
+    // Rassembler tous les jours actifs
+    const activeDaysSet = new Set();
+    activityChunks.forEach(chunk => {
+      for(let d = chunk.startDay; d <= chunk.endDay; d++) activeDaysSet.add(d);
     });
-    return sections.filter(s=>s.items.length);
-  }
+    const activeDays = Array.from(activeDaysSet).sort((a,b)=>a-b);
 
-  function splitPagesForChunk(sections,chunkStart,chunkEnd,livrChunk){
-    const mainSections=[];
-    const finalSections=[];
+    if(activeDays.length > 0){
+      // A3 paysage utilisable : ~410mm = 1160px à 96dpi → on cible ~1100px pour la zone gantt
+      // LABEL_W = 220, donc zone timeline = ~940px max
+      // DW_synthese = floor(940 / activeDays.length), min 6, max 24
+      const SYNTHESE_TIMELINE_PX = 940;
+      const DW_s = Math.min(24, Math.max(6, Math.floor(SYNTHESE_TIMELINE_PX / Math.max(1, activeDays.length))));
 
-    sections.forEach(section=>{
-      const nonTitleItems=section.items.filter(it=>it.type!=='title');
-      const hasChunkContent=nonTitleItems.some(it=>intersectsChunk(it,chunkStart,chunkEnd));
-      const titleName=(section.title?.name||'').trim().toUpperCase();
-      const isFinalisation=titleName.includes('FINALISATION');
-      if(!hasChunkContent) return;
-      const filteredItems=[];
-      if(section.title) filteredItems.push(section.title);
-      nonTitleItems.forEach(it=>{ if(intersectsChunk(it,chunkStart,chunkEnd)) filteredItems.push(it); });
-      if(filteredItems.length<=1) return;
-      const cleanedSection={title:section.title,items:filteredItems};
-      if(isFinalisation) finalSections.push(cleanedSection);
-      else mainSections.push(cleanedSection);
-    });
+      // Sauvegarder et substituer les tâches/livraisons pour buildSVG
+      tasks = allTasks.map(t=>JSON.parse(JSON.stringify(t)));
+      livraisons = allLivr.map(l=>JSON.parse(JSON.stringify(l)));
 
-    const pages=[];
-    if(mainSections.length) pages.push({sections:mainSections,showLivr:livrChunk.length>0});
-    if(finalSections.length) pages.push({sections:finalSections,showLivr:false});
-    if(!mainSections.length && !finalSections.length && livrChunk.length) pages.push({sections:[],showLivr:true});
-    return pages;
-  }
+      // buildSVG avec un "startsOverride" utilisant la même startsMap
+      const {svg: svgSynth, width: wS, height: hS} = buildSVG(
+        ps, DW_s, syntheseStartDay, syntheseEndDay, startsMap
+      );
 
-  function intersectsChunk(item,chunkStart,chunkEnd){
-    if(item.type==='title') return false;
-    const ts=globalStarts[item.id];
-    if(ts===undefined) return false;
-    if(item.type==='milestone') return ts>=chunkStart && ts<=chunkEnd;
-    const te=ts + (item.dur||0);
-    return ts<=chunkEnd && te>=chunkStart;
-  }
+      const styledSvgSynth = svgSynth.replace(
+        '<svg ',
+        `<svg viewBox="0 0 ${wS} ${hS}" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" `
+      );
 
-  function livraisonsInChunk(chunkStart,chunkEnd){
-    return origLivr.filter(l=>{
-      const lDay=Number.isFinite(l.day)?l.day:dateToStart(livrDateValue(l));
-      return lDay>=chunkStart && lDay<=chunkEnd;
-    });
-  }
-
-  for(let chunkStart=pdStart,spanIndex=0;chunkStart<=pdEnd;chunkStart+=DAYS_PER_SPAN,spanIndex++){
-    const chunkEnd=Math.min(pdEnd,chunkStart + DAYS_PER_SPAN - 1);
-    const weekStart=spanIndex*8 + 1;
-    const weekEnd=weekStart + Math.ceil((chunkEnd - chunkStart + 1)/7) - 1;
-    const sections=buildSections(visibleAll);
-    const livrChunk=livraisonsInChunk(chunkStart,chunkEnd);
-    const pages=splitPagesForChunk(sections,chunkStart,chunkEnd,livrChunk);
-
-    pages.forEach(page=>{
-      const subset=[];
-      page.sections.forEach(section=>section.items.forEach(item=>subset.push(cloneTask(item))));
-      const pageHasPlanning=subset.some(item=>item.type!=='title' && intersectsChunk(item,chunkStart,chunkEnd));
-      const shouldShowLivr = page.showLivr;
-      if(!pageHasPlanning && !shouldShowLivr) return;
-      tasks = subset;
-      livraisons = shouldShowLivr ? livrChunk : [];
-      const {svg}=buildSVG(pDate,DW,chunkStart,chunkEnd,globalStarts);
-      tasks = origTasks;
-      livraisons = origLivr;
+      pageNo++;
       printBlocks.push(`
-        <section class="print-gantt-page" style="page-break-after:always;break-after:page;page-break-before:auto;break-before:auto;page-break-inside:avoid;break-inside:avoid;">
-          <div style="width:100%;overflow:hidden">${svg.replace('<svg ','<svg style="width:100%;height:auto;display:block" preserveAspectRatio="xMinYMin meet" ')}</div>
-        </section>
+      <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;page-break-after:always;break-after:page;">
+        <div style="margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
+            <div style="font-size:10px;font-weight:600;padding:2px 8px;background:#1D9E75;color:white;border-radius:4px;letter-spacing:.04em">VUE SYNTHÈSE</div>
+          </div>
+          <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:2px">
+            <span>Planning complet · ${fmtFull(addDays(ps, syntheseStartDay))} → ${fmtFull(addDays(ps, syntheseEndDay))}</span>
+            <span>Page ${pageNo} · Plages sans activité masquées</span>
+          </div>
+        </div>
+        <div style="width:100%;height:248mm;overflow:hidden">${styledSvgSynth}</div>
+      </section>
       `);
-    });
+    }
   }
 
-  tasks = origTasks;
-  livraisons = origLivr;
+  // ══════════════════════════════════════════════════════════
+  // PAGES SUIVANTES — Détail paramétré (chapitres, période, lignes/page)
+  // ══════════════════════════════════════════════════════════
+  tasks=filteredTasks;
+  livraisons=origLivr.slice();
+
+  const chunks=(hideEmpty && pageMode!=='single')
+    ? buildActivityAwarePdfChunks(rangeStartDay, rangeEndDay, spanValue, spanUnit, filteredTasks, origLivr, startsMap)
+    : buildPdfChunks(rangeStartDay, rangeEndDay, pageMode, spanValue, spanUnit);
+
+  chunks.forEach((chunk)=>{
+    const livrChunk=getFilteredLivraisonsByRange(chunk.startDay, chunk.endDay);
+    const activeTasksForChunk=filterTasksForChunk(filteredTasks, startsMap, chunk.startDay, chunk.endDay);
+    const hasActivity=activeTasksForChunk.some(t=>t.type!=='title') || livrChunk.length>0;
+    if(hideEmpty && !hasActivity) return;
+    if(!hasActivity) return;
+
+    const rowPages=splitTasksForPrint(activeTasksForChunk, PRINT_ROWS_PER_PAGE);
+    if(!rowPages.length && !livrChunk.length) return;
+
+    rowPages.forEach((taskPage, rowIdx)=>{
+      tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
+      livraisons=(rowIdx===rowPages.length-1) ? livrChunk.map(l=>JSON.parse(JSON.stringify(l))) : [];
+      const {svg,width:svgWidth,height:svgHeight}=buildSVG(ps,DW,chunk.startDay,chunk.endDay,startsMap);
+      const chunkStartDate=addDays(ps, chunk.startDay);
+      const chunkEndDate=addDays(ps, chunk.endDay);
+      pageNo++;
+      const isLastDetailPage = (chunk===chunks[chunks.length-1]) && (rowIdx===rowPages.length-1);
+      const styledSvg=svg.replace('<svg ','<svg viewBox="0 0 '+svgWidth+' '+svgHeight+'" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+      printBlocks.push(`
+      <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || (showH||showM||showP) ? 'page-break-after:always;break-after:page;' : ''}">
+        <div style="margin-bottom:6px">
+          <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
+          <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <span>Période : ${fmtFull(chunkStartDate)} → ${fmtFull(chunkEndDate)}</span>
+            <span>Page ${pageNo}</span>
+            <span>Lignes/page : ${PRINT_ROWS_PER_PAGE} · Chapitres : ${escapeHtml(selectedChapters.join(' • '))}</span>
+          </div>
+        </div>
+        <div style="width:100%;height:248mm;overflow:hidden">${styledSvg}</div>
+      </section>
+    `);
+    });
+  });
+
+  tasks=filteredTasks.map(t=>JSON.parse(JSON.stringify(t)));
+  livraisons=origLivr.slice();
+
+  if(!printBlocks.length){
+    tasks=origTasks;
+    livraisons=origLivr;
+    ganttScroll.innerHTML=origContent;
+    alert("Aucune page à exporter avec ces critères.");
+    return;
+  }
+
   ganttScroll.innerHTML=printBlocks.join('');
 
+  // ══════════════════════════════════════════════════════════
+  // DERNIÈRE PAGE — Tableau détail (inchangé)
+  // ══════════════════════════════════════════════════════════
   let detailHtml='';
   if(showH||showM||showP){
-    const starts2=resolveStarts();
     const cols=['N°','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',showH?'Moyens humains':null,showM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
     let rowNum=0;
-    const taskRows=tasks.filter(t=>t.type!=='title').map(t=>{
-      rowNum++;
-      const ts=starts2[t.id]||0;
+    const detailStarts=startsMap;
+    const taskRows=filteredTasks.filter(t=>t.type!=='title').map(t=>{
+      const ts=detailStarts[t.id];
+      if(ts===undefined || ts>rangeEndDay) return '';
       const te=t.type==='milestone'?ts:ts+(t.dur||0);
+      if(te<rangeStartDay) return '';
+      rowNum++;
       const isMilRow=t.type==='milestone';
       const vals=[
         String(rowNum),
         t.name,
         t.cat||'—',
         'j+'+ts,
-        fmtFull(addDays(pDate,ts)),
+        fmtFull(addDays(ps,ts)),
         isMilRow?'—':'j+'+te,
-        isMilRow?'—':fmtFull(addDays(pDate,te)),
+        isMilRow?'—':fmtFull(addDays(ps,te)),
         isMilRow?'Jalon':(t.dur||0)+' j',
         showH?t.human||'—':null,
         showM?t.material||'—':null,
         showP?(t.progress||0)+'%':null
-      ].filter((_,j)=>cols[j]!==undefined);
+      ].filter(v=>v!==null);
       const bg=isMilRow?'#FAEEDA':'';
-      return `<tr style="background:${bg}">${vals.map((v,vi)=>`<td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px;vertical-align:top;${vi===1?'font-weight:500':''}${isMilRow&&vi===1?';color:#854F0B':''}">${v||'—'}</td>`).join('')}</tr>`;
+      return `<tr style="background:${bg}">${vals.map((v,vi)=>`<td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px;vertical-align:top;${vi===1?'font-weight:500':''}">${v||'—'}</td>`).join('')}</tr>`;
     }).join('');
-    detailHtml=`<div style="margin-top:20px;page-break-before:always;break-before:page;">
-      <p style="font-size:14px;font-weight:bold;margin-bottom:4px">${name}</p>
-      <p style="font-size:11px;color:#888780;margin-bottom:12px">Détail des tâches &amp; ressources — Démarrage : ${fmtFull(pDate)} — Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+    const detailLivr=getFilteredLivraisonsByRange(rangeStartDay, rangeEndDay);
+    detailHtml=`<div id="print-detail" style="margin-top:20px;page-break-before:always;break-before:page;">
+      <p style="font-size:14px;font-weight:bold;margin-bottom:4px">${escapeHtml(name)}</p>
+      <p style="font-size:11px;color:#888780;margin-bottom:12px">Détail des tâches et livraisons — Période du ${fmtFull(addDays(ps,rangeStartDay))} au ${fmtFull(addDays(ps,rangeEndDay))}</p>
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>${cols.map(c=>`<th style="padding:5px 8px;background:#2C2C2A;color:white;font-size:10px;font-weight:600;text-align:left;border-right:1px solid #555">${c}</th>`).join('')}</tr></thead>
         <tbody>${taskRows}</tbody>
       </table>
-      ${livraisons.length?`
+      ${detailLivr.length?`
       <p style="font-size:13px;font-weight:bold;margin-top:18px;margin-bottom:6px">Livraisons fournisseurs</p>
       <table style="width:100%;border-collapse:collapse">
-        <thead><tr>${['Fournisseur','Matériaux / Fournitures','Jour (j+)','Date','Note'].map(c=>`<th style="padding:5px 8px;background:#854F0B;color:white;font-size:10px;font-weight:600;text-align:left">${c}</th>`).join('')}</tr></thead>
-        <tbody>${livraisons.map(l=>`<tr><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.supplier}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.items}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">j+${Number.isFinite(l.day)?l.day:dateToStart(livrDateValue(l))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${fmtFull(new Date(livrDateValue(l)))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${l.note||'—'}</td></tr>`).join('')}</tbody>
+        <thead><tr>${['Fournisseur','Fournitures','Commande','Date commande','Délai','Livraison','Date livraison','Note'].map(c=>`<th style="padding:5px 8px;background:#854F0B;color:white;font-size:10px;font-weight:600;text-align:left">${c}</th>`).join('')}</tr></thead>
+        <tbody>${detailLivr.map(l=>`<tr><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${escapeHtml(l.supplier||'—')}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${escapeHtml(l.items||'—')}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">j+${getLivrOrderDay(l)}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${fmtFull(getLivrOrderDate(l))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${escapeHtml(getLivrDelayLabel(l))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">j+${getLivrDeliveryDay(l)}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${fmtFull(livrDateValue(l))}</td><td style="padding:5px 8px;border-bottom:0.5px solid #e0dedd;font-size:10px">${escapeHtml(l.note||'—')}</td></tr>`).join('')}</tbody>
       </table>`:''}
     </div>`;
-    document.getElementById('gantt-card').insertAdjacentHTML('afterend',`<div id="print-detail">${detailHtml}</div>`);
+    document.getElementById('gantt-card').insertAdjacentHTML('afterend', detailHtml);
   }
 
   const restoreAfterPrint=()=>{
-    tasks = origTasks;
+    tasks=origTasks;
+    livraisons=origLivr;
     ganttScroll.innerHTML=origContent;
     const pd=document.getElementById('print-detail');
-    if(pd)pd.remove();
-    window.removeEventListener('afterprint',restoreAfterPrint);
+    if(pd) pd.remove();
+    renderTasks();
+    renderLivr();
+    renderCal();
+    renderResources();
+    updatePdfChapterList();
+    updatePdfDateFields();
+    renderGantt();
   };
-  window.addEventListener('afterprint',restoreAfterPrint,{once:true});
-  setTimeout(()=>window.print(),50);
+  window.addEventListener('afterprint', restoreAfterPrint, {once:true});
+  window.print();
 }
 
 // ---- PRESETS ----
@@ -1621,7 +2126,7 @@ function loadPreset(key){
     if(!materialResources.some(r=>r.name===n)) materialResources.push({id:0,name:n});
   });
   ensureDefaultFermeture();
-  renderTasks();renderLivr();renderCal();renderGantt();
+  renderTasks();renderLivr();renderCal();updatePdfChapterList();updatePdfDateFields();renderGantt();
 }
 
 // ---- SAUVEGARDE / CHARGEMENT ----
@@ -1720,7 +2225,7 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
       ];
       uid=Math.max(...allIds)+1;
 
-      renderTasks();renderLivr();renderCal();renderResources();renderGantt();
+      renderTasks();renderLivr();renderCal();renderResources();updatePdfChapterList();updatePdfDateFields();renderGantt();
     }catch(err){
       console.error('Erreur de chargement JSON', err);
       alert("Chargement impossible. Le fichier JSON est invalide ou n'est pas compatible avec cette version.");
@@ -1739,6 +2244,9 @@ renderCal();
 renderResources();
 ensureDefaultFermeture();
 loadPreset('mixte');
+ensurePdfUiReady();
+const exportBtn=document.getElementById('btn-export-pdf');
+if(exportBtn) exportBtn.addEventListener('click', exportPDF);
 </script>
 
 
