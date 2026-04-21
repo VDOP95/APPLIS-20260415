@@ -89,7 +89,7 @@ button:hover{background:#f5f5f3}
 
 <!-- CONFIG -->
 <div class="card no-print">
-  <div style="display:grid;grid-template-columns:1.6fr 1fr 100px 110px;gap:10px;align-items:end">
+  <div style="display:grid;grid-template-columns:1.6fr 1fr 100px;gap:10px;align-items:end">
     <div><label>Nom du chantier</label><input id="pname" style="width:100%" value="CAVP"></div>
     <div><label>Date de début</label><input type="date" id="pstart" style="width:100%"></div>
     <div><label>Zoom</label>
@@ -98,14 +98,6 @@ button:hover{background:#f5f5f3}
         <option value="22">Large</option>
         <option value="30" selected="">Normal</option>
         <option value="42">Serré</option>
-      </select>
-    </div>
-    <div><label>Modèle</label>
-      <select id="preset-sel" style="width:100%" onchange="loadPreset(this.value)">
-        <option value="mixte">Chantier mixte</option>
-        <option value="vrd">VRD complet</option>
-        <option value="ev">Espaces verts</option>
-        <option value="empty">Vierge</option>
       </select>
     </div>
   </div>
