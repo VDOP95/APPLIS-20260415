@@ -464,12 +464,138 @@ body {
 .conge-line { font-size: 11px; color: var(--amber); }
 
 /* ─── PRINT ─── */
+@page {
+  size: A3 landscape;
+  margin: 8mm;
+}
+
+body.print-mode {
+  background: #fff !important;
+}
+
+body.print-mode #print-root {
+  transform-origin: top left;
+  transform-box: border-box;
+}
+
+body.print-mode .main {
+  padding: 0 !important;
+}
+
+body.print-mode #print-root {
+  width: 408mm !important;
+  height: 285mm !important;
+  max-width: 408mm !important;
+  max-height: 285mm !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0,1fr) minmax(0,1fr) auto;
+  gap: 4mm;
+  align-content: stretch;
+}
+
+body.print-mode .planning-card,
+body.print-mode .location-card,
+body.print-mode .notes-card,
+body.print-mode .planning-table,
+body.print-mode .location-table {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+body.print-mode .planning-card,
+body.print-mode .location-card {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+body.print-mode .planning-card .scroll-x,
+body.print-mode .location-card .scroll-x {
+  overflow: hidden !important;
+}
+
+body.print-mode .planning-table,
+body.print-mode .location-card table,
+body.print-mode .location-table {
+  height: 100% !important;
+  table-layout: fixed !important;
+}
+
 @media print {
+  @page {
+    size: A3 landscape;
+    margin: 6mm;
+  }
+  html, body {
+    width: 420mm;
+    height: 297mm;
+    max-width: 420mm;
+    max-height: 297mm;
+    background: #fff !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .no-print { display: none !important; }
-  body { background: #fff; }
-  .app-header { position: relative; background: #1E1C18 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .planning-table th { position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .chef-cell { position: relative; }
+  body { font-size: 9px; margin:0; }
+  .main {
+    padding: 0 !important;
+    width: 408mm !important;
+    max-width: 408mm !important;
+    height: 285mm !important;
+    margin: 0;
+    display: grid !important;
+    grid-template-rows: auto minmax(0,1fr) minmax(0,1fr) auto;
+    gap: 4mm;
+    align-content: stretch;
+  }
+  .stats-row { gap: 4px; margin-bottom: 6px; }
+  .stat-pill { padding: 4px 6px; font-size: 9px; border-radius: 5px; }
+  .stat-pill .val { font-size: 12px; }
+  .planning-card, .location-card, .notes-card {
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    border-radius: 6px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .planning-card, .location-card {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  .planning-table, .location-card table, .location-table {
+    width: 100% !important;
+    height: 100% !important;
+    table-layout: fixed !important;
+  }
+  .planning-table th, .location-table th {
+    position: relative;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .planning-table, .location-table { table-layout: fixed; width: 100% !important; }
+  .planning-table th { padding: 4px 5px; font-size: 8px; }
+  .planning-table th:first-child { width: 26mm !important; min-width: 26mm !important; }
+  .planning-table th.day-th { min-width: 0 !important; width: calc((100% - 26mm) / 5) !important; }
+  .planning-table th .day-name { font-size: 9px; }
+  .planning-table th .day-date { font-size: 7px; }
+  .planning-table td, .location-table td { font-size: 8px; }
+  .chef-cell, .mat-label-cell { min-width: 34mm !important; padding: 5px 6px; }
+  .chef-name { font-size: 9px; gap: 4px; }
+  .chef-avatar { width: 16px; height: 16px; font-size: 7px; }
+  .chef-role, .mat-label-cell .mat-name, .location-table td { font-size: 7px; }
+  .chef-actions, .add-btn, .btn-red { display: none !important; }
+  .day-cell { min-height: 32px; padding: 3px 4px; }
+  .chantier-tag, .mat-tag { padding: 2px 4px; font-size: 7px; margin: 1px 0; border-radius: 4px; }
+  .chantier-tag .tag-code { font-size: 6px; }
+  .absence-badge, .conge-badge { font-size: 7px; padding: 2px 4px; margin: 1px 0; }
+  .section-hdr { padding: 5px 7px; font-size: 8px; }
+  .notes-card { padding: 6px; }
+  .notes-title { font-size: 9px; margin-bottom: 6px; }
+  .notes-grid { gap: 4px; }
+  .notes-day { padding: 4px 5px; }
+  .notes-day-title, .absence-line, .conge-line { font-size: 7px; }
 }
 
 /* ─── COLORS palette ─── */
@@ -524,7 +650,7 @@ body {
     <button class="btn btn-outline no-print" onclick="sauvegarder()">↓ Sauvegarder</button>
     <button class="btn btn-outline no-print" onclick="document.getElementById('import-file').click()">↑ Charger</button>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="charger(event)">
-    <button class="btn btn-outline no-print" onclick="window.print()">🖨 Imprimer</button>
+    <button class="btn btn-outline no-print" onclick="printPlanning()">🖨 Imprimer</button>
     <button class="btn btn-gold no-print" onclick="openAddPerson()">+ Personne</button>
   </div>
 </header>
@@ -540,7 +666,7 @@ body {
 </div>
 
 <!-- MAIN -->
-<div class="main">
+<div class="main" id="print-root">
 
   <!-- STATS -->
   <div class="stats-row" id="stats-row"></div>
@@ -791,21 +917,62 @@ function changeWeek(dir) {
 }
 
 // ─── INIT ───
-function init() {
-  const saved = localStorage.getItem('planning_chantier_v1');
-  if (saved) {
+function getStoragePayload() {
+  return JSON.stringify({
+    ...state,
+    _meta: {
+      version: 2,
+      savedAt: new Date().toISOString()
+    }
+  });
+}
+
+function hydrateState(raw) {
+  const parsed = JSON.parse(raw);
+  if (!parsed || !Array.isArray(parsed.persons)) throw new Error('Format invalide');
+  state = {
+    nomChantier: '',
+    weekMonday: getThisMonday(),
+    persons: [],
+    assignments: {},
+    materiel: [],
+    materielAssign: {},
+    absences: {},
+    nextId: 100,
+    ...parsed
+  };
+  if (!state.nextId || Number.isNaN(Number(state.nextId))) state.nextId = 100;
+}
+
+function restoreLocalState() {
+  const candidates = [
+    localStorage.getItem('planning_chantier_v2'),
+    localStorage.getItem('planning_chantier_v2_backup'),
+    localStorage.getItem('planning_chantier_v1')
+  ].filter(Boolean);
+
+  for (const raw of candidates) {
     try {
-      const parsed = JSON.parse(saved);
-      state = parsed;
+      hydrateState(raw);
+      return true;
     } catch(e) {}
   }
+  return false;
+}
+
+function init() {
+  restoreLocalState();
   document.getElementById('week-start').value = state.weekMonday;
   document.getElementById('chantier-name').value = state.nomChantier || '';
   renderAll();
+  saveLocal();
 }
 
 function saveLocal() {
-  localStorage.setItem('planning_chantier_v1', JSON.stringify(state));
+  const payload = getStoragePayload();
+  localStorage.setItem('planning_chantier_v2', payload);
+  localStorage.setItem('planning_chantier_v2_backup', payload);
+  localStorage.setItem('planning_chantier_v1', payload);
 }
 
 // ─── RENDER ───
@@ -1253,6 +1420,71 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
+});
+
+function mmToPx(mm) {
+  return (mm / 25.4) * 96;
+}
+
+function preparePrintScale() {
+  const root = document.getElementById('print-root');
+  if (!root) return;
+
+  clearPrintScale();
+  document.body.classList.add('print-mode');
+
+  const pageWidthPx = mmToPx(420 - 12);   // A3 paysage - 2 x 6 mm de marge
+  const pageHeightPx = mmToPx(297 - 12);
+
+  // Mesure à taille naturelle du document
+  root.style.width = '';
+  root.style.maxWidth = '';
+  root.style.height = '';
+  root.style.overflow = '';
+  root.style.transform = 'none';
+
+  const naturalRect = root.getBoundingClientRect();
+  if (!naturalRect.width || !naturalRect.height) return;
+
+  // On agrandit ou réduit pour utiliser au maximum la surface imprimable.
+  const scaleX = pageWidthPx / naturalRect.width;
+  const scaleY = pageHeightPx / naturalRect.height;
+  const scale = Math.min(scaleX, scaleY);
+
+  root.style.width = `${naturalRect.width}px`;
+  root.style.maxWidth = 'none';
+  root.style.transform = `scale(${scale})`;
+  root.style.height = `${naturalRect.height * scale}px`;
+  root.style.overflow = 'hidden';
+}
+
+function clearPrintScale() {
+  const root = document.getElementById('print-root');
+  document.body.classList.remove('print-mode');
+  if (!root) return;
+  root.style.transform = '';
+  root.style.width = '';
+  root.style.height = '';
+  root.style.maxWidth = '';
+  root.style.overflow = '';
+  root.style.display = '';
+  root.style.gridTemplateRows = '';
+  root.style.gap = '';
+  root.querySelectorAll('tr').forEach(r => r.style.height = '');
+  document.querySelectorAll('.planning-card, .location-card').forEach(el => el.style.height = '');
+}
+
+function printPlanning() {
+  saveLocal();
+  preparePrintScale();
+  setTimeout(() => window.print(), 180);
+}
+
+window.addEventListener('beforeprint', preparePrintScale);
+window.addEventListener('afterprint', clearPrintScale);
+window.addEventListener('beforeunload', saveLocal);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveLocal();
 });
 
 // ─── GO ───
