@@ -93,7 +93,7 @@ textarea{resize:vertical;min-height:65px}
 .mesure-item{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;background:var(--bg2);border-radius:6px;border:1px solid var(--bg3);cursor:pointer;transition:all .15s}
 .mesure-item:hover,.mesure-item.sel{background:var(--or2);border-color:var(--or)}
 .mesure-item input[type=checkbox]{width:14px;height:14px;accent-color:var(--or);cursor:pointer;flex-shrink:0;margin-top:2px}
-.mesure-item label{font-size:11.5px;color:var(--ink2);line-height:1.4;cursor:pointer;display:block;flex:1}
+.mesure-item span{font-size:11.5px;color:var(--ink2);line-height:1.4;cursor:pointer}
 .mesures-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
 .toggle-mesures{font-size:11px;color:var(--or);cursor:pointer;font-weight:600;background:none;border:none;font-family:inherit;padding:0}
 .toggle-mesures:hover{text-decoration:underline}
@@ -104,6 +104,11 @@ textarea{resize:vertical;min-height:65px}
 .rb{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
 .gte{background:#FEE2E2;color:#991B1B}.ge{background:#FEE2E2;color:#DC2626}.gm{background:#FEF3C7;color:#D97706}.gf{background:var(--gr2);color:#166534}
 
+.ri-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.ri-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:var(--or2);color:#9A3412;font-size:10px;font-weight:600}
+.ri-infos{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:10px 0 12px;padding:10px;background:var(--bg2);border:1px solid var(--bg3);border-radius:7px;font-size:11.5px;color:var(--ink2);line-height:1.45}
+.small-help{font-size:11.5px;color:var(--ink3);line-height:1.5}
+
 /* NAV BUTTONS */
 .nb{display:flex;gap:10px;justify-content:space-between;margin-top:22px;padding-top:16px;border-top:1px solid var(--bg3)}
 button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:none;border-radius:7px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;padding:9px 20px}
@@ -111,6 +116,16 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 .bpv{background:var(--bg2);color:var(--ink2);border:1px solid var(--bg3)}.bpv:hover{background:var(--bg3)}
 .bgen{background:var(--ink);color:#fff;font-weight:600;font-size:14px;padding:12px 28px}.bgen:hover{background:var(--ink2)}
 .bgen:disabled{background:var(--ink4);cursor:not-allowed}
+
+
+.groupement-box{background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:12px}
+.cot-card{background:#fff;border:1px solid var(--bg3);border-radius:8px;padding:14px;margin-top:12px;box-shadow:var(--sh)}
+.cot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.cot-title{font-size:12px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.05em}
+.cot-del{background:var(--re2);color:var(--re);border:1px solid var(--re2);padding:6px 10px;font-size:12px;border-radius:6px}
+.cot-del:hover{background:#fecaca}
+.cot-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.small-help{font-size:11px;color:var(--ink3);line-height:1.5}
 
 /* SUMMARY */
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
@@ -129,22 +144,6 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 @keyframes sp{to{transform:rotate(360deg)}}
 
 .note{background:var(--or2);border-left:3px solid var(--or);padding:10px 14px;border-radius:0 7px 7px 0;font-size:12px;color:#7C2D12;line-height:1.6;margin-bottom:14px}
-
-/* SAVE BAR */
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#fff;border:1px solid var(--bg3);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;box-shadow:var(--sh);flex-wrap:wrap}
-.topbar-left{display:flex;flex-direction:column;gap:4px;min-width:240px}
-.topbar-left .ttl{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
-.topbar-left .nm{font-size:15px;font-weight:600;color:var(--ink)}
-.topbar-left .sub{font-size:12px;color:var(--ink3)}
-.topbar-actions{display:flex;gap:8px;flex-wrap:wrap}
-.tbtn{background:#fff;color:var(--ink2);border:1px solid var(--bg3);padding:8px 12px;border-radius:7px;font-size:12.5px;font-weight:600}
-.tbtn:hover{border-color:var(--or);color:var(--or);background:var(--or2)}
-.tbtn.danger:hover{border-color:var(--re);color:var(--re);background:var(--re2)}
-.autosave-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:var(--bg2);font-size:11px;color:var(--ink3);font-weight:600}
-.autosave-badge.saved{background:var(--gr2);color:#166534}
-.autosave-badge.pending{background:var(--or2);color:#92400E}
-.hidden-file{display:none}
-
 </style>
 </head>
 <body>
@@ -171,25 +170,6 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <main>
 <div class="pbar"><div class="pfill" id="pfill" style="width:14%"></div></div>
-
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="ttl">Projet en cours</div>
-    <div class="nm" id="project-name-display">Nouveau PPSPS</div>
-    <div class="sub">
-      <span class="autosave-badge" id="autosave-status">● Aucune sauvegarde</span>
-      <span id="last-save-text" style="margin-left:8px">Les données sont sauvegardées localement sur ce navigateur.</span>
-    </div>
-  </div>
-  <div class="topbar-actions">
-    <button class="tbtn" type="button" onclick="saveData(true)">💾 Sauvegarder</button>
-    <button class="tbtn" type="button" onclick="exportData()">⬇️ Export JSON</button>
-    <button class="tbtn" type="button" onclick="document.getElementById('import-file').click()">⬆️ Import JSON</button>
-    <button class="tbtn danger" type="button" onclick="resetData()">🗑️ Réinitialiser</button>
-    <input class="hidden-file" type="file" id="import-file" accept=".json,application/json">
-  </div>
-</div>
-
 
 <!-- ─── ÉTAPE 0 ─── -->
 <div class="step act" id="step0">
@@ -219,8 +199,6 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
     <div class="ct">📍 Opération</div>
     <div class="g2">
       <div class="fg full"><label>Nom de l'opération / chantier *</label><input id="nomChantier" placeholder="Ex : Aménagement ZAC Les Acacias — Voiries et EV"></div>
-      <div class="fg"><label>Nom de sauvegarde du dossier</label><input id="nomSauvegarde" placeholder="Ex : PPSPS_ZAC_Acacias"></div>
-      <div class="fg"><label>Référence interne</label><input id="referenceDossier" placeholder="Ex : AO-2026-014"></div>
       <div class="fg full"><label>Adresse complète du chantier *</label><input id="adresseChantier" placeholder="Ex : Rue des Lilas, 95000 Cergy-Pontoise"></div>
       <div class="fg"><label>Date de début prévisionnelle</label><input type="date" id="dateDebut"></div>
       <div class="fg"><label>Date de fin prévisionnelle</label><input type="date" id="dateFin"></div>
@@ -228,6 +206,31 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
       <div class="fg"><label>Montant estimatif des travaux</label><input id="montant" placeholder="Ex : 380 000 €"></div>
     </div>
   </div>
+  
+  <div class="card">
+    <div class="ct">🤝 Mode d'intervention</div>
+    <div class="cg" style="margin-bottom:12px">
+      <div class="cc sel" id="mode-seul" onclick="setModeIntervention('seul')"><div class="ctit">Entreprise seule</div><div class="cdsc">Le PPSPS est établi uniquement pour votre entreprise.</div></div>
+      <div class="cc" id="mode-groupement" onclick="setModeIntervention('groupement')"><div class="ctit">Groupement d'entreprises</div><div class="cdsc">Ajout de cotraitants avec fiches dédiées pour le document final.</div></div>
+    </div>
+    <div id="groupement-config" style="display:none">
+      <div class="g2">
+        <div class="fg">
+          <label>Nom du mandataire / entreprise pilote</label>
+          <input id="nomMandataire" placeholder="Ex : VAL D'OISE PAYSAGE JCM">
+        </div>
+        <div class="fg">
+          <label>Nombre de cotraitants</label>
+          <input type="number" id="nbCotraitants" min="0" value="0" onchange="syncCotraitantsCount()">
+        </div>
+        <div class="fg full">
+          <label>Observations sur le groupement</label>
+          <textarea id="observationsGroupement" placeholder="Ex : répartition des lots, articulation des interventions, mandataire, cotraitants solidaires..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="ct">🏛️ Maîtrise d'ouvrage & œuvre</div>
     <div class="g2">
@@ -296,7 +299,19 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
       <div class="fg"><label>Sauveteur-Secouriste (SST)</label><input id="nomSST" placeholder="Prénom Nom du SST désigné"></div>
     </div>
   </div>
-  <div class="nb"><button class="bpv" onclick="goTo(1)">← Précédent</button><button class="bnx" onclick="goTo(3)">Suivant →</button></div>
+
+  <div id="cotraitants-section" class="card" style="display:none">
+    <div class="ct">🤝 Cotraitants du groupement</div>
+    <div class="groupement-box">
+      <div class="small-help">Pour chaque cotraitant, vous pouvez renseigner les éléments qui alimenteront dans le PPSPS final un bloc dédié reprenant l'identification du chantier et les informations entreprise & équipe.</div>
+      <div id="cotraitants-container"></div>
+      <div class="cot-actions">
+        <button class="padd" onclick="addCotraitant()" style="margin-top:0">+ Ajouter un cotraitant</button>
+      </div>
+    </div>
+  </div>
+
+    <div class="nb"><button class="bpv" onclick="goTo(1)">← Précédent</button><button class="bnx" onclick="goTo(3)">Suivant →</button></div>
 </div>
 
 <!-- ─── ÉTAPE 3 ─── -->
@@ -357,6 +372,7 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
       </select>
       <button class="padd" onclick="addPhaseFromSelect()" style="margin-top:0;white-space:nowrap">+ Ajouter cette phase</button>
       <button class="padd" onclick="addPhase()" style="margin-top:0;white-space:nowrap">+ Phase personnalisée</button>
+      <button class="padd" type="button" onclick="resetChantierPhases()" style="margin-top:0;white-space:nowrap">↺ Réinitialiser les phases chantier</button>
     </div>
   </div>
   <div class="nb"><button class="bpv" onclick="goTo(2)">← Précédent</button><button class="bnx" onclick="goTo(4)">Suivant →</button></div>
@@ -364,20 +380,51 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <!-- ─── ÉTAPE 4 ─── -->
 <div class="step" id="step4">
-  <div class="ph"><h2>Risques & mesures de prévention</h2><p>Sélectionnez les risques applicables, ajustez la probabilité et associez les mesures de prévention mises en place.</p></div>
+  <div class="ph"><h2>Analyse des tâches, dangers & prévention</h2><p>Commencez par les phases chantier et les tâches réelles. L’outil vous propose ensuite les lignes de dangers identifiés, avec les risques et mesures de prévention associées.</p></div>
+  <div class="card">
+    <div class="ct">🧭 Point de départ chantier</div>
+    <div class="g2">
+      <div class="fg full"><label>Phases chantier à analyser</label><div class="small-help">Cliquez sur les phases préparées à l’étape 4 pour ne garder que les lignes utiles. Si rien n’est sélectionné, toute la base reste visible.</div><div id="phaseFilterChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div></div>
+      <div class="fg full"><label>Tâche réelle / mots-clés chantier</label><input id="taskSearch" placeholder="Ex : tranchée voirie, plantation arbres, bordures, livraison grue, débroussaillage..." oninput="filterRisks()"></div>
+      <div class="fg full"><label>Recherche complémentaire dans la base</label><input id="riskSearch" placeholder="Ex : coactivité, école, avaloir, engin, gaz, tonte..." oninput="filterRisks()"></div>
+      <div class="fg"><label>Méthode</label><div class="small-help">Le conducteur de travaux part d’abord de la <strong>tâche réelle</strong>. Il sélectionne ensuite les lignes proposées correspondant aux <strong>dangers identifiés</strong>. Le risque et les mesures sont déjà structurés dans la base.</div></div>
+      <div class="fg"><label>Astuce</label><div class="small-help">Les lignes cochées par défaut proviennent de votre base Excel. Vous pouvez les conserver, les retirer, ou affiner la sélection à partir du phasage réel.</div></div>
+    </div>
+  </div>
   <div id="sec-ev"></div>
   <div id="sec-vrd"></div>
   <div class="card">
-    <div class="ct">⚠️ Risques communs à tous chantiers</div>
+    <div class="ct">⚠️ Lignes communes à tous chantiers — base Excel</div>
     <div id="list-communs"></div>
   </div>
   <!-- Ajout risque personnalisé -->
   <div class="card" style="border:2px dashed var(--bg3)">
-    <div class="ct">➕ Ajouter un risque personnalisé</div>
-    <div style="display:grid;grid-template-columns:1fr 160px auto;gap:10px;align-items:end">
+    <div class="ct">➕ Ajouter une ligne personnalisée</div>
+    <div class="g2">
+      <div class="fg full">
+        <label>Tâche réelle *</label>
+        <input id="newRiskActivite" placeholder="Ex : Intervention au bord d'un bassin, levage d'un arbre, reprise de tranchée...">
+      </div>
+      <div class="fg full">
+        <label>Situation dangereuse *</label>
+        <textarea id="newRiskSituation" placeholder="Ex : Travail au bord d'un bassin sans protection périphérique..." style="min-height:52px"></textarea>
+      </div>
       <div class="fg">
-        <label>Intitulé du risque *</label>
-        <input id="newRiskNom" placeholder="Ex : Risque de noyade, travail en hauteur…">
+        <label>Danger identifié *</label>
+        <input id="newRiskDanger" placeholder="Ex : chute, noyade, engin en rotation...">
+      </div>
+      <div class="fg">
+        <label>Gravité</label>
+        <select id="newRiskGravite">
+          <option value="1 - Mineur">1 - Mineur</option>
+          <option value="2 - AT" selected>2 - AT</option>
+          <option value="3 - Grave">3 - Grave</option>
+          <option value="4 - Mortel">4 - Mortel</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label>Risque / conséquence potentielle *</label>
+        <input id="newRiskNom" placeholder="Ex : chute dans l'eau, noyade, blessure grave, heurt tiers...">
       </div>
       <div class="fg">
         <label>Probabilité</label>
@@ -388,7 +435,13 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
           <option value="Très élevée">Très élevée</option>
         </select>
       </div>
-      <button class="bnx" onclick="addCustomRisk()" style="white-space:nowrap;margin-bottom:0">+ Ajouter</button>
+      <div class="fg full">
+        <label>Phrase PPSPS initiale</label>
+        <textarea id="newRiskPhrase" placeholder="Ex : L'intervention au bord du bassin est réalisée après mise en place d'une protection périphérique et interdiction d'accès à la zone." style="min-height:58px"></textarea>
+      </div>
+      <div class="fg full" style="align-items:flex-end">
+        <button type="button" class="bnx" onclick="addCustomRisk()" style="white-space:nowrap;margin-bottom:0">+ Ajouter</button>
+      </div>
     </div>
   </div>
   <div class="nb"><button class="bpv" onclick="goTo(3)">← Précédent</button><button class="bnx" onclick="goTo(5)">Suivant →</button></div>
@@ -432,12 +485,16 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
   </div>
   <div class="prevzone">
     <div class="ico">📄</div>
-    <h3>Prêt à générer votre PPSPS</h3>
-    <p>Document Word professionnel — A4 — tables colorées — prêt à signer</p>
-    <button class="bgen" id="btn-gen" onclick="generatePPSPS()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v9M4 6l3.5 5 3.5-5M1 12.5h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Générer et télécharger le PPSPS (.docx)
-    </button>
+    <h3>Version autonome prête à exporter</h3>
+    <p>Sans serveur local — export Word lisible, PDF par impression et sauvegarde JSON.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+      <button class="bgen" id="btn-doc" onclick="exportWordDoc()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v9M4 6l3.5 5 3.5-5M1 12.5h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Export Word (.doc)
+      </button>
+      <button class="bpv" type="button" onclick="openPrintView()">Imprimer / PDF</button>
+      <button class="bpv" type="button" onclick="exportJSON()">Sauvegarder JSON</button>
+    </div>
     <div id="gen-status"></div>
   </div>
   <div class="nb"><button class="bpv" onclick="goTo(5)">← Précédent</button><div></div></div>
@@ -446,7 +503,7 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <script>
 // ── État global ────────────────────────────────────────────────────────────────
-const S = { typeChantier:'EV', categorie:'1ere', phases:[], customRisks:[], risquesEV:[], risquesVRD:[], risquesCommuns:[], risquesCustom:[], probas:{}, mesures:{} };
+const S = { typeChantier:'EV', categorie:'1ere', modeIntervention:'seul', phases:[], cotraitants:[], customRisks:[], risquesEV:[], risquesVRD:[], risquesCommuns:[], risquesCustom:[], probas:{}, mesures:{}, phrases:{}, selectedPhaseFilters:[] };
 let cur = 0;
 
 // ── Navigation ─────────────────────────────────────────────────────────────────
@@ -460,6 +517,7 @@ function goTo(n) {
     el.classList.toggle('act', i===n);
   });
   document.getElementById('pfill').style.width = ((n+1)/7*100)+'%';
+  if(n===2) renderCotraitants();
   if(n===3) renderPhases();
   if(n===4) renderRisques();
   if(n===6) renderSummary();
@@ -471,10 +529,120 @@ function selType(t) {
   S.typeChantier = t;
   ['EV','VRD','Mixte'].forEach(k => document.getElementById('type-'+k).classList.toggle('sel', k===t));
   S.phases = defPhases(t);
+  S.selectedPhaseFilters = [];
 }
+
 function selCat(c) {
   S.categorie = c;
   ['1ere','2eme'].forEach(k => document.getElementById('cat-'+k).classList.toggle('sel', k===c));
+}
+
+function setModeIntervention(mode) {
+  S.modeIntervention = mode;
+  ['seul','groupement'].forEach(k => document.getElementById('mode-'+k).classList.toggle('sel', k===mode));
+  const cfg = document.getElementById('groupement-config');
+  const sec = document.getElementById('cotraitants-section');
+  if(cfg) cfg.style.display = mode === 'groupement' ? 'block' : 'none';
+  if(sec) sec.style.display = mode === 'groupement' ? 'block' : 'none';
+  if(mode !== 'groupement') {
+    S.cotraitants = [];
+    const nb = document.getElementById('nbCotraitants');
+    if(nb) nb.value = 0;
+  } else if(!S.cotraitants.length) {
+    S.cotraitants.push(defCotraitant(1));
+    const nb = document.getElementById('nbCotraitants');
+    if(nb) nb.value = S.cotraitants.length;
+  }
+  renderCotraitants();
+}
+
+function defCotraitant(index){
+  return {
+    lot: '',
+    nomChantierSpecifique: '',
+    adresseChantierSpecifique: '',
+    nomEntreprise: '',
+    adresseEntreprise: '',
+    siretEntreprise: '',
+    telEntreprise: '',
+    emailEntreprise: '',
+    responsableChantier: '',
+    telResponsable: '',
+    effectifTotal: '',
+    effectifMaxi: '',
+    nbSoustraitants: '',
+    nomSST: ''
+  };
+}
+
+function syncCotraitantsCount() {
+  const target = Math.max(0, parseInt(document.getElementById('nbCotraitants')?.value || '0', 10) || 0);
+  while(S.cotraitants.length < target) S.cotraitants.push(defCotraitant(S.cotraitants.length + 1));
+  while(S.cotraitants.length > target) S.cotraitants.pop();
+  renderCotraitants();
+}
+
+function addCotraitant() {
+  S.cotraitants.push(defCotraitant(S.cotraitants.length + 1));
+  const nb = document.getElementById('nbCotraitants');
+  if(nb) nb.value = S.cotraitants.length;
+  renderCotraitants();
+}
+
+function removeCotraitant(i) {
+  S.cotraitants.splice(i, 1);
+  const nb = document.getElementById('nbCotraitants');
+  if(nb) nb.value = S.cotraitants.length;
+  renderCotraitants();
+}
+
+function updateCotraitant(i, field, value) {
+  if(!S.cotraitants[i]) return;
+  S.cotraitants[i][field] = value;
+}
+
+function esc(v) {
+  return String(v || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderCotraitants() {
+  const sec = document.getElementById('cotraitants-section');
+  const container = document.getElementById('cotraitants-container');
+  if(!sec || !container) return;
+  const visible = S.modeIntervention === 'groupement';
+  sec.style.display = visible ? 'block' : 'none';
+  if(!visible) {
+    container.innerHTML = '';
+    return;
+  }
+  if(!S.cotraitants.length) {
+    container.innerHTML = '<div class="small-help" style="margin-top:8px">Aucun cotraitant renseigné.</div>';
+    return;
+  }
+  container.innerHTML = S.cotraitants.map((cot, i) => `
+    <div class="cot-card">
+      <div class="cot-head">
+        <div class="cot-title">Cotraitant ${i+1}</div>
+        <button class="cot-del" onclick="removeCotraitant(${i})">Supprimer</button>
+      </div>
+      <div class="g2">
+        <div class="fg full"><label>Lot / mission du cotraitant</label><input value="${esc(cot.lot)}" onchange="updateCotraitant(${i}, 'lot', this.value)" placeholder="Ex : VRD, éclairage, mobilier, jeux..."></div>
+        <div class="fg"><label>Nom d'opération spécifique</label><input value="${esc(cot.nomChantierSpecifique)}" onchange="updateCotraitant(${i}, 'nomChantierSpecifique', this.value)" placeholder="Par défaut : nom du chantier principal"></div>
+        <div class="fg"><label>Adresse chantier spécifique</label><input value="${esc(cot.adresseChantierSpecifique)}" onchange="updateCotraitant(${i}, 'adresseChantierSpecifique', this.value)" placeholder="Par défaut : adresse du chantier principal"></div>
+        <div class="fg full"><label>Raison sociale</label><input value="${esc(cot.nomEntreprise)}" onchange="updateCotraitant(${i}, 'nomEntreprise', this.value)" placeholder="Nom du cotraitant"></div>
+        <div class="fg full"><label>Adresse du siège social</label><input value="${esc(cot.adresseEntreprise)}" onchange="updateCotraitant(${i}, 'adresseEntreprise', this.value)"></div>
+        <div class="fg"><label>SIRET</label><input value="${esc(cot.siretEntreprise)}" onchange="updateCotraitant(${i}, 'siretEntreprise', this.value)"></div>
+        <div class="fg"><label>Téléphone entreprise</label><input value="${esc(cot.telEntreprise)}" onchange="updateCotraitant(${i}, 'telEntreprise', this.value)"></div>
+        <div class="fg full"><label>Email</label><input value="${esc(cot.emailEntreprise)}" onchange="updateCotraitant(${i}, 'emailEntreprise', this.value)"></div>
+        <div class="fg"><label>Responsable chantier</label><input value="${esc(cot.responsableChantier)}" onchange="updateCotraitant(${i}, 'responsableChantier', this.value)"></div>
+        <div class="fg"><label>Tél. responsable chantier</label><input value="${esc(cot.telResponsable)}" onchange="updateCotraitant(${i}, 'telResponsable', this.value)"></div>
+        <div class="fg"><label>Effectif total prévu</label><input type="number" min="0" value="${esc(cot.effectifTotal)}" onchange="updateCotraitant(${i}, 'effectifTotal', this.value)"></div>
+        <div class="fg"><label>Effectif simultané maximum</label><input type="number" min="0" value="${esc(cot.effectifMaxi)}" onchange="updateCotraitant(${i}, 'effectifMaxi', this.value)"></div>
+        <div class="fg"><label>Nombre de sous-traitants</label><input type="number" min="0" value="${esc(cot.nbSoustraitants)}" onchange="updateCotraitant(${i}, 'nbSoustraitants', this.value)"></div>
+        <div class="fg"><label>SST désigné</label><input value="${esc(cot.nomSST)}" onchange="updateCotraitant(${i}, 'nomSST', this.value)"></div>
+      </div>
+    </div>
+  `).join('');
 }
 
 // ── Phases ──────────────────────────────────────────────────────────────────────
@@ -509,81 +677,51 @@ function renderPhases() {
     </div>
   `).join('');
 }
-function addPhase() { S.phases.push({nom:'Nouvelle phase',debut:'',fin:'',desc:''}); renderPhases(); }
-function rmPhase(i) { S.phases.splice(i,1); renderPhases(); }
+function addPhase() { S.phases.push({nom:'Nouvelle phase',debut:'',fin:'',desc:''}); renderPhases(); renderPhaseFilters(); }
+function rmPhase(i) { S.phases.splice(i,1); S.selectedPhaseFilters = S.selectedPhaseFilters.filter(x => x !== i).map(x => x > i ? x - 1 : x); renderPhases(); renderPhaseFilters(); filterRisks(); }
+function resetChantierPhases() { S.phases = defPhases(S.typeChantier); S.selectedPhaseFilters = []; renderPhases(); renderPhaseFilters(); filterRisks(); return false; }
 
 // ── Risques ─────────────────────────────────────────────────────────────────────
-const MESURES_PAR_RISQUE = {
-  // EV
-  're1': ['Port des EPI obligatoires (chaussures de sécurité)','Balisage des zones à risque','Rangement et entretien des outils','Nettoyage régulier des zones de circulation','Formation sécurité des opérateurs'],
-  're2': ['Port de gants anti-coupures','Utilisation d\'outils adaptés et vérifiés','Formation à l\'utilisation des outils tranchants','Rangement sécurisé du matériel tranchant','Vérification de l\'état des lames avant utilisation'],
-  're3': ['Lecture obligatoire des fiches de données sécurité','Port de combinaison et gants résistants','Pulvérisation hors vent fort et par temps frais','Formation habilitation phytosanitaire (certiphyto)','Rinçage immédiat en cas de contact cutané'],
-  're4': ['Vérification quotidienne des engins (état général, freins, klaxon)','Délimitation stricte des zones de manœuvre','Présence d\'un signaleur lors des manœuvres','Formation et habilitation des conducteurs d\'engins','Gilet haute visibilité obligatoire à proximité des engins'],
-  're5': ['Rotation des tâches pour limiter la répétition','Formation aux gestes et postures','Utilisation d\'aides à la manutention','Pauses régulières et hydratation','Limitation du port de charges à 25 kg'],
-  're6': ['Mise à disposition d\'eau fraîche et zones d\'ombre','Adaptation des horaires de travail en période de canicule','Application de crème solaire','Port de vêtements adaptés (chapeau, manches longues légères)','Surveillance mutuelle des signes de malaise'],
-  're7': ['Recenser les végétaux urticants et les signaler','Port de gants et vêtements couvrants','Trousse de soins accessible sur le chantier','Information du personnel sur les risques allergènes','Protocole de prise en charge en cas de choc anaphylactique'],
-  // VRD
-  'rv1': ['Étaiement ou blindage systématique des tranchées > 1,30 m','Vérification de la stabilité des parois avant intervention','Interdiction de travail seul en fond de fouille','Évacuation immédiate en cas de risque d\'effondrement','Formation et habilitation des personnels aux travaux en fouille'],
-  'rv2': ['Délimitation des zones de manœuvre des engins','Gilet haute visibilité obligatoire','Présence d\'un signaleur lors des manœuvres à proximité du personnel','Contact visuel ou radio entre conducteur et personnel','Vitesse limitée à 10 km/h sur le chantier'],
-  'rv3': ['Consultation du DICT avant tous travaux','Détection électromagnétique avant fouille','Fouille manuelle à l\'approche des réseaux','Marquage au sol des réseaux détectés','Protocole d\'urgence en cas d\'atteinte réseau'],
-  'rv4': ['Vérification de la présence de lignes aériennes (DICT)','Respect des distances de sécurité (3 m BT / 5 m HT)','Formation habilitation électrique (B0/H0)','Signalement et balisage des lignes aériennes','Coordination avec Enedis si travaux proches'],
-  'rv5': ['Mise en place de garde-corps ou barrières rigides en bord de fouille','Éclairage adapté lors de travaux en conditions de faible luminosité','Interdiction de circulation sur les bordures de tranchée','Comblements provisoires des tranchées inutilisées','Port obligatoire du casque de chantier'],
-  'rv6': ['Utilisation d\'engins conformes aux normes vibratoires','Alternance des tâches exposantes','Port de protections auditives (SNR ≥ 25 dB)','Contrôle régulier du niveau sonore','Information des riverains en cas de nuisances importantes'],
-  'rv7': ['Port obligatoire des lunettes de protection','Écrans de protection autour des zones de projection','Formation sécurité pour les opérateurs d\'engins','Balisage des zones de travail','Éloignement des tiers lors d\'opérations à risque'],
-  'rv8': ['Plan de signalisation temporaire homologué','Coordination avec les services de voirie','Personnel de signalement formé (gilets HV)','Barrières et cones de déviation conformes','Respect scrupuleux du PPSR (plan de prévention signalisation routière)'],
-  'rv9': ['Limitation du port manuel à 25 kg par personne','Utilisation de chariots, palettes et aides mécaniques','Formation aux gestes et postures','Rotation des équipes sur les tâches lourdes','Vérification de l\'adéquation des EPI (ceinture lombaire si nécessaire)'],
-  // Communs
-  'rc1': ['Réunion de coordination inter-entreprises hebdomadaire','Plan de prévention commun partagé','Délimitation des zones d\'intervention par entreprise','Communication radio entre chefs d\'équipe','Registre des interventions tenu à jour'],
-  'rc2': ['Consultation météo quotidienne avant démarrage','Arrêt des travaux exposés en cas de vent > 72 km/h ou foudre','Bâches et calages préventifs des éléments en cours','Procédure de repli d\'urgence connue de tous','Adaptation des EPI selon les conditions climatiques'],
-  'rc3': ['Extincteurs présents et contrôlés sur le chantier','Interdiction de fumer dans les zones à risque','Formation des équipes à l\'utilisation des extincteurs','Vérification des engins (absence de fuite carburant)','Numéro des pompiers affiché sur la base vie'],
-};
-
+const DB_RISQUES = [{"id":"db1","nom":"Installation base vie / zone de stockage — Entorse, fracture","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Installation","phase":"Installation de chantier","activite":"Installation base vie / zone de stockage","danger":"Chute de plain-pied","situation":"Sol irrégulier, matériaux au sol, boue","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Zone stabilisée, rangement quotidien, cheminements matérialisés"],"epi":["Chaussures S3"],"phrase":"Les zones de vie et de stockage sont installées sur un support stabilisé et maintenues rangées afin de limiter les chutes de plain-pied.","motsCles":"base vie, stockage"},{"id":"db2","nom":"Mise en place du balisage — Heurt d'un tiers ou intrusion dans la zone de travaux","g":"Élevée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Balisage","phase":"Balisage / signalisation","activite":"Mise en place du balisage","danger":"Circulation tiers","situation":"Travaux en limite d'emprise ouverte au public","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Balisage réglementaire, barrières, affichage et adaptation continue selon l'avancement"],"epi":["Gilet HV"],"phrase":"Une signalisation et un balisage adaptés sont mis en place avant le démarrage et maintenus pendant toute la durée des travaux.","motsCles":"balisage, public"},{"id":"db3","nom":"Plan de circulation chantier — Écrasement, heurt, collision","g":"Élevée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Circulation interne","phase":"Organisation chantier","activite":"Plan de circulation chantier","danger":"Collision","situation":"Croisement piétons / engins / camions dans une zone étroite","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Plan de circulation, zones d'exclusion, sens de circulation et chef de manœuvre si besoin"],"epi":["Gilet HV","Casque","Chaussures S3"],"phrase":"Les flux internes sont organisés afin d'éviter tout croisement dangereux entre piétons, engins et véhicules de livraison.","motsCles":"circulation, coactivité"},{"id":"db4","nom":"Coactivité avec autres entreprises — Accident croisé, heurt, chute d'objet","g":"Élevée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Coactivité","phase":"Organisation chantier","activite":"Coactivité avec autres entreprises","danger":"Interférence entre lots","situation":"Deux entreprises interviennent sur une même zone ou sur des zones imbriquées","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Phasage concerté, réunion de coordination, séparation physique ou temporelle des zones"],"epi":["EPI selon tâche"],"phrase":"La coactivité est gérée par un phasage concerté et par la séparation des zones d'intervention afin d'éviter les interférences entre entreprises.","motsCles":"coactivité, phasage"},{"id":"db5","nom":"Travaux en site scolaire — Blessure d'un tiers","g":"Élevée","domaine":"Mixte","typeChantier":"École","famille":"Public","phase":"Organisation chantier","activite":"Travaux en site scolaire","danger":"Présence de mineurs","situation":"Enfants et personnels à proximité immédiate du chantier","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Clôtures, accès condamnés, adaptation des horaires, surveillance renforcée"],"epi":["Gilet HV"],"phrase":"L'emprise chantier est totalement isolée des usagers et les interventions sont adaptées au fonctionnement du site scolaire.","motsCles":"école, public"},{"id":"db6","nom":"Maintien des protections hors horaires — Accident tiers, dégradation, chute","g":"Élevée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Fin de poste","phase":"Nettoyage / repli","activite":"Maintien des protections hors horaires","danger":"Intrusion","situation":"Chantier accessible après départ des équipes","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Vérification de fin de poste, fermeture des accès, maintien des barrières et panneaux"],"epi":["Gilet HV"],"phrase":"En dehors des horaires de chantier, l'accès à l'emprise est neutralisé et les protections sont contrôlées en fin de poste.","motsCles":"fin de poste"},{"id":"db7","nom":"Livraison simultanée de plusieurs fournisseurs — Collision, blocage, heurt tiers","g":"Élevée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Livraisons","phase":"Logistique","activite":"Livraison simultanée de plusieurs fournisseurs","danger":"Emprise insuffisante","situation":"Plusieurs poids lourds sur une même zone","gravite":"3 - Grave","probabilite":"3 - Fréquent","applicable":true,"mesures":["Planning des livraisons, créneaux dédiés, zone d'attente interdite hors emprise"],"epi":["Gilet HV"],"phrase":"Les livraisons sont séquencées afin d'éviter la présence simultanée de plusieurs véhicules sur une même zone.","motsCles":"livraisons"},{"id":"db8","nom":"Travail par forte chaleur — Déshydratation, malaise, coup de chaleur","g":"Élevée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Météo","phase":"Conditions climatiques","activite":"Travail par forte chaleur","danger":"Chaleur","situation":"Exposition prolongée en extérieur","gravite":"3 - Grave","probabilite":"3 - Fréquent","applicable":true,"mesures":["Aménagement des horaires, pauses, eau, surveillance des équipes"],"epi":["Crème solaire / eau"],"phrase":"En période chaude, les horaires, pauses et apports en eau sont adaptés pour prévenir les coups de chaleur.","motsCles":"chaleur"},{"id":"db9","nom":"Travail sous pluie ou gel — Chute, faux mouvement","g":"Élevée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Météo","phase":"Conditions climatiques","activite":"Travail sous pluie ou gel","danger":"Sol glissant","situation":"Déplacements et manutentions sur sol humide ou gelé","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Report ou adaptation des tâches, nettoyage des zones, cheminements sécurisés"],"epi":["Chaussures S3","Vêtements pluie"],"phrase":"Les tâches exposant à un risque accru de chute sont adaptées ou reportées en cas de pluie ou de gel.","motsCles":"pluie, gel"},{"id":"db10","nom":"Gestion des déchets de chantier — Coupure, chute, piqûre","g":"Modérée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Déchets","phase":"Nettoyage / repli","activite":"Gestion des déchets de chantier","danger":"Coupure / encombrement","situation":"Déchets mêlés aux zones de circulation","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Tri des déchets, zones dédiées","évacuation régulière"],"epi":["Gants","Chaussures S3"],"phrase":"Les déchets sont triés et évacués régulièrement afin d'éviter l'encombrement et les blessures lors des déplacements.","motsCles":"déchets"},{"id":"db11","nom":"Terrassement mécanique en demi-chaussée — Écrasement d'un usager ou d'un salarié","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Terrassement","phase":"Terrassement","activite":"Terrassement mécanique en demi-chaussée","danger":"Engin en rotation","situation":"Rotation de pelle au contact d'une circulation maintenue","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Alternat, homme trafic, zone d'exclusion, visibilité du conducteur"],"epi":["Gilet HV","Casque","Chaussures S3"],"phrase":"Le terrassement en demi-chaussée est réalisé avec zone d'exclusion stricte et gestion de la circulation par personnel dédié.","motsCles":"terrassement, demi-chaussée"},{"id":"db12","nom":"Terrassement au voisinage d'une façade ou clôture — Effondrement local, choc, dégradation","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Terrassement","phase":"Terrassement","activite":"Terrassement au voisinage d'une façade ou clôture","danger":"Déport de matériaux","situation":"Déblais stockés en bord de fouille ou contre ouvrage existant","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Stockage des déblais à distance, contrôle de stabilité, protection des avoisinants"],"epi":["Casque","Chaussures S3"],"phrase":"Les déblais sont déposés hors zone sensible afin d'éviter toute surcharge ou dégradation des avoisinants.","motsCles":"déblais, avoisinants"},{"id":"db13","nom":"Ouverture de tranchée réseaux — Ensevelissement","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Fouilles / tranchées","phase":"Fouilles","activite":"Ouverture de tranchée réseaux","danger":"Effondrement","situation":"Tranchée non blindée ou talutage insuffisant","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Blindage ou talutage adapté, accès sécurisé, surveillance des abords"],"epi":["Casque","Gilet HV","Chaussures S3"],"phrase":"Les tranchées sont protégées par blindage ou talutage adapté à la profondeur et à la nature du terrain.","motsCles":"tranchée, blindage"},{"id":"db14","nom":"Descente dans tranchée — Chute, blessure grave","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Fouilles / tranchées","phase":"Fouilles","activite":"Descente dans tranchée","danger":"Chute de hauteur","situation":"Accès improvisé ou instable dans une fouille","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Échelle d'accès stable, interdiction des sauts, maintien des accès dégagés"],"epi":["Casque","Chaussures S3"],"phrase":"L'accès aux fouilles s'effectue par un moyen stable et identifié, sans descente improvisée.","motsCles":"descente tranchée"},{"id":"db15","nom":"Fouille laissée ouverte en fin de poste — Blessure grave d'un tiers ou d'un salarié","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Fouilles / tranchées","phase":"Fouilles","activite":"Fouille laissée ouverte en fin de poste","danger":"Chute dans excavation","situation":"Absence de fermeture, recouvrement ou balisage renforcé","gravite":"3 - Grave","probabilite":"3 - Fréquent","applicable":true,"mesures":["Aucune fouille non protégée, recouvrement ou blindage, balisage de nuit"],"epi":["Gilet HV"],"phrase":"Aucune excavation dangereuse n'est laissée ouverte sans protection adaptée en fin de journée.","motsCles":"fouille ouverte, nuit"},{"id":"db16","nom":"Travaux à proximité de réseau électrique — Électrisation, arc, décès","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Réseaux","phase":"Réseaux existants","activite":"Travaux à proximité de réseau électrique","danger":"Électricité","situation":"Localisation inexacte d'un ouvrage sensible","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["DICT, marquage-piquetage, terrassement manuel au droit des réseaux sensibles"],"epi":["EPI adaptés"],"phrase":"Les travaux à proximité d'un réseau électrique sont réalisés après repérage et à l'aide d'une méthode douce au droit de l'ouvrage.","motsCles":"réseau électrique"},{"id":"db17","nom":"Travaux à proximité de réseau gaz — Explosion, incendie, intoxication","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Réseaux","phase":"Réseaux existants","activite":"Travaux à proximité de réseau gaz","danger":"Gaz","situation":"Percement accidentel d'une conduite","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["DICT, marquage-piquetage, méthode douce, arrêt immédiat et procédure d'alerte"],"epi":["EPI adaptés"],"phrase":"Les ouvrages gaz sont repérés avant intervention et toute approche se fait par méthode manuelle ou équivalente.","motsCles":"gaz"},{"id":"db18","nom":"Travaux à proximité de réseau télécom ou fibre — Dommage réseau, danger lors d'intervention corrective","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Réseaux","phase":"Réseaux existants","activite":"Travaux à proximité de réseau télécom ou fibre","danger":"Coupure réseau","situation":"Arrachement ou sectionnement par engin ou outil","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Repérage, terrassement prudent, information des équipes"],"epi":["Gilet HV","Gants"],"phrase":"Les réseaux enterrés sont localisés et la progression à proximité se fait avec prudence et consignes partagées aux équipes.","motsCles":"fibre, télécom"},{"id":"db19","nom":"Descente de tuyaux en fouille — Écrasement, pincement","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Assainissement / EP","phase":"Pose de canalisations","activite":"Descente de tuyaux en fouille","danger":"Chute de charge","situation":"Conduite manutentionnée au-dessus d'une personne","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Chef de manœuvre, interdiction de présence sous charge, accessoires vérifiés"],"epi":["Casque","Gilet HV","Chaussures S3"],"phrase":"La pose des canalisations est réalisée avec exclusion stricte de toute présence humaine sous charge.","motsCles":"canalisation, levage"},{"id":"db20","nom":"Travail en fond de fouille humide — Chute, enlisement, effondrement","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Assainissement / EP","phase":"Pose de canalisations","activite":"Travail en fond de fouille humide","danger":"Atmosphère / glissance","situation":"Présence d'eau, boue, parois instables","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Pompage, assèchement, contrôle de stabilité, arrêt si conditions dégradées"],"epi":["Casque","Chaussures S3"],"phrase":"Les interventions en fond de fouille sont conditionnées à un assèchement suffisant et à un contrôle de stabilité des parois.","motsCles":"fouille humide"},{"id":"db21","nom":"Mise en place d'ouvrage préfabriqué — Écrasement, pincement","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Regards / ouvrages","phase":"Pose de regard béton","activite":"Mise en place d'ouvrage préfabriqué","danger":"Élément préfabriqué lourd","situation":"Mise en place par engin dans une emprise réduite","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Plan de levage simplifié, chef de manœuvre, calage, zone interdite"],"epi":["Casque","Gants","Chaussures S3"],"phrase":"La pose des regards lourds est encadrée et s'effectue dans une zone interdite à tout personnel non concerné.","motsCles":"regard béton"},{"id":"db22","nom":"Réglage sur matériau sec — Gêne respiratoire, projection oculaire","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Réglage de couche de forme","activite":"Réglage sur matériau sec","danger":"Poussières","situation":"Travail sur matériau sec et passages répétés","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Arrosage si nécessaire, adaptation des opérations, maintien des distances"],"epi":["Lunettes","Masque anti-poussières"],"phrase":"Les opérations générant des poussières sont limitées par humidification ou adaptation des méthodes d'exécution.","motsCles":"poussières"},{"id":"db23","nom":"Compactage à la plaque ou pilonneuse — TMS, fatigue, atteinte auditive","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Compactage","activite":"Compactage à la plaque ou pilonneuse","danger":"Vibrations / bruit","situation":"Usage prolongé de plaque vibrante ou pilonneuse","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Rotation des opérateurs, limitation des temps d'exposition, matériel entretenu"],"epi":["Protection auditive","Gants","Chaussures S3"],"phrase":"L'utilisation des matériels vibrants est limitée dans le temps et fait l'objet d'une rotation des opérateurs.","motsCles":"compactage"},{"id":"db24","nom":"Compactage sur pente — Chute, heurt, renversement","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Compactage","activite":"Compactage sur pente","danger":"Perte de contrôle","situation":"Plaque vibrante ou rouleau sur zone en pente ou meuble","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Stabilisation préalable, progression adaptée, zone interdite en contrebas"],"epi":["Chaussures S3","Protection auditive"],"phrase":"Le compactage sur pente est réalisé après vérification de la stabilité de la zone et avec interdiction de stationner en contrebas.","motsCles":"pente"},{"id":"db25","nom":"Application d'enrobé — Brûlures","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Mise en œuvre d'enrobés","activite":"Application d'enrobé","danger":"Chaleur / projection","situation":"Contact avec matériaux chauds ou éclaboussures","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Outils adaptés, distance de sécurité, gants adaptés, consignes spécifiques"],"epi":["Gants","Chaussures S3","Gilet HV"],"phrase":"Les matériaux chauds sont mis en œuvre avec outillage adapté et respect d'une distance de sécurité entre opérateurs.","motsCles":"enrobés"},{"id":"db26","nom":"Application liant ou émulsion — Brûlure, glissade","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Répandage liant / émulsion","activite":"Application liant ou émulsion","danger":"Produit chaud ou glissant","situation":"Projection d'émulsion ou zone rendue glissante","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Balisage spécifique, port des EPI, interdiction d'accès aux tiers"],"epi":["Gants","Gilet HV"],"phrase":"Les zones traitées au liant ou à l'émulsion sont isolées jusqu'à disparition du risque de glissance ou de projection.","motsCles":"émulsion"},{"id":"db27","nom":"Pose et réglage de bordures — TMS, écrasement mains / pieds","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Bordures / pavés","phase":"Pose de bordures béton","activite":"Pose et réglage de bordures","danger":"Manutention lourde","situation":"Prise manuelle d'éléments massifs et gestes contraignants","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Pinces de manutention, aide mécanique, manutention à plusieurs"],"epi":["Gants","Chaussures S3"],"phrase":"Les bordures et éléments lourds sont manutentionnés à l'aide de moyens adaptés ou à plusieurs opérateurs.","motsCles":"bordures"},{"id":"db28","nom":"Pose répétitive de pavés — TMS, douleurs articulaires","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Bordures / pavés","phase":"Pose de pavés","activite":"Pose répétitive de pavés","danger":"Postures contraignantes","situation":"Travail prolongé à genoux ou penché","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Alternance des tâches, aides ergonomiques, organisation des approvisionnements"],"epi":["Genouillères","Gants","Chaussures S3"],"phrase":"Les tâches de pose répétitives sont organisées afin de limiter les postures pénibles et répétées.","motsCles":"pavés"},{"id":"db29","nom":"Sciage au disque — Coupure grave, projection","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Sciage / carottage","phase":"Sciage de chaussée","activite":"Sciage au disque","danger":"Disque en rotation","situation":"Usage d'une scie de sol ou meuleuse","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Matériel conforme, carter, opérateur formé, balisage de la zone"],"epi":["Lunettes","Protection auditive","Gants"],"phrase":"Les opérations de sciage sont réalisées avec matériel protégé, zone balisée et port des protections adaptées.","motsCles":"sciage"},{"id":"db30","nom":"Carottage de dalle ou chaussée — Blessure main, projection, TMS","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Sciage / carottage","phase":"Carottage","activite":"Carottage de dalle ou chaussée","danger":"Projection / effort","situation":"Coincement, échauffement, rebond de l'outil","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Maintien stable, contrôle du support, port des EPI, pause si échauffement"],"epi":["Lunettes","Gants","Protection auditive"],"phrase":"Les opérations de carottage sont réalisées sur support contrôlé avec maintien stable de l'outil et port des EPI adaptés.","motsCles":"carottage"},{"id":"db31","nom":"Coulage et finition — Brûlure chimique, irritation","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Béton / maçonnerie","phase":"Coulage béton de scellement","activite":"Coulage et finition","danger":"Produit irritant","situation":"Contact peau / yeux avec béton frais","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Éviter les contacts, lavage immédiat, gants et lunettes"],"epi":["Gants","Lunettes","Chaussures S3"],"phrase":"Les opérations de coulage et de finition du béton sont réalisées en limitant les contacts directs avec le béton frais.","motsCles":"béton"},{"id":"db32","nom":"Perçage / découpe / finition — Coupure, projection, bruit","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Béton / maçonnerie","phase":"Petite maçonnerie","activite":"Perçage / découpe / finition","danger":"Outil électroportatif","situation":"Perçage, découpe, vibration, projection","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Matériel conforme, vérification avant usage, zone balisée"],"epi":["Lunettes","Gants","Protection auditive"],"phrase":"Les travaux de maçonnerie utilisant de l'outillage électroportatif sont réalisés après vérification du matériel et balisage de la zone.","motsCles":"maçonnerie"},{"id":"db33","nom":"Élingage et levage — Écrasement grave","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Chargement / déchargement","phase":"Déchargement par camion grue","activite":"Élingage et levage","danger":"Chute de charge","situation":"Élingage ou arrimage insuffisant","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Chef de manœuvre, contrôle des accessoires, zone interdite sous charge"],"epi":["Casque","Gilet HV","Chaussures S3"],"phrase":"Les chargements et déchargements sont réalisés avec accessoires vérifiés et exclusion de toute présence sous charge.","motsCles":"camion grue"},{"id":"db34","nom":"Déchargement sur emprise réduite — Collision, accident tiers","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Chargement / déchargement","phase":"Déchargement en voirie étroite","activite":"Déchargement sur emprise réduite","danger":"Heurt par tiers","situation":"Camion empiétant sur la circulation ou trottoir","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Neutralisation temporaire, alternat, homme trafic, créneau horaire adapté"],"epi":["Gilet HV"],"phrase":"Les opérations de déchargement en voirie étroite font l'objet d'une neutralisation et d'une gestion dédiée des flux.","motsCles":"voirie étroite"},{"id":"db35","nom":"Dépose en fin d'intervention — Collision, heurt","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Signalisation","phase":"Retrait du balisage","activite":"Dépose en fin d'intervention","danger":"Heurt en phase finale","situation":"Dépose des dispositifs alors que le trafic reprend","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Retrait en séquence, dernier véhicule de protection, vigilance renforcée"],"epi":["Gilet HV"],"phrase":"Le retrait du balisage est réalisé en séquence maîtrisée afin d'éviter l'exposition des équipes au trafic rétabli.","motsCles":"repli balisage"},{"id":"db36","nom":"Relevés et repérages — Heurt par véhicule","g":"Élevée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Topographie / repérage","phase":"Implantation sur chaussée","activite":"Relevés et repérages","danger":"Circulation","situation":"Personnel à pied sur zone circulée","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Balisage mobile, tenue HV, binôme si besoin, intervention hors pointe"],"epi":["Gilet HV"],"phrase":"Les opérations d'implantation sur voie circulée sont réalisées sous protection adaptée et avec visibilité maximale.","motsCles":"implantation"},{"id":"db37","nom":"Curage ou reprise de regard — Malaise, asphyxie","g":"Faible","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Assainissement / EP","phase":"Ouvrage profond","activite":"Curage ou reprise de regard","danger":"Atmosphère confinée","situation":"Présence possible de gaz ou manque d'oxygène dans ouvrage profond","gravite":"4 - Mortel","probabilite":"1 - Rare","applicable":true,"mesures":["Procédure spécifique, contrôle préalable, interdiction d'intervention non préparée"],"epi":["EPI adaptés"],"phrase":"Aucune intervention en ouvrage profond ne peut être engagée sans procédure spécifique préalable et contrôle des conditions d'accès.","motsCles":"regard profond"},{"id":"db38","nom":"Pompage provisoire — Électrisation, chute, fouet de flexible","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Assainissement / EP","phase":"Pompage d'eau en fouille","activite":"Pompage provisoire","danger":"Électricité / flexible","situation":"Groupe de pompage, câbles et flexibles en zone humide","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Matériel protégé, cheminement ordonné des flexibles et câbles, contrôle avant usage"],"epi":["Gants","Chaussures S3"],"phrase":"Les opérations de pompage sont réalisées avec matériel adapté au milieu humide et cheminements organisés.","motsCles":"pompage"},{"id":"db39","nom":"Casse de béton ou bordures — Projection oculaire, coupure","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Démolition légère","phase":"Dépose d'existant","activite":"Casse de béton ou bordures","danger":"Projection / éclat","situation":"Rupture d'éléments minéraux","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Zone balisée, opérateur isolé, port systématique des lunettes"],"epi":["Lunettes","Gants","Chaussures S3"],"phrase":"Les opérations de dépose ou casse sont réalisées dans une zone balisée avec protections contre les projections.","motsCles":"dépose"},{"id":"db40","nom":"Ouverture par tronçons — Chute tiers, collision, désorganisation","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Réseaux","phase":"Traversée de chaussée","activite":"Ouverture par tronçons","danger":"Ouverture simultanée de plusieurs zones","situation":"Multiplication des points de danger","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Limiter le nombre de fouilles ouvertes, phasage par tronçon"],"epi":["Gilet HV"],"phrase":"Les traversées de chaussée sont phasées afin de limiter le nombre de zones dangereuses ouvertes simultanément.","motsCles":"traversée chaussée"},{"id":"db41","nom":"Décompactage / nivellement du terrain — Heurt, projection","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Préparation de sol","phase":"Préparation de sol","activite":"Décompactage / nivellement du terrain","danger":"Engin / outil en mouvement","situation":"Travail d'un opérateur à proximité d'un engin ou d'un outil rotatif","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Zone d'exclusion, progression coordonnée, communication permanente"],"epi":["Gilet HV","Chaussures S3"],"phrase":"La préparation du sol est réalisée en séparant strictement la zone d'évolution des engins et celle des opérateurs à pied.","motsCles":"préparation sol"},{"id":"db42","nom":"Ouverture de fosse de plantation — Chute, heurt, ensevelissement","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Plantations","phase":"Creusement de fosse","activite":"Ouverture de fosse de plantation","danger":"Bord de fosse instable","situation":"Présence d'un salarié au bord ou dans la fosse pendant les mouvements d'engin","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Délimitation de la fosse, absence de présence inutile au bord, coordination avec engin"],"epi":["Casque","Gilet HV","Chaussures S3"],"phrase":"Les fosses de plantation sont délimitées et les interventions humaines sont interdites dans la zone d'action de l'engin.","motsCles":"fosses"},{"id":"db43","nom":"Manutention de motte lourde — Écrasement, TMS, pincement","g":"Élevée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Plantations","phase":"Plantation de gros sujets","activite":"Manutention de motte lourde","danger":"Motte lourde","situation":"Motte ou conteneur lourd manutentionné manuellement ou mal guidé","gravite":"3 - Grave","probabilite":"3 - Fréquent","applicable":true,"mesures":["Mini-pelle, sangles adaptées, guidage sans mains sous charge, travail en équipe"],"epi":["Gants","Chaussures S3","Casque"],"phrase":"La plantation des gros sujets est réalisée avec assistance mécanique et sans présence des mains dans la zone de pincement.","motsCles":"gros sujets"},{"id":"db44","nom":"Mise en place des tuteurs — Projection, choc, blessure main","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Plantations","phase":"Haubanage / tuteurage","activite":"Mise en place des tuteurs","danger":"Effort et percussion","situation":"Mise en place de pieux, tuteurs ou haubans à proximité d'autres salariés","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Organisation de la zone, outils en bon état, maintien d'une distance de sécurité"],"epi":["Gants","Chaussures S3"],"phrase":"Le haubanage et le tuteurage sont réalisés dans une zone libérée de toute présence inutile et avec matériel adapté.","motsCles":"tuteurage"},{"id":"db45","nom":"Ouverture grillage / feuillard / liens — Coupure, retour élastique, TMS","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Plantations","phase":"Déballage de mottes ou conteneurs","activite":"Ouverture grillage / feuillard / liens","danger":"Coupure / posture","situation":"Retrait de grillage, liens, feuillard ou plastique sous tension","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Découpe contrôlée, maintien stable, gants anti-coupure si besoin"],"epi":["Gants"],"phrase":"Le déballage des mottes et contenants est réalisé avec découpe maîtrisée afin d'éviter tout retour de matière sous tension.","motsCles":"déballage motte"},{"id":"db46","nom":"Chargement ou reprise à la pelle — Gêne respiratoire, TMS","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Plantations","phase":"Apport de terre / amendement","activite":"Chargement ou reprise à la pelle","danger":"Poussière / manutention","situation":"Chargement ou reprise à la pelle de matériaux fins","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Humidification si nécessaire, limitation du port manuel, aide mécanique"],"epi":["Gants","Masque anti-poussières"],"phrase":"Les apports de terre et amendements sont organisés pour limiter la manutention manuelle et l'émission de poussières.","motsCles":"terre végétale"},{"id":"db47","nom":"Plantation répétitive — TMS, douleurs articulaires","g":"Élevée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Vivaces / arbustes","phase":"Plantation manuelle dense","activite":"Plantation répétitive","danger":"Postures contraignantes","situation":"Travail prolongé accroupi, à genoux ou penché","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Alternance des tâches, approvisionnement au plus près, pauses"],"epi":["Genouillères","Gants"],"phrase":"Les plantations manuelles répétitives sont organisées afin de limiter les postures pénibles et les déplacements inutiles.","motsCles":"arbustes, vivaces"},{"id":"db48","nom":"Griffage / soufflage / réglage — Irritation oculaire et respiratoire","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Engazonnement","phase":"Préparation fine de terre","activite":"Griffage / soufflage / réglage","danger":"Poussières","situation":"Travail sur sol très sec, soufflage ou griffage","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Arrosage léger, adaptation des méthodes","éloignement des tiers"],"epi":["Lunettes","Masque anti-poussières"],"phrase":"Les opérations d'engazonnement sur sol sec sont adaptées afin de limiter les envols de poussières.","motsCles":"engazonnement"},{"id":"db49","nom":"Semis manuel ou mécanique — Chute, entorse","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Engazonnement","phase":"Semis","activite":"Semis manuel ou mécanique","danger":"Glissade / irrégularité","situation":"Déplacement sur terrain meuble, ornières ou pentes","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Repérage des zones instables, progression adaptée, chaussures appropriées"],"epi":["Chaussures S3"],"phrase":"Les déplacements sur sol meuble sont réalisés avec prudence après repérage des irrégularités du terrain.","motsCles":"semis"},{"id":"db50","nom":"Manutention de plaques / rouleaux — TMS, lombalgie","g":"Élevée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Engazonnement","phase":"Pose de gazon en plaques","activite":"Manutention de plaques / rouleaux","danger":"Charge répétitive","situation":"Ports successifs de rouleaux ou plaques","gravite":"2 - AT","probabilite":"3 - Fréquent","applicable":true,"mesures":["Approvisionnement rapproché, travail en binôme, limitation des ports longs"],"epi":["Gants","Chaussures S3"],"phrase":"La pose de gazon en plaques est organisée avec un approvisionnement au plus près afin de réduire les manutentions répétées.","motsCles":"gazon plaque"},{"id":"db51","nom":"Épandage manuel ou mécanique — Irritation, projection","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Paillage","phase":"Mise en œuvre de paillage vrac","activite":"Épandage manuel ou mécanique","danger":"Poussières / projection","situation":"Déversement ou brassage de paillage sec","gravite":"1 - Mineur","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Épandage maîtrisé, humidification si besoin"],"epi":["Lunettes","Gants"],"phrase":"La mise en œuvre des paillages se fait de manière progressive afin de limiter les projections et envols.","motsCles":"paillage"},{"id":"db52","nom":"Ouverture de saignées et coupe de tube — Coupure, chute, atteinte réseau existant","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Arrosage","phase":"Pose réseau enterré","activite":"Ouverture de saignées et coupe de tube","danger":"Petite fouille et coupe","situation":"Ouverture de saignées, utilisation de coupe-tube et outils","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Repérage préalable, rangement des outils, balisage ponctuel"],"epi":["Gants","Chaussures S3"],"phrase":"La pose des réseaux d'arrosage est réalisée après repérage des existants et avec maintien d'un balisage localisé.","motsCles":"arrosage"},{"id":"db53","nom":"Mise en pression du réseau — Jet sous pression, projection, glissade","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Arrosage","phase":"Essai / mise en eau","activite":"Mise en pression du réseau","danger":"Pression","situation":"Flexible ou raccord mal serré lors de la mise en charge","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Montage contrôlé","éloignement des tiers, test progressif"],"epi":["Lunettes","Gants"],"phrase":"Les essais de mise en eau sont réalisés de manière progressive après contrôle des raccords et éloignement des tiers.","motsCles":"mise en eau"},{"id":"db54","nom":"Taille de haies au taille-haie — Coupure, projection","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Entretien / taille","phase":"Taille mécanisée","activite":"Taille de haies au taille-haie","danger":"Outil tranchant en mouvement","situation":"Mains ou tiers dans la zone de coupe","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Zone dégagée, distance de sécurité, matériel vérifié"],"epi":["Gants","Lunettes","Protection auditive"],"phrase":"Les travaux de taille mécanisée sont réalisés dans une zone dégagée avec maintien d'une distance de sécurité.","motsCles":"taille haie"},{"id":"db55","nom":"Taille au sécateur / élagueur — Plaie, coupure main","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Entretien / taille","phase":"Taille manuelle","activite":"Taille au sécateur / élagueur","danger":"Coupure","situation":"Geste rapide et répétitif sur végétation dense","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Bonne posture, gants, outils affûtés et rangés hors usage"],"epi":["Gants"],"phrase":"Les opérations de taille manuelle sont réalisées avec outils entretenus et gants adaptés.","motsCles":"sécateur"},{"id":"db56","nom":"Débroussaillage au rotofil ou lame — Blessure d'un tiers ou de l'opérateur","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Débroussaillage","phase":"Débroussaillage mécanique","activite":"Débroussaillage au rotofil ou lame","danger":"Projection","situation":"Cailloux, branches ou déchets projetés par l'outil","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Périmètre interdit, carter en place, inspection préalable du terrain"],"epi":["Lunettes","Protection auditive","Gants"],"phrase":"Le débroussaillage est précédé d'une inspection du terrain et réalisé avec exclusion des tiers à distance suffisante.","motsCles":"débroussaillage"},{"id":"db57","nom":"Tonte sur terrain hétérogène — Projection, chute, retournement de machine","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Tonte","phase":"Tonte mécanique","activite":"Tonte sur terrain hétérogène","danger":"Projection / renversement","situation":"Terrain accidenté, pente ou présence d'objets cachés","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Repérage du terrain, retrait des obstacles, adaptation à la pente"],"epi":["Lunettes","Chaussures S3","Protection auditive"],"phrase":"Les opérations de tonte sont engagées après reconnaissance du terrain et retrait des obstacles susceptibles d'être projetés.","motsCles":"tonte"},{"id":"db58","nom":"Abattage d'arbre de petit diamètre — Écrasement, choc","g":"Faible","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Abattage / démontage léger","phase":"Abattage","activite":"Abattage d'arbre de petit diamètre","danger":"Chute d'arbre / branche","situation":"Zone d'abattage mal dégagée ou trajectoire mal maîtrisée","gravite":"4 - Mortel","probabilite":"1 - Rare","applicable":true,"mesures":["Balisage élargi, trajectoire identifiée, personnel qualifié, interdiction d'accès"],"epi":["Casque","Visière","Protection auditive","Gants"],"phrase":"Toute opération d'abattage est réalisée sur une zone interdite et par personnel maîtrisant la technique employée.","motsCles":"abattage"},{"id":"db59","nom":"Dessouchage mécanisé — Projection, rupture d'accessoire, heurt","g":"Faible","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Dessouchage","phase":"Extraction de souche","activite":"Dessouchage mécanisé","danger":"Rebond / traction","situation":"Arrachement par engin, chaîne ou accessoire inadapté","gravite":"4 - Mortel","probabilite":"1 - Rare","applicable":true,"mesures":["Accessoires adaptés, exclusion large, traction alignée et contrôlée"],"epi":["Casque","Gilet HV"],"phrase":"Le dessouchage mécanisé est réalisé avec accessoires adaptés et exclusion de toute présence dans l'axe de traction.","motsCles":"dessouchage"},{"id":"db60","nom":"Usage de brûleur — Brûlure, départ de feu","g":"Modérée","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Produits / traitements","phase":"Désherbage thermique","activite":"Usage de brûleur","danger":"Brûleur / chaleur","situation":"Utilisation de flamme ou source chaude à proximité de matériaux combustibles","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Contrôle de l'environnement, extincteur, pas d'usage près des zones à risque"],"epi":["Gants","Chaussures S3"],"phrase":"Le désherbage thermique n'est réalisé qu'après contrôle des matériaux et végétaux combustibles à proximité.","motsCles":"désherbage thermique"},{"id":"db61","nom":"Dosage et application — Irritation, inhalation, contact cutané","g":"Faible","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Produits / traitements","phase":"Application de produit autorisé","activite":"Dosage et application","danger":"Produit chimique","situation":"Projection ou contact lors du dosage ou de l'application","gravite":"3 - Grave","probabilite":"1 - Rare","applicable":true,"mesures":["Lecture FDS, dosage maîtrisé, port des EPI, stockage adapté"],"epi":["Gants","Lunettes","Masque adapté"],"phrase":"Tout usage de produit de traitement est réalisé conformément à la FDS et avec port des protections adaptées.","motsCles":"produit traitement"},{"id":"db62","nom":"Plantation en zone préparée par VRD non stabilisée — Enlisement, renversement, chute","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Interface VRD / EV","phase":"Phasage","activite":"Plantation en zone préparée par VRD non stabilisée","danger":"Portance insuffisante","situation":"Engin ou personnel sur support non réceptionné","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Validation inter-lots avant intervention, contrôle de portance, phasage clair"],"epi":["Gilet HV","Chaussures S3"],"phrase":"Les travaux EV ne débutent en zone VRD qu'après validation de la stabilité et de la disponibilité réelle de la zone.","motsCles":"interface, portance"},{"id":"db63","nom":"Reprise de finition VRD après plantations — Détérioration, heurt d'opérateur","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Interface VRD / EV","phase":"Phasage","activite":"Reprise de finition VRD après plantations","danger":"Heurt de végétaux / tuteurs","situation":"Passage d'engins et de compactage près de jeunes plantations","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Protection des plantations, interdiction de stockage à proximité, reprise ciblée"],"epi":["Gilet HV","Chaussures S3"],"phrase":"Les finitions à proximité des plantations sont réalisées après protection des végétaux et limitation des circulations d'engins.","motsCles":"interface, finitions"},{"id":"db64","nom":"Livraison d'arbres ou matériaux en horaire de flux — Collision, heurt tiers","g":"Élevée","domaine":"Mixte","typeChantier":"École","famille":"Site sensible","phase":"Livraisons","activite":"Livraison d'arbres ou matériaux en horaire de flux","danger":"Public en mouvement","situation":"Entrée/sortie des élèves et riverains","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Livraisons hors horaires sensibles, homme trafic, cheminement sécurisé"],"epi":["Gilet HV"],"phrase":"Les livraisons sont programmées hors périodes de forte affluence afin de supprimer l'interaction avec les usagers.","motsCles":"livraison école"},{"id":"db65","nom":"Creusement de fosse au droit d'un réseau existant — Atteinte réseau, électrisation, inondation","g":"Modérée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Interface réseaux / plantations","phase":"Plantations à proximité de réseaux","activite":"Creusement de fosse au droit d'un réseau existant","danger":"Réseaux peu profonds","situation":"Fosse au contact d'un ouvrage enterré","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Repérage, adaptation de la fosse, méthode douce, validation technique"],"epi":["Gants","Chaussures S3"],"phrase":"Toute fosse à proximité d'un réseau identifié fait l'objet d'un repérage et d'une méthode adaptée.","motsCles":"fosses et réseaux"},{"id":"db66","nom":"Travail dans un parc fréquenté — Heurt, chute, blessure tiers","g":"Élevée","domaine":"Mixte","typeChantier":"Espace public","famille":"Public","phase":"Travaux sur parc ouvert","activite":"Travail dans un parc fréquenté","danger":"Intrusion dans la zone balisée","situation":"Passage de joggeurs, cyclistes, promeneurs","gravite":"3 - Grave","probabilite":"3 - Fréquent","applicable":true,"mesures":["Renforcement du balisage, contrôle visuel permanent, fermeture ponctuelle si besoin"],"epi":["Gilet HV"],"phrase":"L'emprise des travaux en espace public est isolée du cheminement des usagers et adaptée selon l'affluence.","motsCles":"parc public"},{"id":"db67","nom":"Travaux au voisinage des avaloirs — Obstruction du réseau EP, glissance, salissure","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Environnement chantier","phase":"Protection EP / avaloirs","activite":"Travaux au voisinage des avaloirs","danger":"Pollution / colmatage","situation":"Apport de terre, sable ou laitance à proximité d'avaloirs","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Protection des avaloirs, nettoyage en fin de poste, interdiction de lavage vers réseau"],"epi":["Gants"],"phrase":"Les avaloirs et dispositifs EP sont protégés pendant les travaux afin d'éviter tout colmatage par les matériaux.","motsCles":"avaloirs"},{"id":"db68","nom":"Stockage sur site restreint — Chute d'objet, écrasement","g":"Modérée","domaine":"Mixte","typeChantier":"Site occupé","famille":"Stockage","phase":"Stockage matériaux","activite":"Stockage sur site restreint","danger":"Empilement instable","situation":"Palettes, tuyaux, bordures ou rouleaux mal stockés","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Zone dédiée, calage, hauteur limitée, maintien des accès libres"],"epi":["Chaussures S3","Gants"],"phrase":"Les matériaux sont stockés sur une zone dédiée, calés et sans gêner les accès ni les circulations.","motsCles":"stockage"},{"id":"db69","nom":"Nettoyage au nettoyeur haute pression — Chute, projection","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Nettoyage","phase":"Nettoyage à grande eau","activite":"Nettoyage au nettoyeur haute pression","danger":"Projection / glissance","situation":"Sol rendu glissant et jet sous pression près de tiers","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Balisage temporaire","éloignement des tiers, adaptation de la pression"],"epi":["Lunettes","Gants","Chaussures S3"],"phrase":"Les opérations de nettoyage générant glissance ou projections sont réalisées sur zone temporairement interdite.","motsCles":"nettoyeur"},{"id":"db70","nom":"Recul de camion dans une impasse ou parking habité — Heurt, écrasement","g":"Élevée","domaine":"VRD","typeChantier":"Résidence","famille":"Livraisons","phase":"Logistique","activite":"Recul de camion dans une impasse ou parking habité","danger":"Angle mort","situation":"Présence de riverains ou véhicules en stationnement derrière le camion","gravite":"4 - Mortel","probabilite":"3 - Fréquent","applicable":true,"mesures":["Chef de manœuvre obligatoire, zone neutralisée, recul limité"],"epi":["Gilet HV"],"phrase":"Les manœuvres de recul en zone habitée sont réalisées sous guidage permanent et après neutralisation de la zone.","motsCles":"recul camion"},{"id":"db71","nom":"Découpe au disque — Projection oculaire, coupure","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Voirie / revêtements","phase":"Découpe de bordure existante","activite":"Découpe au disque","danger":"Éclats","situation":"Rupture de matière lors de la coupe","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Écran facial ou lunettes, carter, balisage proche"],"epi":["Lunettes","Gants"],"phrase":"Les découpes générant des éclats sont réalisées avec protection du visage et isolement de la zone.","motsCles":"éclats"},{"id":"db72","nom":"Ouverture sur conduite active — Inondation localisée, glissade","g":"Modérée","domaine":"VRD","typeChantier":"Site occupé","famille":"Assainissement / EP","phase":"Raccordement sur réseau en service","activite":"Ouverture sur conduite active","danger":"Rejet / arrivée d'eau","situation":"Ouverture d'un ouvrage ou conduite encore en service","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Contrôle préalable, obturation si nécessaire, pompage prêt"],"epi":["Gants","Chaussures S3"],"phrase":"Les raccordements sur réseaux en service sont préparés avec anticipation du risque d'arrivée d'eau.","motsCles":"réseau en service"},{"id":"db73","nom":"Maintien du balisage de nuit — Collision tiers","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Signalisation","phase":"Faible luminosité","activite":"Maintien du balisage de nuit","danger":"Éclairage insuffisant","situation":"Balisage peu visible en fin de journée","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Dispositifs rétro-réfléchissants","éclairage si nécessaire, contrôle visuel"],"epi":["Gilet HV"],"phrase":"Les protections mises en place sont maintenues visibles en toutes circonstances, y compris en faible luminosité.","motsCles":"nuit"},{"id":"db74","nom":"Renversement de mini-pelle — Écrasement, chute d'engin","g":"Modérée","domaine":"VRD","typeChantier":"Voirie circulée","famille":"Terrassement","phase":"Positionnement d'engin","activite":"Renversement de mini-pelle","danger":"Portance insuffisante / pente","situation":"Engin trop proche du bord de fouille ou sur support dégradé","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Distance de sécurité au bord, contrôle de portance, adaptation du positionnement"],"epi":["Casque","Gilet HV"],"phrase":"Le positionnement des engins tient compte de la portance du sol et de l'éloignement minimal du bord de fouille.","motsCles":"mini-pelle"},{"id":"db75","nom":"Travail au droit des véhicules — Heurt, pincement","g":"Modérée","domaine":"VRD","typeChantier":"Résidence","famille":"Bordures / pavés","phase":"Pose au contact de stationnements","activite":"Travail au droit des véhicules","danger":"Circulation riverains","situation":"Ouverture de portières, piétons, véhicules entrants","gravite":"3 - Grave","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Information des riverains, balisage long, séquencement des zones"],"epi":["Gilet HV"],"phrase":"Les travaux réalisés au droit des stationnements tiennent compte des mouvements résiduels des riverains.","motsCles":"riverains"},{"id":"db76","nom":"Taille sur zone sensible — Blessure tiers par outil ou projection","g":"Modérée","domaine":"Espaces verts","typeChantier":"École","famille":"Entretien / taille","phase":"Travail à proximité d'aires de jeux","activite":"Taille sur zone sensible","danger":"Présence d'enfants","situation":"Zone insuffisamment neutralisée","gravite":"4 - Mortel","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Travail hors présence d'enfants, condamnation de zone, surveillance"],"epi":["Gants","Lunettes"],"phrase":"Les travaux de taille à proximité des zones de jeux sont réalisés uniquement hors fréquentation des enfants.","motsCles":"aire de jeux proche"},{"id":"db77","nom":"Débroussaillage à proximité d'automobiles — Dommage matériel, blessure tiers","g":"Modérée","domaine":"Espaces verts","typeChantier":"Résidence","famille":"Débroussaillage","phase":"Débroussaillage au droit de véhicules","activite":"Débroussaillage à proximité d'automobiles","danger":"Projection sur biens","situation":"Cailloux ou débris projetés contre un véhicule","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Bâchage si nécessaire, distance de sécurité, nettoyage préalable"],"epi":["Lunettes","Protection auditive"],"phrase":"Les zones débroussaillées au voisinage de véhicules sont préalablement dégagées et sécurisées.","motsCles":"projection véhicule"},{"id":"db78","nom":"Plantation à proximité de mobilier ou candélabre — TMS, coupure, dommage ouvrage","g":"Modérée","domaine":"Espaces verts","typeChantier":"Espace public","famille":"Plantations","phase":"Plantation près d'obstacles","activite":"Plantation à proximité de mobilier ou candélabre","danger":"Obstacle fixe","situation":"Postures contraintes, chocs, outils contre obstacle","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Organisation de la zone, matériel adapté, progression manuelle prudente"],"epi":["Gants","Chaussures S3"],"phrase":"Les plantations au contact d'obstacles fixes sont exécutées avec une méthode et un outillage adaptés à l'exiguïté de la zone.","motsCles":"candélabre"},{"id":"db79","nom":"Coupe au sol — Coupure grave","g":"Faible","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Abattage / démontage léger","phase":"Utilisation tronçonneuse au sol","activite":"Coupe au sol","danger":"Chaîne en mouvement","situation":"Rebond, contact avec la chaîne, perte d'équilibre","gravite":"4 - Mortel","probabilite":"1 - Rare","applicable":true,"mesures":["Personnel compétent","EPI complets, zone interdite, entretien du matériel"],"epi":["Casque","Visière","Gants","Jambières","Protection auditive"],"phrase":"Toute utilisation de tronçonneuse est réservée à du personnel compétent avec EPI adaptés et zone interdite.","motsCles":"tronçonneuse"},{"id":"db80","nom":"Réglage avec pression résiduelle — Projection, choc à l'œil","g":"Faible","domaine":"Espaces verts","typeChantier":"Parc / jardin","famille":"Arrosage","phase":"Réglage d'arroseurs","activite":"Réglage avec pression résiduelle","danger":"Jet inopiné","situation":"Mise en pression soudaine lors du réglage","gravite":"2 - AT","probabilite":"1 - Rare","applicable":true,"mesures":["Dépressurisation préalable, réglage progressif","éloignement du visage"],"epi":["Lunettes","Gants"],"phrase":"Le réglage des arroseurs est réalisé hors pression ou après dépressurisation suffisante du réseau.","motsCles":"arroseur"},{"id":"db81","nom":"Travail par rafales — Chute d'objet, défaut de signalisation","g":"Modérée","domaine":"Mixte","typeChantier":"Voirie circulée","famille":"Météo","phase":"Vent fort","activite":"Travail par rafales","danger":"Objets légers et balisage","situation":"Déplacement de panneaux, bâches, branches ou matériaux","gravite":"2 - AT","probabilite":"2 - Occasionnel","applicable":true,"mesures":["Arrimage, lestage, report de certaines opérations, contrôle renforcé"],"epi":["Gilet HV"],"phrase":"En cas de vent fort, les équipements légers et protections sont arrimés ou certaines tâches reportées.","motsCles":"vent"}];
+const REV = DB_RISQUES.filter(r => r.domaine === 'Espaces verts');
+const RVRD = DB_RISQUES.filter(r => r.domaine === 'VRD');
+const RC = DB_RISQUES.filter(r => r.domaine === 'Mixte');
 const MESURES_DEFAULT = ['Port des EPI adaptés','Formation et sensibilisation du personnel','Balisage et signalisation de la zone','Vérification du matériel avant utilisation','Supervision renforcée'];
 
-const REV = [
-  {id:'re1',nom:'Chute de plain-pied',g:'Modérée'},
-  {id:'re2',nom:'Coupures / blessures par outils tranchants',g:'Modérée'},
-  {id:'re3',nom:'Exposition aux produits phytosanitaires',g:'Élevée'},
-  {id:'re4',nom:'Risques liés aux engins (tracteurs, tondeuses)',g:'Élevée'},
-  {id:'re5',nom:'Risques musculo-squelettiques',g:'Modérée'},
-  {id:'re6',nom:'Exposition UV / chaleur / canicule',g:'Modérée'},
-  {id:'re7',nom:'Allergie / piqûres insectes et végétaux urticants',g:'Modérée'},
-];
-const RVRD = [
-  {id:'rv1',nom:'Effondrement de tranchée / fouille',g:'Très élevée'},
-  {id:'rv2',nom:'Heurts par engins de terrassement',g:'Très élevée'},
-  {id:'rv3',nom:'Atteinte aux réseaux enterrés (gaz, élec., eau)',g:'Très élevée'},
-  {id:'rv4',nom:'Risques électriques (lignes aériennes HT/BT)',g:'Très élevée'},
-  {id:'rv5',nom:'Chute dans les fouilles et tranchées',g:'Élevée'},
-  {id:'rv6',nom:'Vibrations et bruit',g:'Modérée'},
-  {id:'rv7',nom:'Projection de matériaux',g:'Modérée'},
-  {id:'rv8',nom:'Circulation routière (chantier en bord de voie)',g:'Très élevée'},
-  {id:'rv9',nom:'Manutention manuelle de charges lourdes',g:'Modérée'},
-];
-const RC = [
-  {id:'rc1',nom:'Co-activité avec d\'autres entreprises',g:'Élevée'},
-  {id:'rc2',nom:'Risques climatiques (vent, foudre, gel, canicule)',g:'Modérée'},
-  {id:'rc3',nom:'Incendie / explosion',g:'Élevée'},
-];
-// Risques personnalisés
 if(!S.customRisks) S.customRisks = [];
 
 const GCLS = {'Très élevée':'gte','Élevée':'ge','Modérée':'gm','Faible':'gf'};
 const PROBA_VALS = ['Faible','Modérée','Élevée','Très élevée'];
 
-if(!S.risquesEV) S.risquesEV = REV.map(r=>r.id);
-
 function getProbaClass(g){return 'pg-'+(GCLS[g]||'gf');}
 
+function getRiskById(id){
+  return DB_RISQUES.find(r => r.id === id) || (S.customRisks || []).find(r => r.id === id) || null;
+}
+function normalizeMesuresList(list){
+  if(!Array.isArray(list)) return [];
+  const parts = [];
+  list.forEach(item => {
+    if(item == null) return;
+    String(item)
+      .split(/\s*[;,]\s*/)
+      .map(x => x.trim())
+      .filter(Boolean)
+      .forEach(x => parts.push(x));
+  });
+  return parts;
+}
+
 function getMesures(id){
-  return MESURES_PAR_RISQUE[id] || MESURES_DEFAULT;
+  const r = getRiskById(id);
+  const mesures = (r && Array.isArray(r.mesures) && r.mesures.length) ? r.mesures : MESURES_DEFAULT;
+  return normalizeMesuresList(mesures);
 }
 
 function rList(list, containerId, key) {
-  if(!S[key]||!S[key].length) S[key]=list.map(r=>r.id);
+  if(!Array.isArray(S[key])) S[key] = [];
   document.getElementById(containerId).innerHTML = list.map(r => buildRiskRow(r, key)).join('');
 }
-
 
 function buildRiskRow(r, key) {
   const checked = S[key] ? S[key].includes(r.id) : false;
@@ -592,41 +730,54 @@ function buildRiskRow(r, key) {
   const mesuresList = getMesures(r.id);
   const pcls = getProbaClass(proba);
   const nSel = selMesures.length;
-  const isCustom = key === 'risquesCustom';
+  const meta = [r.famille, r.phase].filter(Boolean);
+  const detailLines = [
+    r.activite ? `<div><strong>Tâche réelle :</strong> ${esc(r.activite)}</div>` : '',
+    r.danger ? `<div><strong>Danger identifié :</strong> ${esc(r.danger)}</div>` : '',
+    r.situation ? `<div><strong>Situation dangereuse :</strong> ${esc(r.situation)}</div>` : '',
+    r.gravite ? `<div><strong>Gravité base :</strong> ${esc(r.gravite)}</div>` : '',
+    r.probabilite ? `<div><strong>Probabilité base :</strong> ${esc(r.probabilite)}</div>` : '',
+    (r.epi && r.epi.length) ? `<div><strong>EPI :</strong> ${esc(r.epi.join(', '))}</div>` : '',
+    `<div style="grid-column:1/-1"><label style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em">Phrase PPSPS (modifiable)</label><textarea style="margin-top:5px;font-size:12px;min-height:55px" onchange="updatePhrase('${r.id}', this.value)">${esc(S.phrases[r.id] || r.phrase || '')}</textarea></div>`
+  ].filter(Boolean).join('');
 
   const mesuresHTML = mesuresList.map((m,i) => {
     const mId = r.id+'_m'+i;
-    const inputId = 'mi_'+mId;
     const isSel = selMesures.includes(mId);
-    return `<div class="mesure-item${isSel?' sel':''}" data-mid="${mId}">
-      <input type="checkbox" id="${inputId}" data-risk-id="${r.id}" data-mid="${mId}" ${isSel?'checked':''}>
-      <label for="${inputId}">${m}</label>
-    </div>`;
+    return `<label class="mesure-item${isSel?' sel':''}" onclick="togMesure('${r.id}','${mId}',this)">
+      <input type="checkbox" ${isSel?'checked':''} onchange="togMesure('${r.id}','${mId}',this.closest('.mesure-item'))">
+      <span>${esc(m)}</span>
+    </label>`;
   }).join('');
 
   const customMesures = (S.mesures[r.id+'_custom']||[]).map((m,i) => {
     const mId = r.id+'_c'+i;
-    const inputId = 'mi_'+mId;
     const isSel = selMesures.includes(mId);
-    return `<div class="mesure-item${isSel?' sel':''}" data-mid="${mId}" style="grid-column:1/-1">
-      <input type="checkbox" id="${inputId}" data-risk-id="${r.id}" data-mid="${mId}" ${isSel?'checked':''}>
-      <label for="${inputId}">${m} <em style="color:var(--ink4)">(personnalisée)</em></label>
-    </div>`;
+    return `<label class="mesure-item${isSel?' sel':''}" onclick="togMesure('${r.id}','${mId}',this)" style="grid-column:1/-1">
+      <input type="checkbox" ${isSel?'checked':''} onchange="togMesure('${r.id}','${mId}',this.closest('.mesure-item'))">
+      <span>${esc(m)} <em style="color:var(--ink4)">(personnalisée)</em></span>
+    </label>`;
   }).join('');
 
-  return `<div class="ri${checked?' checked':''}" id="ri-${r.id}">
+  const isCustom = key === 'risquesCustom';
+
+  return `<div class="ri${checked?' checked':''}" id="ri-${r.id}" data-search="${esc((r.nom+' '+(r.activite||'')+' '+(r.famille||'')+' '+(r.phase||'')+' '+(r.danger||'')+' '+(r.situation||'')+' '+(r.motsCles||'')).toLowerCase())}">
     <div class="ri-header">
       <input type="checkbox" id="chk-${r.id}" ${checked?'checked':''} onchange="togR('${key}','${r.id}',this.checked,'ri-${r.id}')">
-      <label class="ri-label" for="chk-${r.id}">${r.nom}</label>
+      <label class="ri-label" for="chk-${r.id}">
+        <span>${esc(r.nom)}</span>
+        ${meta.length ? `<span class="ri-meta">${meta.map(x => `<span class="ri-chip">${esc(x)}</span>`).join('')}</span>` : ''}
+      </label>
       <div class="ri-proba">
         <select class="${pcls}" onchange="changeProba('${r.id}',this)">
           ${PROBA_VALS.map(p=>`<option value="${p}"${p===proba?' selected':''}>${p}</option>`).join('')}
         </select>
       </div>
-      ${isCustom?`<button type="button" class="ri-del" title="Supprimer ce risque" onclick="delCustomRisk('${r.id}')">🗑️</button>`:''}
-      <button type="button" class="toggle-mesures" onclick="toggleBody('${r.id}')" title="Mesures de prévention">${checked?'▾':'▸'} Mesures${nSel>0?` <span style="background:var(--or);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px">${nSel}</span>`:''}</button>
+      ${isCustom?`<button class="ri-del" title="Supprimer ce risque" onclick="delCustomRisk('${r.id}')">🗑️</button>`:''}
+      <button class="toggle-mesures" onclick="toggleBody('${r.id}')" title="Mesures de prévention">${checked?'▾':'▸'} Mesures${nSel>0?` <span style="background:var(--or);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px">${nSel}</span>`:''}</button>
     </div>
     <div class="ri-body" id="body-${r.id}">
+      ${detailLines ? `<div class="ri-infos">${detailLines}</div>` : ''}
       <div class="mesures-label">
         Mesures de prévention associées
         <button type="button" class="toggle-mesures" onclick="selectAllMesures('${r.id}')">Tout sélectionner</button>
@@ -642,11 +793,10 @@ function buildRiskRow(r, key) {
 
 function toggleBody(id) {
   const body = document.getElementById('body-'+id);
-  if (body) body.classList.toggle('open');
+  body.classList.toggle('open');
 }
 
 function togR(k, id, ch, riId) {
-  if(!S[k]) S[k] = [];
   if(ch){
     if(!S[k].includes(id)) S[k].push(id);
   } else {
@@ -654,29 +804,32 @@ function togR(k, id, ch, riId) {
   }
   const riEl = document.getElementById(riId);
   if(riEl) riEl.classList.toggle('checked', ch);
+  // auto-open body when checked
   const body = document.getElementById('body-'+id);
   if(body && ch) body.classList.add('open');
-  updateMesuresBadge(id);
-  saveData();
+  // update toggle button
+  const btn = riEl ? riEl.querySelector('.toggle-mesures') : null;
+  if(btn) btn.textContent = (ch?'▾':'▸') + ' Mesures';
 }
 
 function changeProba(id, sel) {
   S.probas[id] = sel.value;
   sel.className = getProbaClass(sel.value);
-  saveData();
 }
 
-function togMesure(riskId, mId, checked) {
+function updatePhrase(id, value) {
+  S.phrases[id] = value;
+}
+
+function togMesure(riskId, mId, el) {
   if(!S.mesures[riskId]) S.mesures[riskId] = [];
-  if(checked){
-    if(!S.mesures[riskId].includes(mId)) S.mesures[riskId].push(mId);
-  } else {
-    S.mesures[riskId] = S.mesures[riskId].filter(x=>x!==mId);
-  }
-  const item = document.querySelector(`.mesure-item[data-mid="${mId}"]`);
-  if(item) item.classList.toggle('sel', checked);
+  const ms = S.mesures[riskId];
+  const cb = el.querySelector ? el.querySelector('input[type=checkbox]') : el;
+  const checked = cb ? cb.checked : false;
+  if(checked){ if(!ms.includes(mId)) ms.push(mId); el.classList && el.classList.add('sel'); }
+  else { S.mesures[riskId]=ms.filter(x=>x!==mId); el.classList && el.classList.remove('sel'); }
+  // update badge
   updateMesuresBadge(riskId);
-  saveData();
 }
 
 function updateMesuresBadge(riskId) {
@@ -691,25 +844,32 @@ function updateMesuresBadge(riskId) {
 function selectAllMesures(riskId) {
   const container = document.getElementById('mesures-'+riskId);
   if(!container) return;
-  const allIds = [];
-  container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+  const items = container.querySelectorAll('.mesure-item');
+  if(!S.mesures[riskId]) S.mesures[riskId] = [];
+  items.forEach((item, i) => {
+    const cb = item.querySelector('input[type=checkbox]');
+    // generate id from data-index
+    const mId = item.getAttribute('data-mid');
+    // fallback: use index-based id
+  });
+  // simpler: check all checkboxes
+  container.querySelectorAll('input[type=checkbox]').forEach(cb => {
     cb.checked = true;
-    const mId = cb.dataset.mid;
-    if (mId) allIds.push(mId);
-    const item = cb.closest('.mesure-item');
-    if(item) item.classList.add('sel');
+    const label = cb.closest('.mesure-item');
+    if(label) label.classList.add('sel');
+  });
+  // rebuild from DOM
+  const allIds = [];
+  container.querySelectorAll('.mesure-item').forEach((item, i) => {
+    // extract mId from onclick
+    const onclick = item.getAttribute('onclick')||'';
+    const match = onclick.match(/'([^']+_m\d+|[^']+_c\d+)'/);
+    if(match) allIds.push(match[1]);
   });
   S.mesures[riskId] = allIds;
   updateMesuresBadge(riskId);
-  saveData();
 }
 
-document.addEventListener('change', function(e){
-  const t = e.target;
-  if (t.matches('.mesure-item input[type="checkbox"][data-risk-id]')) {
-    togMesure(t.dataset.riskId, t.dataset.mid, t.checked);
-  }
-});
 function addCustomMesure(riskId) {
   const inp = document.getElementById('newm-'+riskId);
   const val = inp ? inp.value.trim() : '';
@@ -721,16 +881,74 @@ function addCustomMesure(riskId) {
 }
 
 function addCustomRisk() {
-  const nom = document.getElementById('newRiskNom').value.trim();
-  const g   = document.getElementById('newRiskProba').value;
-  if(!nom) { document.getElementById('newRiskNom').focus(); return; }
-  const id = 'cu'+(Date.now());
-  if(!S.customRisks) S.customRisks = [];
-  S.customRisks.push({id, nom, g});
-  if(!S.risquesCustom) S.risquesCustom = [];
-  S.risquesCustom.push(id);
-  document.getElementById('newRiskNom').value = '';
+  const inp = document.getElementById('newRiskNom');
+  const sel = document.getElementById('newRiskProba');
+  const activiteInp = document.getElementById('newRiskActivite');
+  const situationInp = document.getElementById('newRiskSituation');
+  const dangerInp = document.getElementById('newRiskDanger');
+  const graviteSel = document.getElementById('newRiskGravite');
+  const phraseInp = document.getElementById('newRiskPhrase');
+  const nom = (inp?.value || '').trim();
+  const activite = (activiteInp?.value || '').trim();
+  const situation = (situationInp?.value || '').trim();
+  const danger = (dangerInp?.value || '').trim();
+  const gravite = graviteSel?.value || '2 - AT';
+  const g = sel?.value || 'Modérée';
+  const phraseInitiale = (phraseInp?.value || '').trim();
+  if(!nom || !activite || !situation || !danger) {
+    if(!activite) activiteInp?.focus();
+    else if(!situation) situationInp?.focus();
+    else if(!danger) dangerInp?.focus();
+    else inp?.focus();
+    return;
+  }
+  const id = 'cu'+Date.now();
+  if(!Array.isArray(S.customRisks)) S.customRisks = [];
+  if(!Array.isArray(S.risquesCustom)) S.risquesCustom = [];
+  const phrase = phraseInitiale || `${activite} est réalisé en tenant compte du danger identifié et avec les mesures de prévention adaptées au site.`;
+  S.customRisks.push({
+    id,
+    nom:`${activite} — ${nom}`,
+    g,
+    domaine:'Personnalisé',
+    typeChantier:'',
+    famille:'Ligne personnalisée',
+    phase:(S.phases && S.phases.length ? S.phases[0].nom : 'À préciser'),
+    activite,
+    danger,
+    situation,
+    gravite,
+    probabilite:g,
+    mesures:['Mesure à définir'],
+    epi:[],
+    phrase,
+    motsCles:'personnalise'
+  });
+  S.phrases[id] = phrase;
+  if(!S.risquesCustom.includes(id)) S.risquesCustom.push(id);
+  if(inp) inp.value = '';
+  if(activiteInp) activiteInp.value = '';
+  if(situationInp) situationInp.value = '';
+  if(dangerInp) dangerInp.value = '';
+  if(phraseInp) phraseInp.value = '';
+  if(sel) sel.value = 'Modérée';
+  if(graviteSel) graviteSel.value = '2 - AT';
+  const taskInp = document.getElementById('taskSearch');
+  const riskInp = document.getElementById('riskSearch');
+  if(taskInp) taskInp.value = '';
+  if(riskInp) riskInp.value = '';
   renderRisques();
+  requestAnimationFrame(() => {
+    const row = document.getElementById('ri-'+id);
+    if(row){
+      row.classList.add('checked');
+      const cb = document.getElementById('chk-'+id);
+      if(cb) cb.checked = true;
+      const body = document.getElementById('body-'+id);
+      if(body) body.classList.add('open');
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  });
 }
 
 function delCustomRisk(id) {
@@ -739,26 +957,82 @@ function delCustomRisk(id) {
   renderRisques();
 }
 
+
+function normalizeSearch(v) {
+  return String(v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function renderPhaseFilters() {
+  const zone = document.getElementById('phaseFilterChips');
+  if(!zone) return;
+  if(!S.phases || !S.phases.length) {
+    zone.innerHTML = '<span class="ri-chip">Aucune phase renseignée</span>';
+    return;
+  }
+  zone.innerHTML = S.phases.map((ph, i) => {
+    const active = S.selectedPhaseFilters.includes(i);
+    return `<button type="button" class="ri-chip" style="border:${active ? '1px solid var(--or)' : '1px solid transparent'};background:${active ? 'var(--or2)' : 'var(--bg2)'};cursor:pointer" onclick="togglePhaseFilter(${i})">${active ? '☑' : '☐'} ${esc(ph.nom || ('Phase '+(i+1)))}</button>`;
+  }).join('') + `<button type="button" class="ri-chip" style="cursor:pointer" onclick="return resetPhaseFilters()">Réinitialiser</button>`;
+}
+
+function togglePhaseFilter(i) {
+  if(S.selectedPhaseFilters.includes(i)) S.selectedPhaseFilters = S.selectedPhaseFilters.filter(x => x !== i);
+  else S.selectedPhaseFilters.push(i);
+  renderPhaseFilters();
+  filterRisks();
+}
+
+function resetPhaseFilters() {
+  S.selectedPhaseFilters = [];
+  renderPhaseFilters();
+  filterRisks();
+  return false;
+}
+
+function riskMatchesSelectedPhases(el) {
+  if(!S.selectedPhaseFilters.length) return true;
+  const hay = normalizeSearch(el.getAttribute('data-search') || '');
+  return S.selectedPhaseFilters.some(i => {
+    const ph = S.phases[i] || {};
+    const a = normalizeSearch(ph.nom || '');
+    const b = normalizeSearch(ph.desc || '');
+    return (a && hay.includes(a)) || (b && b.split(/\s+/).filter(w => w.length > 3).some(w => hay.includes(w)));
+  });
+}
+
+function filterRisks() {
+  const q = normalizeSearch(document.getElementById('riskSearch')?.value || '');
+  const t = normalizeSearch(document.getElementById('taskSearch')?.value || '');
+  document.querySelectorAll('#step4 .ri').forEach(el => {
+    const hay = normalizeSearch(el.getAttribute('data-search') || '');
+    const okSearch = !q || hay.includes(q);
+    const okTask = !t || hay.includes(t) || t.split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+    const okPhase = riskMatchesSelectedPhases(el);
+    el.style.display = (okSearch && okTask && okPhase) ? '' : 'none';
+  });
+}
+
 function renderRisques() {
+  renderPhaseFilters();
   const isEV=S.typeChantier==='EV'||S.typeChantier==='Mixte';
   const isVRD=S.typeChantier==='VRD'||S.typeChantier==='Mixte';
   const evsec=document.getElementById('sec-ev'), vrdsec=document.getElementById('sec-vrd');
   if(isEV){
-    evsec.innerHTML=`<div class="card"><div class="ct">🌿 Risques Espaces Verts</div><div id="list-ev"></div></div>`;
+    evsec.innerHTML=`<div class="card"><div class="ct">🌿 Lignes EV proposées — dangers identifiés (${REV.length})</div><div id="list-ev"></div></div>`;
     rList(REV,'list-ev','risquesEV');
   }else evsec.innerHTML='';
   if(isVRD){
-    vrdsec.innerHTML=`<div class="card"><div class="ct">🏗️ Risques VRD</div><div id="list-vrd"></div></div>`;
+    vrdsec.innerHTML=`<div class="card"><div class="ct">🏗️ Lignes VRD proposées — dangers identifiés (${RVRD.length})</div><div id="list-vrd"></div></div>`;
     rList(RVRD,'list-vrd','risquesVRD');
   }else vrdsec.innerHTML='';
   rList(RC,'list-communs','risquesCommuns');
   // Custom risks
   let customSec = document.getElementById('sec-custom');
   if(!customSec){
-    const commCard = document.querySelector('#step4 .card:last-of-type');
+    const anchor = document.getElementById('list-communs')?.closest('.card');
     customSec = document.createElement('div');
     customSec.id = 'sec-custom';
-    commCard.after(customSec);
+    if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(customSec, anchor.nextSibling);
   }
   if(S.customRisks && S.customRisks.length){
     customSec.innerHTML = `<div class="card"><div class="ct">✏️ Risques personnalisés</div><div id="list-custom"></div></div>`;
@@ -767,6 +1041,7 @@ function renderRisques() {
   } else {
     customSec.innerHTML = '';
   }
+  filterRisks();
 }
 
 // ── Résumé ──────────────────────────────────────────────────────────────────────
@@ -774,14 +1049,17 @@ function renderSummary() {
   const fmtD = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('fr-FR'); };
   const type = {EV:'Espaces Verts',VRD:'VRD',Mixte:'EV + VRD'}[S.typeChantier];
   const cat = S.categorie==='2eme'?'2ème catégorie':'1ère catégorie';
+  const mode = S.modeIntervention === 'groupement' ? `Groupement (${S.cotraitants.length} cotraitant${S.cotraitants.length>1?'s':''})` : 'Entreprise seule';
   document.getElementById('summary').innerHTML = [
     ['Chantier', v('nomChantier')||'(non renseigné)'],
-    ['Référence', v('referenceDossier')||'—'],
     ['Entreprise', v('nomEntreprise')||'(non renseigné)'],
     ['Type / Catégorie', `${type} — ${cat}`],
+    ['Mode', mode],
     ['Responsable', v('responsableChantier')||'—'],
     ['Dates', `${fmtD(v('dateDebut'))} → ${fmtD(v('dateFin'))}`],
     ['Effectif total', v('effectifTotal')?v('effectifTotal')+' personnes':'—'],
+    ['Mandataire', v('nomMandataire')||'—'],
+    ['Cotraitants', S.modeIntervention==='groupement' ? (S.cotraitants.length || '0') : '—'],
   ].map(([l,val])=>`<div class="sc"><div class="sl">${l}</div><div class="sv">${val}</div></div>`).join('');
 
   const isEV=S.typeChantier==='EV'||S.typeChantier==='Mixte';
@@ -796,8 +1074,9 @@ function renderSummary() {
     [true,'5. Organisation des secours'],
     [true,'6. Formations et habilitations requises'],
     [true,'7. Procédures d\'urgence'],
-    [true,'8. Page de signatures'],
-    [is2,'9. Registre des modifications (2ème cat.)'],
+    [S.modeIntervention==='groupement',`8. Fiches cotraitants (${S.cotraitants.length}) avec identification chantier + entreprise & équipe`],
+    [true, S.modeIntervention==='groupement' ? '9. Page de signatures' : '8. Page de signatures'],
+    [is2, S.modeIntervention==='groupement' ? '10. Registre des modifications (2ème cat.)' : '9. Registre des modifications (2ème cat.)'],
   ].map(([ok,txt])=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:${ok?'#F0FDF4':'#F9FAFB'};border-radius:6px;font-size:12px;color:${ok?'#166534':'#9CA3AF'}"><span>${ok?'✅':'—'}</span><span>${txt}</span></div>`).join('');
 }
 
@@ -807,18 +1086,24 @@ function v(id){const el=document.getElementById(id);return el?el.value.trim():''
 function collectData() {
   const fmtD = s => { if(!s) return ''; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('fr-FR'); };
   return {
-    typeChantier:S.typeChantier, categorie:S.categorie,
-    nomChantier:v('nomChantier'), nomSauvegarde:v('nomSauvegarde'), referenceDossier:v('referenceDossier'), adresseChantier:v('adresseChantier'),
+    typeChantier:S.typeChantier, categorie:S.categorie, modeIntervention:S.modeIntervention,
+    nomChantier:v('nomChantier'), adresseChantier:v('adresseChantier'),
     dateDebut:fmtD(v('dateDebut')), dateFin:fmtD(v('dateFin')),
     duree:v('duree'), montant:v('montant'),
     maitreouvrage:v('maitreouvrage'), maitreoeuvre:v('maitreoeuvre'),
     coordonnateur:v('coordonnateur'), descriptionTravaux:v('descriptionTravaux'),
+    nomMandataire:v('nomMandataire'), observationsGroupement:v('observationsGroupement'),
     nomEntreprise:v('nomEntreprise'), adresseEntreprise:v('adresseEntreprise'),
     siretEntreprise:v('siretEntreprise'), telEntreprise:v('telEntreprise'),
     emailEntreprise:v('emailEntreprise'), responsableChantier:v('responsableChantier'),
     telResponsable:v('telResponsable'), effectifTotal:v('effectifTotal'),
     effectifMaxi:v('effectifMaxi'), nbSoustraitants:v('nbSoustraitants'),
     nomSST:v('nomSST'), phases:S.phases,
+    cotraitants:(S.cotraitants||[]).map(c=>({
+      ...c,
+      nomChantierSpecifique:c.nomChantierSpecifique || v('nomChantier'),
+      adresseChantierSpecifique:c.adresseChantierSpecifique || v('adresseChantier')
+    })),
     hopital:v('hopital'), medecinTravail:v('medecinTravail'),
     locTrousse:v('locTrousse'), locExtincteur:v('locExtincteur'),
     planEvacuation:v('planEvacuation'), contactGrdf:v('contactGrdf'),
@@ -827,33 +1112,275 @@ function collectData() {
   };
 }
 
-// ── Génération ──────────────────────────────────────────────────────────────────
-async function generatePPSPS() {
-  const btn = document.getElementById('btn-gen');
-  const st  = document.getElementById('gen-status');
-  btn.disabled = true;
-  st.innerHTML = `<div class="stmsg stld"><div class="spin"></div>Génération du document PPSPS en cours…</div>`;
-  saveData(false);
-  const data = collectData();
-  try {
-    const res = await fetch('http://localhost:3737/generate', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
-    });
-    if(!res.ok) throw new Error(await res.text());
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const safe = (data.nomChantier||'chantier').replace(/[^a-z0-9]/gi,'_').toLowerCase().substring(0,40);
-    a.href=url; a.download=`PPSPS_${safe}.docx`; a.click();
-    URL.revokeObjectURL(url);
-    st.innerHTML = `<div class="stmsg stok">✅ Document téléchargé avec succès ! Pensez à le faire valider par votre responsable prévention avant de le transmettre au CSPS.</div>`;
-  } catch(e) {
-    st.innerHTML = `<div class="stmsg sterr">❌ Erreur de connexion au serveur local. Assurez-vous d'avoir lancé le fichier <strong>demarrer_ppsps.bat</strong> (Windows) ou <strong>demarrer_ppsps.sh</strong> (Mac/Linux) avant d'utiliser cette application.</div>`;
+// ── Génération autonome ────────────────────────────────────────────────────────
+function esc(v){return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function nl2br(v){return esc(v).replace(/\n/g,'<br>');}
+function safeFileName(v){return (v||'chantier').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase().substring(0,60) || 'chantier';}
+function formatRiskLabel(id){
+  const all = [...REV, ...RVRD, ...RC, ...(S.customRisks||[])];
+  const risk = all.find(r => r.id === id);
+  return risk ? risk.nom : id;
+}
+function getMesureLabel(riskId, mesureId){
+  if(!mesureId) return '';
+  if(mesureId.includes('_c')){
+    const idx = parseInt(mesureId.split('_c')[1], 10);
+    return (S.mesures[riskId + '_custom'] || [])[idx] || '';
   }
-  btn.disabled = false;
+  if(mesureId.includes('_m')){
+    const idx = parseInt(mesureId.split('_m')[1], 10);
+    return (getMesures(riskId) || [])[idx] || '';
+  }
+  return '';
+}
+function collectSelectedRisks(){
+  const groups = [
+    {title:'Risques Espaces Verts', source:REV, selected:S.risquesEV || []},
+    {title:'Risques VRD', source:RVRD, selected:S.risquesVRD || []},
+    {title:'Risques communs', source:RC, selected:S.risquesCommuns || []},
+    {title:'Risques personnalisés', source:S.customRisks || [], selected:S.risquesCustom || []}
+  ];
+  return groups.map(g => ({
+    title:g.title,
+    items:(g.source || []).filter(r => (g.selected || []).includes(r.id)).map(r => ({
+      id:r.id,
+      nom:r.nom,
+      proba:S.probas[r.id] || r.g || 'Modérée',
+      famille:r.famille || '',
+      phase:r.phase || '',
+            danger:r.danger || '',
+      situation:r.situation || '',
+      epi:r.epi || [],
+      phrase:S.phrases[r.id] || r.phrase || '',
+      mesures:(S.mesures[r.id] || []).map(mid => getMesureLabel(r.id, mid)).filter(Boolean)
+    }))
+  })).filter(g => g.items.length);
+}
+function buildCompanyRows(c){
+  return [
+    ['Raison sociale', c.nomEntreprise || '—'],
+    ['Adresse', c.adresseEntreprise || '—'],
+    ['SIRET', c.siretEntreprise || '—'],
+    ['Téléphone', c.telEntreprise || '—'],
+    ['Email', c.emailEntreprise || '—'],
+    ['Responsable chantier', c.responsableChantier || '—'],
+    ['Tél. responsable', c.telResponsable || '—'],
+    ['Effectif total prévu', c.effectifTotal || '—'],
+    ['Effectif simultané maximum', c.effectifMaxi || '—'],
+    ['Nombre de sous-traitants', c.nbSoustraitants || '0'],
+    ['SST désigné', c.nomSST || '—']
+  ];
+}
+function buildOperationRows(data, override={}){
+  return [
+    ['Nom de l’opération / chantier', override.nomChantierSpecifique || data.nomChantier || '—'],
+    ['Adresse du chantier', override.adresseChantierSpecifique || data.adresseChantier || '—'],
+    ['Date de début prévisionnelle', data.dateDebut || '—'],
+    ['Date de fin prévisionnelle', data.dateFin || '—'],
+    ['Durée prévisionnelle', data.duree || '—'],
+    ['Montant estimatif', data.montant || '—'],
+    ['Maître d’ouvrage', data.maitreouvrage || '—'],
+    ['Maître d’œuvre', data.maitreoeuvre || '—'],
+    ['Coordonnateur SPS', data.coordonnateur || '—']
+  ];
+}
+function tableHtml(rows){
+  return `<table class="doc-table"><tbody>${rows.map(([k,v]) => `<tr><th>${esc(k)}</th><td>${nl2br(v)}</td></tr>`).join('')}</tbody></table>`;
+}
+function riskSectionsHtml(groups){
+  if(!groups.length) return `<p class="muted">Aucun risque sélectionné.</p>`;
+  return groups.map(g => `
+    <h3>${esc(g.title)}</h3>
+    ${g.items.map(item => `
+      <div class="risk-card">
+        <div><strong>${esc(item.nom)}</strong> <span class="pill">${esc(item.proba)}</span></div>
+        ${[item.famille, item.phase].filter(Boolean).length ? `<div class="muted" style="margin-top:4px">${esc([item.famille, item.phase].filter(Boolean).join(' • '))}</div>` : ''}
+        ${item.danger ? `<div class="muted" style="margin-top:4px"><strong>Danger :</strong> ${esc(item.danger)}</div>` : ''}
+        ${item.situation ? `<div class="muted" style="margin-top:2px"><strong>Situation :</strong> ${esc(item.situation)}</div>` : ''}
+        ${(item.epi || []).length ? `<div class="muted" style="margin-top:2px"><strong>EPI :</strong> ${esc(item.epi.join(', '))}</div>` : ''}
+        ${item.phrase ? `<div class="muted" style="margin-top:6px"><strong>Phrase PPSPS :</strong> ${esc(item.phrase)}</div>` : ''}
+        <div class="risk-measures">
+          <div class="mini-title">Mesures de prévention</div>
+          ${item.mesures.length ? `<ul>${item.mesures.map(m => `<li>${nl2br(m)}</li>`).join('')}</ul>` : `<p class="muted">Aucune mesure cochée.</p>`}
+        </div>
+      </div>
+    `).join('')}
+  `).join('');
+}
+function phasesHtml(phases){
+  if(!phases || !phases.length) return `<p class="muted">Aucune phase renseignée.</p>`;
+  return `<table class="doc-table"><thead><tr><th>Phase</th><th>Début</th><th>Fin</th><th>Description</th></tr></thead><tbody>${
+    phases.map(ph => `<tr><td>${esc(ph.nom || '—')}</td><td>${esc(ph.debut || '—')}</td><td>${esc(ph.fin || '—')}</td><td>${nl2br(ph.desc || '—')}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+function buildDocumentHtml(data){
+  const riskGroups = collectSelectedRisks();
+  const typeLabel = {EV:'Espaces Verts',VRD:'VRD',Mixte:'Mixte EV + VRD'}[data.typeChantier] || data.typeChantier;
+  const catLabel = data.categorie === '2eme' ? '2ème catégorie' : '1ère catégorie';
+  const modeLabel = data.modeIntervention === 'groupement' ? 'Groupement d’entreprises' : 'Entreprise seule';
+  const cotraitants = data.cotraitants || [];
+  const cotraitantsHtml = data.modeIntervention === 'groupement'
+    ? (cotraitants.length ? cotraitants.map((c, idx) => `
+        <section class="doc-section page-break">
+          <h2>Fiche cotraitant ${idx + 1} — ${esc(c.nomEntreprise || 'Cotraitant')}</h2>
+          <h3>Identification du chantier</h3>
+          ${tableHtml(buildOperationRows(data, c))}
+          <h3>Entreprise & équipe</h3>
+          ${tableHtml(buildCompanyRows(c))}
+          ${c.notesCotraitant ? `<h3>Observations</h3><p>${nl2br(c.notesCotraitant)}</p>` : ''}
+        </section>
+      `).join('') : `<section class="doc-section page-break"><h2>Fiches cotraitants</h2><p class="muted">Aucun cotraitant renseigné.</p></section>`)
+    : '';
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PPSPS - ${esc(data.nomChantier || 'Chantier')}</title>
+<style>
+  @page { size: A4; margin: 16mm; }
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:11pt;line-height:1.45;margin:0}
+  .doc{max-width:190mm;margin:0 auto;padding:0}
+  .cover{border:2px solid #E8651A;padding:18mm 14mm;margin-bottom:10mm}
+  .cover h1{margin:0 0 6mm 0;font-size:24pt;color:#E8651A}
+  .cover h2{margin:0 0 4mm 0;font-size:16pt}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:4mm 8mm;margin-top:8mm}
+  .meta div{padding:3mm 4mm;background:#F9FAFB;border:1px solid #E5E7EB}
+  .doc-section{margin:0 0 10mm 0}
+  h2{font-size:16pt;color:#E8651A;border-bottom:2px solid #FDE8D4;padding-bottom:2mm;margin:0 0 5mm 0}
+  h3{font-size:12pt;margin:5mm 0 2mm 0;color:#374151}
+  p{margin:0 0 3mm 0}
+  .doc-table{border-collapse:collapse;width:100%;margin:0 0 4mm 0}
+  .doc-table th,.doc-table td{border:1px solid #D1D5DB;padding:2.5mm 3mm;vertical-align:top;text-align:left}
+  .doc-table th{width:34%;background:#F9FAFB}
+  .pill{display:inline-block;font-size:9pt;padding:1mm 2mm;border:1px solid #E5E7EB;background:#F9FAFB;border-radius:10px;margin-left:2mm}
+  .risk-card{border:1px solid #E5E7EB;background:#fff;padding:3mm 4mm;margin:0 0 3mm 0}
+  .risk-measures{margin-top:2mm}
+  .mini-title{font-weight:700;color:#374151;margin-bottom:1mm}
+  ul{margin:1.5mm 0 3mm 5mm;padding-left:4mm}
+  li{margin:0 0 1.5mm 0}
+  .muted{color:#6B7280}
+  .page-break{page-break-before:always}
+  .signature-box{height:24mm;border:1px dashed #9CA3AF;margin-top:4mm}
+  .footnote{font-size:9pt;color:#6B7280;margin-top:8mm}
+  @media print { .page-break{page-break-before:always} }
+</style>
+</head>
+<body>
+<div class="doc">
+  <section class="cover">
+    <h1>PPSPS</h1>
+    <h2>${esc(data.nomChantier || 'Opération non renseignée')}</h2>
+    <p><strong>Adresse :</strong> ${nl2br(data.adresseChantier || '—')}</p>
+    <div class="meta">
+      <div><strong>Type de chantier</strong><br>${esc(typeLabel)}</div>
+      <div><strong>Catégorie</strong><br>${esc(catLabel)}</div>
+      <div><strong>Mode d’intervention</strong><br>${esc(modeLabel)}</div>
+      <div><strong>Entreprise principale / mandataire</strong><br>${esc(data.nomMandataire || data.nomEntreprise || '—')}</div>
+      <div><strong>Date de début</strong><br>${esc(data.dateDebut || '—')}</div>
+      <div><strong>Date de fin</strong><br>${esc(data.dateFin || '—')}</div>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <h2>1. Identification chantier & intervenants</h2>
+    <h3>Identification du chantier</h3>
+    ${tableHtml(buildOperationRows(data))}
+    <h3>Entreprise & équipe</h3>
+    ${tableHtml(buildCompanyRows(data))}
+    ${data.modeIntervention === 'groupement' ? `<h3>Organisation du groupement</h3>${tableHtml([
+      ['Mandataire', data.nomMandataire || '—'],
+      ['Nombre de cotraitants', String((data.cotraitants || []).length)],
+      ['Observations sur le groupement', data.observationsGroupement || '—']
+    ])}` : ''}
+  </section>
+
+  <section class="doc-section">
+    <h2>2. Description des travaux & phasage</h2>
+    <h3>Description sommaire des travaux</h3>
+    <p>${nl2br(data.descriptionTravaux || '—')}</p>
+    <h3>Phasage prévisionnel</h3>
+    ${phasesHtml(data.phases)}
+  </section>
+
+  <section class="doc-section">
+    <h2>3. Analyse des risques & prévention</h2>
+    ${riskSectionsHtml(riskGroups)}
+  </section>
+
+  <section class="doc-section">
+    <h2>4. Organisation des secours & urgences</h2>
+    ${tableHtml([
+      ['Hôpital / urgences le plus proche', data.hopital || '—'],
+      ['Médecin du travail', data.medecinTravail || '—'],
+      ['Localisation trousse de secours', data.locTrousse || '—'],
+      ['Localisation extincteurs', data.locExtincteur || '—'],
+      ['Plan d’évacuation & accès secours', data.planEvacuation || '—'],
+      ['GrDF urgences gaz', data.contactGrdf || '—'],
+      ['Enedis urgences électricité', data.contactEnedis || '—'],
+      ['Mairie / commune', data.contactMairie || '—'],
+      ['Gendarmerie / Police locale', data.contactPolice || '—']
+    ])}
+  </section>
+
+  ${cotraitantsHtml}
+
+  <section class="doc-section page-break">
+    <h2>${data.modeIntervention === 'groupement' ? '6. Signatures' : '5. Signatures'}</h2>
+    <table class="doc-table">
+      <tbody>
+        <tr><th>Entreprise principale / mandataire</th><td><div class="signature-box"></div></td></tr>
+        ${data.modeIntervention === 'groupement' ? (data.cotraitants || []).map(c => `<tr><th>${esc(c.nomEntreprise || 'Cotraitant')}</th><td><div class="signature-box"></div></td></tr>`).join('') : ''}
+        <tr><th>Visa / validation prévention</th><td><div class="signature-box"></div></td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">Document généré automatiquement. À relire et valider avant transmission.</p>
+  </section>
+</div>
+</body>
+</html>`;
+}
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function setStatus(type, html){
+  const st = document.getElementById('gen-status');
+  st.innerHTML = `<div class="stmsg ${type}">${html}</div>`;
+}
+function exportWordDoc() {
+  const data = collectData();
+  const safe = safeFileName(data.nomChantier);
+  const docHtml = buildDocumentHtml(data);
+  downloadBlob('\ufeff' + docHtml, `PPSPS_${safe}.doc`, 'application/msword');
+  setStatus('stok', '✅ Export Word lancé. Ouvrez le fichier <strong>.doc</strong> dans Word puis enregistrez-le en <strong>.docx</strong> si besoin.');
+}
+function openPrintView() {
+  const data = collectData();
+  const docHtml = buildDocumentHtml(data);
+  const w = window.open('', '_blank');
+  if(!w){
+    setStatus('sterr', '❌ Le navigateur a bloqué la fenêtre d’impression. Autorisez les pop-ups pour ce fichier.');
+    return;
+  }
+  w.document.open();
+  w.document.write(docHtml);
+  w.document.close();
+  w.focus();
+  setStatus('stok', '✅ Vue d’impression ouverte. Utilisez <strong>Imprimer</strong> puis <strong>Enregistrer en PDF</strong>.');
+}
+function exportJSON() {
+  const data = collectData();
+  const safe = safeFileName(data.nomChantier);
+  downloadBlob(JSON.stringify(data, null, 2), `PPSPS_${safe}.json`, 'application/json');
+  setStatus('stok', '✅ Sauvegarde JSON téléchargée. Elle permet de conserver les données saisies du dossier.');
 }
 
-// ── Phases — sélection rapide ────────────────────────────────────────────────
+// ── Phases — sélection rapide ──────────────────────────────────────────────── ────────────────────────────────────────────────
 function addPhaseFromSelect() {
   const sel = document.getElementById('phaseSelect');
   const val = sel.value;
@@ -865,6 +1392,7 @@ function addPhaseFromSelect() {
   const n = S.phases.length + 1;
   S.phases.push({ nom: 'Phase ' + n + ' – ' + nom, debut: '', fin: '', desc: desc });
   renderPhases();
+  renderPhaseFilters();
   sel.value = '';
 }
 
@@ -880,170 +1408,8 @@ function addDescFromSelect() {
   ta.focus();
 }
 
-
-// ── Persistance locale / export-import ─────────────────────────────────────────
-const STORAGE_KEY = 'ppsps_data_v2';
-let saveTimer = null;
-
-function getProjectName() {
-  return v('nomSauvegarde') || v('nomChantier') || 'Nouveau PPSPS';
-}
-
-function updateProjectHeader() {
-  const el = document.getElementById('project-name-display');
-  if (el) el.textContent = getProjectName();
-}
-
-function setSaveStatus(state, msg='') {
-  const badge = document.getElementById('autosave-status');
-  const txt = document.getElementById('last-save-text');
-  if (!badge || !txt) return;
-  badge.className = 'autosave-badge ' + (state || '');
-  if (state === 'saved') badge.textContent = '● Sauvegardé';
-  else if (state === 'pending') badge.textContent = '● Modifications en attente';
-  else badge.textContent = '● Aucune sauvegarde';
-  txt.textContent = msg || 'Les données sont sauvegardées localement sur ce navigateur.';
-}
-
-function buildSavePayload() {
-  const fields = {};
-  document.querySelectorAll('input, textarea, select').forEach(el => {
-    if (el.id && el.type !== 'file') fields[el.id] = el.value;
-  });
-  return {
-    version: 2,
-    savedAt: new Date().toISOString(),
-    projectName: getProjectName(),
-    S: JSON.parse(JSON.stringify(S)),
-    fields
-  };
-}
-
-function applyPayload(data) {
-  if (!data) return;
-  if (data.S) {
-    S.typeChantier = data.S.typeChantier || S.typeChantier;
-    S.categorie = data.S.categorie || S.categorie;
-    S.phases = Array.isArray(data.S.phases) ? data.S.phases : S.phases;
-    S.customRisks = Array.isArray(data.S.customRisks) ? data.S.customRisks : [];
-    S.risquesEV = Array.isArray(data.S.risquesEV) ? data.S.risquesEV : [];
-    S.risquesVRD = Array.isArray(data.S.risquesVRD) ? data.S.risquesVRD : [];
-    S.risquesCommuns = Array.isArray(data.S.risquesCommuns) ? data.S.risquesCommuns : [];
-    S.risquesCustom = Array.isArray(data.S.risquesCustom) ? data.S.risquesCustom : [];
-    S.probas = data.S.probas || {};
-    S.mesures = data.S.mesures || {};
-  }
-  if (data.fields) {
-    Object.entries(data.fields).forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (el) el.value = val;
-    });
-  }
-  selType(S.typeChantier || 'EV');
-  selCat(S.categorie || '1ere');
-  renderPhases();
-  renderRisques();
-  updateProjectHeader();
-}
-
-function saveData(showFeedback = false) {
-  const payload = buildSavePayload();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  const when = new Date(payload.savedAt).toLocaleString('fr-FR');
-  setSaveStatus('saved', 'Dernière sauvegarde : ' + when);
-  updateProjectHeader();
-  if (showFeedback) {
-    const st = document.getElementById('gen-status');
-    if (st) st.innerHTML = `<div class="stmsg stok">✅ Données sauvegardées localement.</div>`;
-    setTimeout(() => {
-      const st2 = document.getElementById('gen-status');
-      if (st2 && st2.textContent.includes('Données sauvegardées localement')) st2.innerHTML = '';
-    }, 2500);
-  }
-}
-
-function scheduleSave() {
-  updateProjectHeader();
-  setSaveStatus('pending', 'Modifications détectées. Sauvegarde automatique en cours…');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveData(false), 500);
-}
-
-function loadData() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    updateProjectHeader();
-    return;
-  }
-  try {
-    const data = JSON.parse(raw);
-    applyPayload(data);
-    const when = data.savedAt ? new Date(data.savedAt).toLocaleString('fr-FR') : 'date inconnue';
-    setSaveStatus('saved', 'Dernière sauvegarde : ' + when);
-  } catch (e) {
-    console.error('Erreur de chargement sauvegarde', e);
-    setSaveStatus('', 'Sauvegarde locale illisible.');
-  }
-}
-
-function exportData() {
-  const payload = buildSavePayload();
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const safe = getProjectName().replace(/[^a-z0-9_\-]+/gi,'_').replace(/^_+|_+$/g,'').substring(0,60) || 'ppsps';
-  a.href = url;
-  a.download = safe + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  saveData(false);
-}
-
-function importData(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      applyPayload(data);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      const when = new Date().toLocaleString('fr-FR');
-      setSaveStatus('saved', 'Import effectué le ' + when);
-      updateProjectHeader();
-      goTo(0);
-    } catch (err) {
-      alert("Le fichier importé n'est pas un JSON valide.");
-    }
-  };
-  reader.readAsText(file);
-}
-
-function resetData() {
-  if (!confirm("Supprimer toutes les données saisies pour ce PPSPS ?")) return;
-  localStorage.removeItem(STORAGE_KEY);
-  location.reload();
-}
-
-document.addEventListener('input', function(e) {
-  if (e.target && e.target.id) scheduleSave();
-});
-document.addEventListener('change', function(e) {
-  if (e.target && e.target.id) scheduleSave();
-});
-document.addEventListener('DOMContentLoaded', function() {
-  const importer = document.getElementById('import-file');
-  if (importer) {
-    importer.addEventListener('change', function() {
-      if (this.files && this.files[0]) importData(this.files[0]);
-      this.value = '';
-    });
-  }
-  loadData();
-});
-
-
 // Init
-selType('EV'); selCat('1ere');
+selType('EV'); selCat('1ere'); setModeIntervention('seul');
 </script>
 </body>
 </html>
