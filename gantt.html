@@ -56,6 +56,13 @@ button:hover{background:#f5f5f3}
 .res-tag button{border:none;background:none;color:#888780;cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
 .res-tag button:hover{color:#D85A30}
 
+/* Tooltip fiable sur la colonne Tâche / Jalon */
+.task-name-wrap{position:relative;display:block;width:100%}
+.task-name-wrap::after{content:attr(data-tooltip);position:absolute;left:0;top:calc(100% + 6px);z-index:10000;display:none;min-width:220px;max-width:520px;padding:8px 10px;background:#2C2C2A;color:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:12px;line-height:1.35;font-weight:500;white-space:normal;pointer-events:none;text-transform:none;letter-spacing:0}
+.task-name-wrap::before{content:"";position:absolute;left:14px;top:100%;z-index:10001;display:none;border:6px solid transparent;border-bottom-color:#2C2C2A;pointer-events:none}
+.task-name-wrap:hover::after,.task-name-wrap:hover::before{display:block}
+.task-name-input{cursor:help}
+
 /* ---- PRINT / PDF ---- */
 @media print{
   body{background:#fff}
@@ -89,7 +96,7 @@ button:hover{background:#f5f5f3}
 
 <!-- CONFIG -->
 <div class="card no-print">
-  <div style="display:grid;grid-template-columns:1.6fr 1fr 100px;gap:10px;align-items:end">
+  <div style="display:grid;grid-template-columns:1.6fr 1fr 100px 190px;gap:10px;align-items:end">
     <div><label>Nom du chantier</label><input id="pname" style="width:100%" value="CAVP"></div>
     <div><label>Date de début</label><input type="date" id="pstart" style="width:100%"></div>
     <div><label>Zoom</label>
@@ -100,6 +107,7 @@ button:hover{background:#f5f5f3}
         <option value="42">Serré</option>
       </select>
     </div>
+    <div><label>Largeur titres postes</label><input type="range" id="labelWidth" min="220" max="520" step="20" value="320" style="width:100%" oninput="renderGantt()"></div>
   </div>
 </div>
 
@@ -781,6 +789,41 @@ function formatISODate(d){
 }
 function today(){return formatISODate(new Date())}
 function addDays(d,n){const r=parseISODate(d);r.setDate(r.getDate()+n);return r}
+function isWeekendDate(d){const x=parseISODate(d).getDay();return x===0||x===6}
+function addWorkingDays(d,n){
+  let r=parseISODate(d);
+  let remaining=Math.max(0,+n||0);
+  while(remaining>0){
+    r=addDays(r,1);
+    if(!isWeekendDate(r)) remaining--;
+  }
+  return r;
+}
+function workingDaysBetween(startDate,endDate){
+  const start=parseISODate(startDate), end=parseISODate(endDate);
+  if(end<=start) return 0;
+  let d=parseISODate(start), count=0;
+  while(d<end){
+    d=addDays(d,1);
+    if(d<=end && !isWeekendDate(d)) count++;
+  }
+  return count;
+}
+function workdayToCalendarDay(workdayIndex){
+  const p=parseISODate(pstartDate ? pstartDate() : formatISODate(getProjectStartDate()));
+  const target=addWorkingDays(p, Math.max(0,+workdayIndex||0));
+  return Math.round((target-p)/86400000);
+}
+function taskEndCalendarDay(task,startWorkday){
+  const sw=Math.max(0,+startWorkday||0);
+  const dur=Math.max(0,+((task&&task.dur)||0));
+  if(dur<=0) return workdayToCalendarDay(sw);
+  return workdayToCalendarDay(sw+dur);
+}
+function getLabelWidth(){
+  const el=document.getElementById('labelWidth');
+  return Math.max(220, Math.min(520, parseInt(el&&el.value)||320));
+}
 function fmtDate(d){return parseISODate(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})}
 function fmtFull(d){return parseISODate(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}
 function escapeHtml(v){
@@ -1055,7 +1098,9 @@ function renderTasks(){
           <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:#2C2C2A;border-radius:3px;font-size:9px;color:white;font-weight:bold">T</span>
         </span>
         <button type="button" onclick="toggleCollapseTitle(${t.id})" title="${t.collapsed?'Déplier':'Replier'} le chapitre" style="width:20px;height:20px;padding:0;border:1px solid #c8c6be;border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${t.collapsed?'▸':'▾'}</button>
-        <input value="${t.name}" onchange="tasks[${i}].name=this.value;renderTasks();renderGantt()" style="width:100%;font-weight:700;font-size:14px;border:none;border-bottom:2px solid #2C2C2A;border-radius:0;background:transparent;padding:3px 4px;color:#2C2C2A;letter-spacing:.02em" placeholder="Nom du chapitre…">
+        <div class="task-name-wrap" data-tooltip="${escapeHtml(t.name)}">
+        <input class="task-name-input" value="${escapeHtml(t.name)}" title="" onchange="tasks[${i}].name=this.value;renderTasks();renderGantt()" style="width:100%;font-weight:700;font-size:14px;border:none;border-bottom:2px solid #2C2C2A;border-radius:0;background:transparent;padding:3px 4px;color:#2C2C2A;letter-spacing:.02em" placeholder="Nom du chapitre…">
+      </div>
         <div class="action-cell"><button class="btn-del btn-del-row" type="button" title="Supprimer la ligne" aria-label="Supprimer la ligne" onclick="removeTask(${t.id})">🗑</button></div>
       `;
       el.appendChild(row);
@@ -1073,7 +1118,9 @@ function renderTasks(){
     row.innerHTML=`
       <span style="display:flex;justify-content:center;align-items:center;cursor:grab;color:#c8c6be;font-size:16px;user-select:none" title="Glisser pour déplacer">⠿</span>
       <span style="display:flex;justify-content:center">${dot}</span>
-      <input value="${t.name}" onchange="tasks[${i}].name=this.value;renderTasks()" style="width:100%">
+      <div class="task-name-wrap" data-tooltip="${escapeHtml(t.name)}">
+      <input class="task-name-input" value="${escapeHtml(t.name)}" title="" onchange="tasks[${i}].name=this.value;renderTasks()" style="width:100%">
+      </div>
       <select onchange="tasks[${i}].cat=this.value;renderTasks()" style="width:100%">${catOpts}</select>
       <input type="number" value="${t.start}" min="0" onchange="updateTaskStart(${i}, this.value)" style="width:100%">
       <input type="number" value="${t.dur}" min="0" ${isMil?'disabled':''} onchange="tasks[${i}].dur=+this.value||0" style="width:100%;${isMil?'opacity:.4':''}">
@@ -1176,8 +1223,8 @@ function renderCal(){
 }
 
 function pstartDate(){const v=document.getElementById('pstart').value||today();return parseISODate(v);}
-function startToDate(j){const d=parseISODate(pstartDate());d.setDate(d.getDate()+(+j||0));return formatISODate(d);}
-function dateToStart(dateStr){const ps=parseISODate(pstartDate());const d=parseISODate(dateStr);const diff=Math.round((d-ps)/86400000);return Math.max(0,diff);}
+function startToDate(j){return formatISODate(addWorkingDays(pstartDate(), Math.max(0,+j||0)));}
+function dateToStart(dateStr){return Math.max(0, workingDaysBetween(pstartDate(), dateStr));}
 function resolveStarts(){
   const map={};tasks.forEach(t=>map[t.id]=t);
   const resolved={};
@@ -1235,11 +1282,11 @@ function getClosedDays(pDate,totalDays){
 }
 
 function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
-  const LABEL_W=220,ROW_H=40,HDR_H=76,FOOT=8;
+  const LABEL_W=getLabelWidth(),ROW_H=40,HDR_H=76,FOOT=8;
   const starts=startsOverride||resolveStarts();
   const visibleTasks=getVisibleTasks();
   const sDay=rangeStart||0;
-  const eDay=(rangeEnd!==undefined&&rangeEnd!==null)?rangeEnd:(Math.max(...visibleTasks.map(t=>starts[t.id]+(t.dur||1)))+3);
+  const eDay=(rangeEnd!==undefined&&rangeEnd!==null)?rangeEnd:(Math.max(...visibleTasks.filter(t=>t.type!=='title').map(t=>taskEndCalendarDay(t, starts[t.id]||0)))+3);
   const totalDays=eDay-sDay+1;
   const closed=getClosedDays(pDate,eDay);
   const hasLivr=livraisons.length>0;
@@ -1327,9 +1374,9 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     if(t.type==='title'){
       s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="#2C2C2A" style="cursor:pointer" onclick="toggleCollapseTitle(${t.id})"/>`;
       s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#444" stroke-width="1"/>`;
-      const titleTxt=t.name.length>40?t.name.substring(0,40)+'…':t.name;
+      const titleTxt=escapeHtml(t.name||'');
       const arrow=t.collapsed?'▸':'▾';
-      s+=`<text x="10" y="${y+ROW_H/2+5}" font-size="13" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.5" style="cursor:pointer;user-select:none" onclick="toggleCollapseTitle(${t.id})">${arrow} ${titleTxt}</text>`;
+      s+=`<text x="10" y="${y+ROW_H/2+5}" font-size="13" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.5" style="cursor:pointer;user-select:none" onclick="toggleCollapseTitle(${t.id})"><title>${titleTxt}</title>${arrow} ${titleTxt}</text>`;
       barCoords[t.id]={x:LABEL_W,x2:LABEL_W,y:y+ROW_H/2,ts:0,te:0};
       return;
     }
@@ -1339,7 +1386,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     const cat=CATS[t.cat]||CATS['Coordination'];
     s+=`<rect x="3" y="${y+12}" width="3" height="16" rx="1" fill="${cat.c}"/>`;
     // Wrap task name on 2 lines (max ~26 chars per line)
-    const MAX_LINE=26;
+    const MAX_LINE=Math.max(26, Math.floor((LABEL_W-24)/7));
     let line1=t.name,line2='';
     if(t.name.length>MAX_LINE){
       let cut=t.name.lastIndexOf(' ',MAX_LINE);
@@ -1351,38 +1398,43 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     const hasRes=!!(t.human||t.material);
     if(line2){
       // 2 lines for name, no resource subtitle
-      s+=`<text x="10" y="${y+ROW_H/2-6}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${line1}</text>`;
-      s+=`<text x="10" y="${y+ROW_H/2+7}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${line2}</text>`;
+      s+=`<text x="10" y="${y+ROW_H/2-6}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${escapeHtml(line1)}</text>`;
+      s+=`<text x="10" y="${y+ROW_H/2+7}" font-size="11" fill="#2C2C2A" font-family="Arial,sans-serif">${escapeHtml(line2)}</text>`;
     } else {
-      s+=`<text x="10" y="${y+ROW_H/2-4}" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">${line1}</text>`;
+      s+=`<text x="10" y="${y+ROW_H/2-4}" font-size="12" fill="#2C2C2A" font-family="Arial,sans-serif">${escapeHtml(line1)}</text>`;
       const subParts=[];
       if(t.human)subParts.push(t.human.substring(0,20));
       if(t.material)subParts.push(t.material.substring(0,18));
-      if(subParts.length)s+=`<text x="10" y="${y+ROW_H/2+9}" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">${subParts.join(' | ')}</text>`;
+      if(subParts.length)s+=`<text x="10" y="${y+ROW_H/2+9}" font-size="9.5" fill="#888780" font-family="Arial,sans-serif">${escapeHtml(subParts.join(' | '))}</text>`;
     }
 
     const ts=starts[t.id];
+    const tsCal=workdayToCalendarDay(ts);
     if(t.type==='milestone'){
-      const mx=LABEL_W+(ts-sDay)*DW+DW/2,my=y+ROW_H/2,ms=10;
-      if(ts>=sDay&&ts<=eDay){
+      const mx=LABEL_W+(tsCal-sDay)*DW+DW/2,my=y+ROW_H/2,ms=10;
+      if(tsCal>=sDay&&tsCal<=eDay){
         s+=`<rect x="${mx-ms/2}" y="${my-ms/2}" width="${ms}" height="${ms}" fill="#EF9F27" transform="rotate(45,${mx},${my})" rx="2"/>`;
-        if(DW>=22)s+=`<text x="${mx+ms}" y="${my+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,ts))}</text>`;
+        if(DW>=22)s+=`<text x="${mx+ms}" y="${my+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,tsCal))}</text>`;
       }
-      barCoords[t.id]={x:mx,x2:mx,y:my,ts,te:ts};
+      barCoords[t.id]={x:mx,x2:mx,y:my,ts:tsCal,te:tsCal};
     } else {
-      const bx=LABEL_W+(ts-sDay)*DW+2,bw=t.dur*DW-4,bh=ROW_H-14,by=y+7;
-      if(ts<=eDay && (ts+t.dur)>=sDay){
+      const teCal=taskEndCalendarDay(t,ts);
+      const bx=LABEL_W+(tsCal-sDay)*DW+2,bw=Math.max(DW-4,(teCal-tsCal)*DW-4),bh=ROW_H-14,by=y+7;
+      if(tsCal<=eDay && teCal>=sDay){
         const cx=Math.max(LABEL_W+2,bx);
         const cw=Math.min(LABEL_W+totalDays*DW-4,bx+bw)-cx;
         if(cw>0){
           s+=`<rect x="${cx}" y="${by}" width="${cw}" height="${bh}" rx="4" fill="${cat.c}" opacity=".85"/>`;
           const prog=t.progress||0;
           if(prog>0){s+=`<rect x="${cx}" y="${by+bh-5}" width="${cw*(prog/100)}" height="5" rx="2" fill="white" opacity=".55"/>`}
-          if(cw>38)s+=`<text x="${cx+cw/2}" y="${by+bh/2+4}" text-anchor="middle" font-size="10" fill="white" font-weight="bold" font-family="Arial,sans-serif">${t.dur}j${prog>0?' ('+prog+'%)':''}</text>`;
-          if(cw>55)s+=`<text x="${cx+cw-4}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,ts+t.dur))}</text>`;
+          if(cw>14){
+            const durLabel=`${t.dur}j${prog>0?' ('+prog+'%)':''}`;
+            s+=`<text x="${cx+cw/2}" y="${by+bh/2+4}" text-anchor="middle" font-size="${cw<30?8:10}" fill="white" font-weight="bold" font-family="Arial,sans-serif">${durLabel}</text>`;
+          }
+          if(cw>55)s+=`<text x="${cx+cw-4}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,teCal))}</text>`;
         }
       }
-      barCoords[t.id]={x:LABEL_W+(ts-sDay)*DW+2,x2:LABEL_W+(ts-sDay)*DW+t.dur*DW-2,y:y+ROW_H/2,ts,te:ts+t.dur};
+      barCoords[t.id]={x:LABEL_W+(tsCal-sDay)*DW+2,x2:LABEL_W+(teCal-sDay)*DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
     }
   });
 
@@ -1455,7 +1507,7 @@ function getProjectTotalEndDay(){
   const visibleTasks=getVisibleTasks();
   const starts=resolveStarts();
   const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
-  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>(starts[t.id]||0)+(t.dur||1))):7);
+  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>taskEndCalendarDay(t, starts[t.id]||0))):7);
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
   return Math.max(taskMax,livrMax)+3;
 }
@@ -1588,8 +1640,9 @@ function buildActivityAwarePdfChunks(rangeStartDay, rangeEndDay, spanValue, span
     if(!t || t.type==='title') return;
     const s=startsMap[t.id];
     if(s===undefined) return;
-    const e=t.type==='milestone' ? s : s + Math.max(0, (t.dur||0));
-    const rs=Math.max(rangeStartDay, s);
+    const sc=workdayToCalendarDay(s);
+    const e=t.type==='milestone' ? sc : taskEndCalendarDay(t,s);
+    const rs=Math.max(rangeStartDay, sc);
     const re=Math.min(rangeEndDay, e);
     for(let day=rs; day<=re; day++) addBucket(day);
   });
@@ -1656,8 +1709,9 @@ function chunkHasActivity(tasksSubset, livrSubset, startsMap, startDay, endDay){
     if(t.type==='title') return false;
     const s=startsMap[t.id];
     if(s===undefined) return false;
-    const e=t.type==='milestone' ? s : s + (t.dur||0);
-    return s<=endDay && e>=startDay;
+    const sc=workdayToCalendarDay(s);
+    const e=t.type==='milestone' ? sc : taskEndCalendarDay(t,s);
+    return sc<=endDay && e>=startDay;
   });
   const hasLivr=livrSubset.some(l=>{
     const od=getLivrOrderDay(l), dd=getLivrDeliveryDay(l);
@@ -1670,8 +1724,9 @@ function taskIntersectsChunk(t, startsMap, startDay, endDay){
   if(!t || t.type==='title') return false;
   const s=startsMap[t.id];
   if(s===undefined) return false;
-  const e=t.type==='milestone' ? s : s + (t.dur||0);
-  return s<=endDay && e>=startDay;
+  const sc=workdayToCalendarDay(s);
+  const e=t.type==='milestone' ? sc : taskEndCalendarDay(t,s);
+  return sc<=endDay && e>=startDay;
 }
 
 function filterTasksForChunk(sourceTasks, startsMap, startDay, endDay){
@@ -1764,7 +1819,7 @@ function renderGantt(){
   const pDate=parseISODate(ps);
   const starts=resolveStarts();
   const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
-  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>starts[t.id]+(t.dur||1))):7);
+  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>taskEndCalendarDay(t, starts[t.id]||0))):7);
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
   const totalDays=Math.max(taskMax,livrMax)+3;
   const {svg}=buildSVG(pDate,DW,0,totalDays);
@@ -1802,6 +1857,7 @@ function renderGantt(){
   scroller.innerHTML=`<div class="gantt-freeze"><div class="gantt-main">${svg}</div><div class="gantt-sticky-left" aria-hidden="true">${svg}</div></div>`;
   const overlay=scroller.querySelector('.gantt-sticky-left');
   const freeze=scroller.querySelector('.gantt-freeze');
+  if(overlay){ overlay.style.width=`${getLabelWidth()}px`; }
   const syncSticky=()=>{
     overlay.style.transform=`translateX(${scroller.scrollLeft}px)`;
     overlay.style.height=`${freeze.offsetHeight}px`;
@@ -1988,9 +2044,12 @@ function exportPDF(){
     const detailStarts=startsMap;
     const taskRows=filteredTasks.filter(t=>t.type!=='title').map(t=>{
       const ts=detailStarts[t.id];
-      if(ts===undefined || ts>rangeEndDay) return '';
-      const te=t.type==='milestone'?ts:ts+(t.dur||0);
-      if(te<rangeStartDay) return '';
+      if(ts===undefined) return '';
+      const tsCal=workdayToCalendarDay(ts);
+      if(tsCal>rangeEndDay) return '';
+      const teCal=t.type==='milestone'?tsCal:taskEndCalendarDay(t,ts);
+      const teWork=ts+(t.dur||0);
+      if(teCal<rangeStartDay) return '';
       rowNum++;
       const isMilRow=t.type==='milestone';
       const vals=[
@@ -1998,9 +2057,9 @@ function exportPDF(){
         t.name,
         t.cat||'—',
         'j+'+ts,
-        fmtFull(addDays(ps,ts)),
-        isMilRow?'—':'j+'+te,
-        isMilRow?'—':fmtFull(addDays(ps,te)),
+        fmtFull(addWorkingDays(ps,ts)),
+        isMilRow?'—':'j+'+teWork,
+        isMilRow?'—':fmtFull(addDays(ps,teCal)),
         isMilRow?'Jalon':(t.dur||0)+' j',
         showH?t.human||'—':null,
         showM?t.material||'—':null,
