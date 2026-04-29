@@ -1281,8 +1281,9 @@ function getClosedDays(pDate,totalDays){
   return closed;
 }
 
-function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
-  const LABEL_W=getLabelWidth(),ROW_H=40,HDR_H=76,FOOT=8;
+function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
+  const LABEL_W=getLabelWidth(),ROW_H=40,HDR_H=92,FOOT=8;
+  const forceLivrLabels = !!options.forceLivrLabels;
   const starts=startsOverride||resolveStarts();
   const visibleTasks=getVisibleTasks();
   const sDay=rangeStart||0;
@@ -1291,7 +1292,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
   const closed=getClosedDays(pDate,eDay);
   const hasLivr=livraisons.length>0;
   const livrLaneCount=livraisons.length;
-  const livrRowH=hasLivr ? Math.max(ROW_H, 28 + Math.max(1, livrLaneCount) * 18) : 0;
+  const livrRowH=hasLivr ? Math.max(forceLivrLabels ? 64 : ROW_H, (forceLivrLabels ? 34 : 28) + Math.max(1, livrLaneCount) * (forceLivrLabels ? 24 : 18)) : 0;
   const totalRowsHeight=visibleTasks.length*ROW_H + livrRowH;
   const svgW=LABEL_W+totalDays*DW;
   const svgH=HDR_H+totalRowsHeight+FOOT;
@@ -1336,6 +1337,25 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     yearStart=yearEnd;
   }
 
+  // Month row — displayed above week labels in PDF and screen Gantt
+  let monthStart=0;
+  while(monthStart<totalDays){
+    const monthDate=addDays(pDate, monthStart+sDay);
+    const monthVal=monthDate.getMonth();
+    const monthYear=monthDate.getFullYear();
+    let monthEnd=monthStart+1;
+    while(monthEnd<totalDays){
+      const md=addDays(pDate, monthEnd+sDay);
+      if(md.getMonth()!==monthVal || md.getFullYear()!==monthYear) break;
+      monthEnd++;
+    }
+    const mx=LABEL_W+monthStart*DW, mw=(monthEnd-monthStart)*DW;
+    s+=`<rect x="${mx}" y="18" width="${mw}" height="18" fill="#f7f6f2"/>`;
+    s+=`<line x1="${mx}" y1="36" x2="${mx+mw}" y2="36" stroke="#d3d1c7" stroke-width=".75"/>`;
+    s+=`<text x="${mx+mw/2}" y="31" text-anchor="middle" font-size="11" fill="#1D9E75" font-weight="bold" font-family="Arial,sans-serif">${months[monthVal]}</text>`;
+    monthStart=monthEnd;
+  }
+
   let wn=Math.floor(sDay/7)+1,d=0;
   while(d<totalDays){
     const dt=addDays(pDate,d+sDay);
@@ -1343,18 +1363,15 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
     const toEnd=dow===1?7:(dow===0?1:8-dow);
     const we=Math.min(d+toEnd,totalDays);
     const wx=LABEL_W+d*DW,ww=(we-d)*DW;
-    s+=`<text x="${wx+ww/2}" y="32" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S${wn++}</text>`;
-    s+=`<line x1="${wx}" y1="36" x2="${wx+ww}" y2="36" stroke="#d3d1c7" stroke-width=".5"/>`;
+    s+=`<text x="${wx+ww/2}" y="50" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S${wn++}</text>`;
+    s+=`<line x1="${wx}" y1="54" x2="${wx+ww}" y2="54" stroke="#d3d1c7" stroke-width=".5"/>`;
     for(let dd2=d;dd2<we&&dd2<totalDays;dd2++){
       const x=LABEL_W+dd2*DW;
       const day2=addDays(pDate,dd2+sDay);
       const isWE=(day2.getDay()===0||day2.getDay()===6);
       const isFe=getFeries(day2.getFullYear()).some(f=>f.date.toDateString()===day2.toDateString());
       if(DW>=18||!isWE){
-        s+=`<text x="${x+DW/2}" y="52" text-anchor="middle" font-size="${DW>=26?10:9}" fill="${isFe?'#854F0B':isWE?'#b4b2a9':'#888780'}" font-family="Arial,sans-serif">${day2.getDate()}</text>`;
-      }
-      if(DW>=22&&(day2.getDate()===1||dd2===0)){
-        s+=`<text x="${x+DW/2}" y="68" text-anchor="middle" font-size="9" fill="#1D9E75" font-family="Arial,sans-serif" font-weight="bold">${months[day2.getMonth()]}</text>`;
+        s+=`<text x="${x+DW/2}" y="72" text-anchor="middle" font-size="${DW>=26?10:9}" fill="${isFe?'#854F0B':isWE?'#b4b2a9':'#888780'}" font-family="Arial,sans-serif">${day2.getDate()}</text>`;
       }
     }
     d=we;if(we<totalDays&&we===d)d++;
@@ -1449,7 +1466,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
       const orderDay=getLivrOrderDay(l);
       if(deliveryDay<sDay&&orderDay<sDay)return;
       if(deliveryDay>eDay&&orderDay>eDay)return;
-      const ly=iy+34+Math.max(0,lane)*18;
+      const ly=iy+(forceLivrLabels ? 38 : 34)+Math.max(0,lane)*(forceLivrLabels ? 24 : 18);
       const orderX=LABEL_W+(Math.max(orderDay,sDay)-sDay)*DW+DW/2;
       const deliveryX=LABEL_W+(Math.min(deliveryDay,eDay)-sDay)*DW+DW/2;
       if(orderDay<=eDay && deliveryDay>=sDay){
@@ -1462,18 +1479,25 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride){
         s+=`<line x1="${deliveryX}" y1="${ly-10}" x2="${deliveryX}" y2="${ly+4}" stroke="#EF9F27" stroke-width="2.5"/>`;
         s+=`<polygon points="${deliveryX-7},${ly-10} ${deliveryX+7},${ly-10} ${deliveryX},${ly+2}" fill="#EF9F27"/>`;
       }
-      if(DW>=18){
-        const sup=(l.supplier||'Fournisseur').substring(0,16);
-        const cmdLabel='Cmd '+sup;
-        const livLabel='Liv '+sup;
+      if(DW>=18 || forceLivrLabels){
+        const supFull=escapeHtml(l.supplier||'Fournisseur');
+        const sup=(l.supplier||'Fournisseur').substring(0, forceLivrLabels ? 24 : 16);
+        const cmdLabel=escapeHtml('Cmd '+sup);
+        const livLabel=escapeHtml('Liv '+sup);
+        const labelFont=forceLivrLabels ? 10 : 8.5;
+        const labelBgH=forceLivrLabels ? 12 : 0;
         if(orderDay>=sDay&&orderDay<=eDay){
-          s+=`<text x="${orderX+8}" y="${ly-4}" font-size="8.5" fill="#6B5738" font-family="Arial,sans-serif">${cmdLabel}</text>`;
+          const tx=Math.min(orderX+8, svgW-150);
+          if(forceLivrLabels) s+=`<rect x="${tx-2}" y="${ly-15}" width="${Math.max(86,cmdLabel.length*5.3)}" height="${labelBgH}" rx="2" fill="#fdf8f0" opacity=".92"/>`;
+          s+=`<text x="${tx}" y="${ly-6}" font-size="${labelFont}" fill="#6B5738" font-weight="${forceLivrLabels?'600':'400'}" font-family="Arial,sans-serif"><title>${supFull}</title>${cmdLabel}</text>`;
         }
         if(deliveryDay>=sDay&&deliveryDay<=eDay){
-          s+=`<text x="${deliveryX+10}" y="${ly}" font-size="8.5" fill="#854F0B" font-family="Arial,sans-serif">${livLabel}</text>`;
+          const tx=Math.min(deliveryX+10, svgW-150);
+          if(forceLivrLabels) s+=`<rect x="${tx-2}" y="${ly-2}" width="${Math.max(86,livLabel.length*5.3)}" height="${labelBgH}" rx="2" fill="#fdf8f0" opacity=".92"/>`;
+          s+=`<text x="${tx}" y="${ly+7}" font-size="${labelFont}" fill="#854F0B" font-weight="${forceLivrLabels?'600':'400'}" font-family="Arial,sans-serif"><title>${supFull}</title>${livLabel}</text>`;
         }
-        if(orderDay<=eDay && deliveryDay>=sDay){
-          s+=`<text x="${Math.max(orderX, LABEL_W)+Math.max(12,(Math.min(deliveryX, LABEL_W+(eDay-sDay)*DW)-Math.max(orderX, LABEL_W))/2)}" y="${ly+10}" text-anchor="middle" font-size="8" fill="#9A7A43" font-family="Arial,sans-serif">${getLivrDelayLabel(l)}</text>`;
+        if((DW>=18 || forceLivrLabels) && orderDay<=eDay && deliveryDay>=sDay){
+          s+=`<text x="${Math.max(orderX, LABEL_W)+Math.max(12,(Math.min(deliveryX, LABEL_W+(eDay-sDay)*DW)-Math.max(orderX, LABEL_W))/2)}" y="${ly+(forceLivrLabels?20:10)}" text-anchor="middle" font-size="${forceLivrLabels?9:8}" fill="#9A7A43" font-family="Arial,sans-serif">${escapeHtml(getLivrDelayLabel(l))}</text>`;
         }
       }
     });
@@ -1949,7 +1973,7 @@ function exportPDF(){
 
       // buildSVG avec un "startsOverride" utilisant la même startsMap
       const {svg: svgSynth, width: wS, height: hS} = buildSVG(
-        ps, DW_s, syntheseStartDay, syntheseEndDay, startsMap
+        ps, DW_s, syntheseStartDay, syntheseEndDay, startsMap, {forceLivrLabels:true}
       );
 
       const styledSvgSynth = svgSynth.replace(
