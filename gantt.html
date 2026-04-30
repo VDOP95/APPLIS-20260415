@@ -601,6 +601,20 @@ button:hover{background:#f5f5f3}
         </select>
       </div>
 
+      <div><label>Pages détail planning</label>
+        <select id="pdf-detail-pages" style="width:100%">
+          <option value="1" selected>Oui — après la synthèse</option>
+          <option value="0">Non</option>
+        </select>
+      </div>
+
+      <div><label>Dernière page tableau</label>
+        <select id="pdf-table-page" style="width:100%">
+          <option value="1" selected>Oui — moyens + dates</option>
+          <option value="0">Non</option>
+        </select>
+      </div>
+
       <div><label>Masquer les plages sans activité</label>
         <select id="pdf-hide-empty" style="width:100%"><option value="1" selected>Oui</option><option value="0">Non</option></select>
       </div>
@@ -636,8 +650,8 @@ button:hover{background:#f5f5f3}
     <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
       <strong>Structure du PDF généré :</strong><br>
       <strong>• Page 1 (synthèse)</strong> — Planning complet sur une seule page A3, plages sans activité supprimées, zoom auto-calculé.<br>
-      <strong>• Pages suivantes (détail)</strong> — Planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page).<br>
-      <strong>• Dernière page (tableau)</strong> — Détail tâches et livraisons si "Afficher moyens" activé.<br><br>
+      <strong>• Pages suivantes (détail)</strong> — Optionnelles : planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page).<br>
+      <strong>• Dernière page (tableau)</strong> — Optionnelle : tableau avec moyens humains, moyens matériels, jours/date de début et jours/date de fin.<br><br>
       Cliquez <strong>Exporter en PDF</strong> puis choisissez <strong>Enregistrer en PDF</strong> · Format : <strong>A3 paysage</strong> · Décochez les en-têtes/pieds de page.
     </div>
   </div>
@@ -1611,14 +1625,19 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
 function getProjectStartDate(){
   return parseISODate(document.getElementById('pstart').value||today());
 }
-function getProjectTotalEndDay(){
+function getProjectForecastEndDay(){
+  // Dernier jour réel du planning : tâches + livraisons, sans marge graphique.
   normalizeLivraisons();
   const visibleTasks=getVisibleTasks();
   const starts=resolveStarts();
   const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
-  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>taskEndCalendarDay(t, starts[t.id]||0))):7);
+  const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>taskEndCalendarDay(t, starts[t.id]||0))):0);
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
-  return Math.max(taskMax,livrMax)+3;
+  return Math.max(taskMax,livrMax);
+}
+function getProjectTotalEndDay(){
+  // Fin de plage graphique avec une petite marge après la fin prévisionnelle.
+  return getProjectForecastEndDay()+3;
 }
 function dayToDate(day){
   return formatISODate(addDays(getProjectStartDate(), day));
@@ -1642,14 +1661,27 @@ function ensurePdfUiReady(){
     }
   }
 }
-function updatePdfDateFields(){
+function updatePdfDateFields(force=false){
   const startEl=document.getElementById('pdf-date-start');
   const endEl=document.getElementById('pdf-date-end');
   if(!startEl || !endEl) return;
-  const pDate=getProjectStartDate();
-  const totalEnd=getProjectTotalEndDay();
-  if(!startEl.value) startEl.value=formatISODate(pDate);
-  if(!endEl.value) endEl.value=dayToDate(totalEnd);
+
+  // Valeurs par défaut demandées :
+  // - début export = date de début du chantier
+  // - fin export = fin prévisionnelle réelle du planning, sans marge graphique
+  const defaultStart=formatISODate(getProjectStartDate());
+  const defaultEnd=dayToDate(getProjectForecastEndDay());
+
+  const prevDefaultStart=startEl.dataset.defaultValue || '';
+  const prevDefaultEnd=endEl.dataset.defaultValue || '';
+  const startWasAuto=!startEl.value || startEl.value===prevDefaultStart;
+  const endWasAuto=!endEl.value || endEl.value===prevDefaultEnd;
+
+  if(force || startWasAuto) startEl.value=defaultStart;
+  if(force || endWasAuto) endEl.value=defaultEnd;
+
+  startEl.dataset.defaultValue=defaultStart;
+  endEl.dataset.defaultValue=defaultEnd;
 }
 function updatePdfChapterList(){
   const wrap=document.getElementById('pdf-chapters');
@@ -1990,7 +2022,7 @@ function exportPDF(){
   normalizeLivraisons();
   const ps=getProjectStartDate();
   const startInput=document.getElementById('pdf-date-start').value || formatISODate(ps);
-  const endInput=document.getElementById('pdf-date-end').value || dayToDate(getProjectTotalEndDay());
+  const endInput=document.getElementById('pdf-date-end').value || dayToDate(getProjectForecastEndDay());
   let rangeStartDay=Math.max(0, dateToProjectDay(startInput));
   let rangeEndDay=Math.max(rangeStartDay, dateToProjectDay(endInput));
   const pageMode=document.getElementById('pdf-page-mode').value;
@@ -2001,6 +2033,8 @@ function exportPDF(){
   const showM=document.getElementById('pdf-mat').value==='1';
   const showP=document.getElementById('pdf-prog').value==='1';
   const showSynthese=document.getElementById('pdf-synthese-page').value==='1';
+  const showDetailPages=(document.getElementById('pdf-detail-pages')?.value||'1')==='1';
+  const showTablePage=(document.getElementById('pdf-table-page')?.value||'1')==='1';
   const selectedChapters=getSelectedPdfChapters();
   const name=document.getElementById('pname').value||'Planning de chantier';
   const DW=24;
@@ -2091,6 +2125,7 @@ function exportPDF(){
   // ══════════════════════════════════════════════════════════
   // PAGES SUIVANTES — Détail paramétré (chapitres, période, lignes/page)
   // ══════════════════════════════════════════════════════════
+  if(showDetailPages){
   tasks=filteredTasks;
   livraisons=origLivr.slice();
 
@@ -2118,7 +2153,7 @@ function exportPDF(){
       const isLastDetailPage = (chunk===chunks[chunks.length-1]) && (rowIdx===rowPages.length-1);
       const styledSvg=svg.replace('<svg ','<svg viewBox="0 0 '+svgWidth+' '+svgHeight+'" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" ');
       printBlocks.push(`
-      <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || (showH||showM||showP) ? 'page-break-after:always;break-after:page;' : ''}">
+      <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
         <div style="margin-bottom:6px">
           <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
           <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -2132,11 +2167,12 @@ function exportPDF(){
     `);
     });
   });
+  }
 
   tasks=filteredTasks.map(t=>JSON.parse(JSON.stringify(t)));
   livraisons=origLivr.slice();
 
-  if(!printBlocks.length){
+  if(!printBlocks.length && !showTablePage){
     tasks=origTasks;
     livraisons=origLivr;
     ganttScroll.innerHTML=origContent;
@@ -2150,8 +2186,10 @@ function exportPDF(){
   // DERNIÈRE PAGE — Tableau détail (inchangé)
   // ══════════════════════════════════════════════════════════
   let detailHtml='';
-  if(showH||showM||showP){
-    const cols=['N°','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',showH?'Moyens humains':null,showM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
+  if(showTablePage){
+    const tableShowH = true;
+    const tableShowM = true;
+    const cols=['N°','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',tableShowH?'Moyens humains':null,tableShowM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
     let rowNum=0;
     const detailStarts=startsMap;
     const taskRows=filteredTasks.filter(t=>t.type!=='title').map(t=>{
@@ -2173,8 +2211,8 @@ function exportPDF(){
         isMilRow?'—':'j+'+teWork,
         isMilRow?'—':fmtFull(addDays(ps,teCal)),
         isMilRow?'Jalon':(t.dur||0)+' j',
-        showH?t.human||'—':null,
-        showM?t.material||'—':null,
+        tableShowH?t.human||'—':null,
+        tableShowM?t.material||'—':null,
         showP?(t.progress||0)+'%':null
       ].filter(v=>v!==null);
       const bg=isMilRow?'#FAEEDA':'';
@@ -2408,6 +2446,10 @@ renderResources();
 ensureDefaultFermeture();
 loadPreset('mixte');
 ensurePdfUiReady();
+const pstartInput=document.getElementById('pstart');
+if(pstartInput){
+  pstartInput.addEventListener('change',()=>{ updatePdfDateFields(true); });
+}
 const exportBtn=document.getElementById('btn-export-pdf');
 if(exportBtn) exportBtn.addEventListener('click', exportPDF);
 </script>
