@@ -789,23 +789,60 @@ function formatISODate(d){
 }
 function today(){return formatISODate(new Date())}
 function addDays(d,n){const r=parseISODate(d);r.setDate(r.getDate()+n);return r}
+function isSameDay(a,b){const x=parseISODate(a), y=parseISODate(b);return x.getFullYear()===y.getFullYear()&&x.getMonth()===y.getMonth()&&x.getDate()===y.getDate()}
+function projectDayFromDate(date,pDate){return Math.round((parseISODate(date)-parseISODate(pDate))/86400000)}
+function getFermetureStart(f){return f && (f.start || f.date || (Number.isFinite(f.day)?startToDate(f.day):''));}
+function getFermetureEnd(f){return f && (f.end || f.start || f.date || (Number.isFinite(f.day)?startToDate(f.day):''));}
+function isProjectClosedCalendarDay(pDate,day){
+  const dt=addDays(pDate,day);
+  const dow=dt.getDay();
+  if(dow===0||dow===6) return true;
+  if(getFeries(dt.getFullYear()).some(f=>isSameDay(f.date,dt))) return true;
+  if((fermetures||[]).some(f=>{
+    // Priorité aux vraies dates start/end. L'ancien champ day reste accepté sans provoquer de recalcul récursif.
+    const fs=f && (f.start || f.date);
+    const fe=f && (f.end || f.start || f.date);
+    if(fs){
+      const a=projectDayFromDate(fs,pDate), b=projectDayFromDate(fe||fs,pDate);
+      return day>=Math.min(a,b) && day<=Math.max(a,b);
+    }
+    return Number.isFinite(+f?.day) && day===+f.day;
+  })) return true;
+  if((fermWeeks||[]).some(fw=>{
+    for(let w=+fw.start; w<=+fw.end; w++){
+      const sd=(w-1)*7;
+      if(day>=sd && day<sd+7) return true;
+    }
+    return false;
+  })) return true;
+  return false;
+}
+function isVisibleGanttDay(pDate,day){
+  const dow=addDays(pDate,day).getDay();
+  return dow!==0 && dow!==6;
+}
 function isWeekendDate(d){const x=parseISODate(d).getDay();return x===0||x===6}
 function addWorkingDays(d,n){
+  // J+ exprimé en jours ouvrés réels : hors samedis, dimanches, jours fériés et fermetures.
+  const projectStart=parseISODate(d);
   let r=parseISODate(d);
   let remaining=Math.max(0,+n||0);
   while(remaining>0){
     r=addDays(r,1);
-    if(!isWeekendDate(r)) remaining--;
+    const calDay=Math.round((r-projectStart)/86400000);
+    if(!isProjectClosedCalendarDay(projectStart,calDay)) remaining--;
   }
   return r;
 }
 function workingDaysBetween(startDate,endDate){
+  // Conversion date -> J+ en excluant les jours non travaillés.
   const start=parseISODate(startDate), end=parseISODate(endDate);
   if(end<=start) return 0;
   let d=parseISODate(start), count=0;
   while(d<end){
     d=addDays(d,1);
-    if(d<=end && !isWeekendDate(d)) count++;
+    const calDay=Math.round((d-start)/86400000);
+    if(d<=end && !isProjectClosedCalendarDay(start,calDay)) count++;
   }
   return count;
 }
@@ -815,10 +852,19 @@ function workdayToCalendarDay(workdayIndex){
   return Math.round((target-p)/86400000);
 }
 function taskEndCalendarDay(task,startWorkday){
+  // Retourne le DERNIER jour réellement travaillé de la tâche.
   const sw=Math.max(0,+startWorkday||0);
   const dur=Math.max(0,+((task&&task.dur)||0));
   if(dur<=0) return workdayToCalendarDay(sw);
-  return workdayToCalendarDay(sw+dur);
+  return workdayToCalendarDay(sw+dur-1);
+}
+function taskWorkCalendarDays(task,startWorkday){
+  // Liste des jours calendaires effectivement travaillés par la tâche, hors week-ends, jours fériés et fermetures.
+  const sw=Math.max(0,+startWorkday||0);
+  const dur=Math.max(0,+((task&&task.dur)||0));
+  const days=[];
+  for(let k=0;k<dur;k++) days.push(workdayToCalendarDay(sw+k));
+  return days;
 }
 function getLabelWidth(){
   const el=document.getElementById('labelWidth');
@@ -1218,7 +1264,7 @@ function renderCal(){
   const fermDateInput=document.getElementById('ferm-date');
   if(fermDateInput && !fermDateInput.value)fermDateInput.value=startToDate(0);
   document.getElementById('feries-list').innerHTML=feries.map(f=>`<span class="pill" style="background:#FAEEDA;color:#633806">${f.name} (${f.date.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})})</span>`).join('');
-  document.getElementById('ferm-list').innerHTML=fermetures.map(f=>`<span class="pill" style="background:#FBEAF0;color:#72243E">${fmtFull(new Date(fermetureDateValue(f)))} (j+${f.day}) – ${f.label} <span onclick="removeFermeture(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
+  document.getElementById('ferm-list').innerHTML=fermetures.map(f=>`<span class="pill" style="background:#FBEAF0;color:#72243E">${fmtFull(getFermetureStart(f))} (j+${f.day}) – ${f.label} <span onclick="removeFermeture(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
   document.getElementById('ferm-week-list').innerHTML=fermWeeks.map(f=>`<span class="pill" style="background:#E6F1FB;color:#0C447C">S${f.start}${f.end!==f.start?'–S'+f.end:''} – ${f.label} <span onclick="removeFermWeek(${f.id})" style="cursor:pointer;margin-left:3px">×</span></span>`).join('');
 }
 
@@ -1262,22 +1308,8 @@ function updateTaskStart(idx,newStart){
 function getClosedDays(pDate,totalDays){
   const closed=new Set();
   for(let d=0;d<totalDays;d++){
-    const dt=addDays(pDate,d);
-    const dow=dt.getDay();
-    if(dow===0||dow===6)closed.add(d);
+    if(isProjectClosedCalendarDay(pDate,d)) closed.add(d);
   }
-  const yr=pDate.getFullYear();
-  getFeries(yr).concat(getFeries(yr+1)).forEach(f=>{
-    const diff=Math.round((f.date-pDate)/86400000);
-    if(diff>=0&&diff<totalDays)closed.add(diff);
-  });
-  fermetures.forEach(f=>{if(f.day>=0&&f.day<totalDays)closed.add(f.day)});
-  fermWeeks.forEach(fw=>{
-    for(let w=fw.start;w<=fw.end;w++){
-      const sd=(w-1)*7;
-      for(let d=sd;d<sd+7&&d<totalDays;d++)closed.add(d);
-    }
-  });
   return closed;
 }
 
@@ -1288,8 +1320,36 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
   const visibleTasks=getVisibleTasks();
   const sDay=rangeStart||0;
   const eDay=(rangeEnd!==undefined&&rangeEnd!==null)?rangeEnd:(Math.max(...visibleTasks.filter(t=>t.type!=='title').map(t=>taskEndCalendarDay(t, starts[t.id]||0)))+3);
-  const totalDays=eDay-sDay+1;
-  const closed=getClosedDays(pDate,eDay);
+  const displayDays=[];
+  for(let cd=sDay; cd<=eDay; cd++){
+    if(isVisibleGanttDay(pDate,cd)) displayDays.push(cd);
+  }
+  if(displayDays.length===0){
+    for(let cd=sDay; cd<=eDay; cd++) displayDays.push(cd);
+  }
+  const totalDays=displayDays.length;
+  const closed=getClosedDays(pDate,eDay+1);
+  function closedColumnRects(y,h,opacity=.62){
+    let out='';
+    for(let ci=0; ci<displayDays.length; ci++){
+      const cd=displayDays[ci];
+      if(closed.has(cd)){
+        const x=LABEL_W+ci*DW;
+        out+=`<rect x="${x}" y="${y}" width="${DW}" height="${h}" fill="#d9d9d4" opacity="${opacity}"/>`;
+      }
+    }
+    return out;
+  }
+  function colIndexForCalDay(calDay){
+    for(let i=0;i<displayDays.length;i++){ if(displayDays[i]>=calDay) return i; }
+    return displayDays.length;
+  }
+  function colCenterForCalDay(calDay){
+    let i=displayDays.indexOf(calDay);
+    if(i<0) i=colIndexForCalDay(calDay);
+    i=Math.max(0,Math.min(displayDays.length-1,i));
+    return LABEL_W+i*DW+DW/2;
+  }
   const hasLivr=livraisons.length>0;
   const livrLaneCount=livraisons.length;
   const livrRowH=hasLivr ? Math.max(forceLivrLabels ? 64 : ROW_H, (forceLivrLabels ? 34 : 28) + Math.max(1, livrLaneCount) * (forceLivrLabels ? 24 : 18)) : 0;
@@ -1302,19 +1362,19 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
 
   // Background columns
   for(let d=0;d<totalDays;d++){
-    const dd=d+sDay,x=LABEL_W+d*DW;
+    const dd=displayDays[d],x=LABEL_W+d*DW;
     const isClosed=closed.has(dd);
     const dt=addDays(pDate,dd);
-    const isFerie=getFeries(dt.getFullYear()).some(f=>f.date.toDateString()===dt.toDateString());
-    s+=`<rect x="${x}" y="0" width="${DW}" height="${svgH}" fill="${isFerie?'#FAEEDA':isClosed?'#f3f3f1':'#fafaf8'}"/>`;
+    const isFerie=getFeries(dt.getFullYear()).some(f=>isSameDay(f.date,dt));
+    s+=`<rect x="${x}" y="0" width="${DW}" height="${svgH}" fill="${isClosed?'#e6e6e2':'#fafaf8'}"/>`;
   }
 
   // Vertical lines
   for(let d=0;d<=totalDays;d++){
     const x=LABEL_W+d*DW;
-    const dt=addDays(pDate,d+sDay);
-    const isMon=dt.getDay()===1;
-    s+=`<line x1="${x}" y1="0" x2="${x}" y2="${svgH}" stroke="${isMon?'#c8c6be':'#e8e6e2'}" stroke-width="${isMon?1:.5}"/>`;
+    const dt=addDays(pDate,displayDays[Math.min(d,Math.max(0,totalDays-1))]||sDay);
+    const isMon=d<totalDays && dt.getDay()===1;
+    s+=`<line x1="${x}" y1="0" x2="${x}" y2="${svgH}" stroke="${isMon?'#b4b2a9':'#e8e6e2'}" stroke-width="${isMon?1.2:.5}"/>`;
   }
 
   // Header background
@@ -1327,9 +1387,9 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
   // Year row
   let yearStart=0;
   while(yearStart<totalDays){
-    const yearVal=addDays(pDate,yearStart+sDay).getFullYear();
+    const yearVal=addDays(pDate,displayDays[yearStart]).getFullYear();
     let yearEnd=yearStart+1;
-    while(yearEnd<totalDays && addDays(pDate,yearEnd+sDay).getFullYear()===yearVal) yearEnd++;
+    while(yearEnd<totalDays && addDays(pDate,displayDays[yearEnd]).getFullYear()===yearVal) yearEnd++;
     const yx=LABEL_W+yearStart*DW, yw=(yearEnd-yearStart)*DW;
     s+=`<rect x="${yx}" y="0" width="${yw}" height="18" fill="#eeede8"/>`;
     s+=`<line x1="${yx}" y1="18" x2="${yx+yw}" y2="18" stroke="#d3d1c7" stroke-width=".75"/>`;
@@ -1340,12 +1400,12 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
   // Month row — displayed above week labels in PDF and screen Gantt
   let monthStart=0;
   while(monthStart<totalDays){
-    const monthDate=addDays(pDate, monthStart+sDay);
+    const monthDate=addDays(pDate, displayDays[monthStart]);
     const monthVal=monthDate.getMonth();
     const monthYear=monthDate.getFullYear();
     let monthEnd=monthStart+1;
     while(monthEnd<totalDays){
-      const md=addDays(pDate, monthEnd+sDay);
+      const md=addDays(pDate, displayDays[monthEnd]);
       if(md.getMonth()!==monthVal || md.getFullYear()!==monthYear) break;
       monthEnd++;
     }
@@ -1356,25 +1416,32 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
     monthStart=monthEnd;
   }
 
-  let wn=Math.floor(sDay/7)+1,d=0;
+  let d=0;
   while(d<totalDays){
-    const dt=addDays(pDate,d+sDay);
-    const dow=dt.getDay();
-    const toEnd=dow===1?7:(dow===0?1:8-dow);
-    const we=Math.min(d+toEnd,totalDays);
-    const wx=LABEL_W+d*DW,ww=(we-d)*DW;
-    s+=`<text x="${wx+ww/2}" y="50" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S${wn++}</text>`;
-    s+=`<line x1="${wx}" y1="54" x2="${wx+ww}" y2="54" stroke="#d3d1c7" stroke-width=".5"/>`;
-    for(let dd2=d;dd2<we&&dd2<totalDays;dd2++){
-      const x=LABEL_W+dd2*DW;
-      const day2=addDays(pDate,dd2+sDay);
-      const isWE=(day2.getDay()===0||day2.getDay()===6);
-      const isFe=getFeries(day2.getFullYear()).some(f=>f.date.toDateString()===day2.toDateString());
-      if(DW>=18||!isWE){
-        s+=`<text x="${x+DW/2}" y="72" text-anchor="middle" font-size="${DW>=26?10:9}" fill="${isFe?'#854F0B':isWE?'#b4b2a9':'#888780'}" font-family="Arial,sans-serif">${day2.getDate()}</text>`;
-      }
+    const firstCal=displayDays[d];
+    const firstDate=addDays(pDate,firstCal);
+    const monday=addDays(firstDate,1-firstDate.getDay());
+    let we=d+1;
+    while(we<totalDays){
+      const cur=addDays(pDate,displayDays[we]);
+      const curMonday=addDays(cur,1-cur.getDay());
+      if(!isSameDay(curMonday,monday)) break;
+      we++;
     }
-    d=we;if(we<totalDays&&we===d)d++;
+    const wx=LABEL_W+d*DW, ww=(we-d)*DW;
+    const weekNo=Math.floor(firstCal/7)+1;
+    s+=`<text x="${wx+ww/2}" y="50" text-anchor="middle" font-size="11" fill="#5F5E5A" font-weight="bold" font-family="Arial,sans-serif">S${weekNo}</text>`;
+    // Séparateurs visuels : début et fin de semaine
+    s+=`<line x1="${wx}" y1="36" x2="${wx}" y2="${svgH}" stroke="#8f8d84" stroke-width="1.4"/>`;
+    s+=`<line x1="${wx+ww}" y1="36" x2="${wx+ww}" y2="${svgH}" stroke="#8f8d84" stroke-width="1.4"/>`;
+    s+=`<line x1="${wx}" y1="54" x2="${wx+ww}" y2="54" stroke="#d3d1c7" stroke-width=".5"/>`;
+    for(let dd2=d; dd2<we; dd2++){
+      const x=LABEL_W+dd2*DW;
+      const day2=addDays(pDate,displayDays[dd2]);
+      const isFe=getFeries(day2.getFullYear()).some(f=>isSameDay(f.date,day2));
+      s+=`<text x="${x+DW/2}" y="72" text-anchor="middle" font-size="${DW>=26?10:9}" fill="${isFe?'#854F0B':'#888780'}" font-family="Arial,sans-serif">${day2.getDate()}</text>`;
+    }
+    d=we;
   }
 
   // Left label column
@@ -1399,6 +1466,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
     }
 
     s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="${i%2===0?'#ffffff':'#fafaf8'}"/>`;
+    s+=closedColumnRects(y,ROW_H,.72);
     s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#eeecea" stroke-width=".5"/>`;
     const cat=CATS[t.cat]||CATS['Coordination'];
     s+=`<rect x="3" y="${y+12}" width="3" height="16" rx="1" fill="${cat.c}"/>`;
@@ -1428,7 +1496,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
     const ts=starts[t.id];
     const tsCal=workdayToCalendarDay(ts);
     if(t.type==='milestone'){
-      const mx=LABEL_W+(tsCal-sDay)*DW+DW/2,my=y+ROW_H/2,ms=10;
+      const mx=colCenterForCalDay(tsCal),my=y+ROW_H/2,ms=10;
       if(tsCal>=sDay&&tsCal<=eDay){
         s+=`<rect x="${mx-ms/2}" y="${my-ms/2}" width="${ms}" height="${ms}" fill="#EF9F27" transform="rotate(45,${mx},${my})" rx="2"/>`;
         if(DW>=22)s+=`<text x="${mx+ms}" y="${my+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,tsCal))}</text>`;
@@ -1436,22 +1504,38 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
       barCoords[t.id]={x:mx,x2:mx,y:my,ts:tsCal,te:tsCal};
     } else {
       const teCal=taskEndCalendarDay(t,ts);
-      const bx=LABEL_W+(tsCal-sDay)*DW+2,bw=Math.max(DW-4,(teCal-tsCal)*DW-4),bh=ROW_H-14,by=y+7;
-      if(tsCal<=eDay && teCal>=sDay){
-        const cx=Math.max(LABEL_W+2,bx);
-        const cw=Math.min(LABEL_W+totalDays*DW-4,bx+bw)-cx;
-        if(cw>0){
-          s+=`<rect x="${cx}" y="${by}" width="${cw}" height="${bh}" rx="4" fill="${cat.c}" opacity=".85"/>`;
-          const prog=t.progress||0;
-          if(prog>0){s+=`<rect x="${cx}" y="${by+bh-5}" width="${cw*(prog/100)}" height="5" rx="2" fill="white" opacity=".55"/>`}
-          if(cw>14){
-            const durLabel=`${t.dur}j${prog>0?' ('+prog+'%)':''}`;
-            s+=`<text x="${cx+cw/2}" y="${by+bh/2+4}" text-anchor="middle" font-size="${cw<30?8:10}" fill="white" font-weight="bold" font-family="Arial,sans-serif">${durLabel}</text>`;
-          }
-          if(cw>55)s+=`<text x="${cx+cw-4}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,teCal))}</text>`;
+      const workDays=taskWorkCalendarDays(t,ts).filter(cd=>cd>=sDay && cd<=eDay && displayDays.indexOf(cd)>=0 && !closed.has(cd));
+      const bh=ROW_H-14,by=y+7;
+      if(workDays.length){
+        const cols=workDays.map(cd=>displayDays.indexOf(cd)).filter(ci=>ci>=0).sort((a,b)=>a-b);
+        const segments=[];
+        let a=cols[0], b=cols[0];
+        for(let si=1; si<cols.length; si++){
+          if(cols[si]===b+1){ b=cols[si]; }
+          else { segments.push([a,b]); a=b=cols[si]; }
         }
+        segments.push([a,b]);
+        const prog=t.progress||0;
+        const durLabel=`${t.dur}j${prog>0?' ('+prog+'%)':''}`;
+        let widest={cw:0,cx:0};
+        segments.forEach(([a,b])=>{
+          const cx=LABEL_W+a*DW+2;
+          const cw=(b-a+1)*DW-4;
+          if(cw>widest.cw) widest={cw,cx};
+          s+=`<rect x="${cx}" y="${by}" width="${cw}" height="${bh}" rx="4" fill="${cat.c}" opacity=".85"/>`;
+          if(prog>0){s+=`<rect x="${cx}" y="${by+bh-5}" width="${cw*(prog/100)}" height="5" rx="2" fill="white" opacity=".55"/>`}
+        });
+        if(widest.cw>14){
+          s+=`<text x="${widest.cx+widest.cw/2}" y="${by+bh/2+4}" text-anchor="middle" font-size="${widest.cw<30?8:10}" fill="white" font-weight="bold" font-family="Arial,sans-serif">${durLabel}</text>`;
+        }
+        const lastCol=cols[cols.length-1];
+        const lastX=LABEL_W+(lastCol+1)*DW-4;
+        if(lastCol>=0)s+=`<text x="${lastX}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,teCal))}</text>`;
+        barCoords[t.id]={x:LABEL_W+cols[0]*DW+2,x2:LABEL_W+(cols[cols.length-1]+1)*DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
+      } else {
+        const startCol=colIndexForCalDay(tsCal);
+        barCoords[t.id]={x:LABEL_W+startCol*DW+2,x2:LABEL_W+startCol*DW+DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
       }
-      barCoords[t.id]={x:LABEL_W+(tsCal-sDay)*DW+2,x2:LABEL_W+(teCal-sDay)*DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
     }
   });
 
@@ -1459,6 +1543,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
   if(hasLivr){
     const iy=HDR_H+visibleTasks.length*ROW_H;
     s+=`<rect x="0" y="${iy}" width="${svgW}" height="${livrRowH}" fill="#fdf8f0"/>`;
+    s+=closedColumnRects(iy,livrRowH,.72);
     s+=`<line x1="0" y1="${iy+livrRowH}" x2="${svgW}" y2="${iy+livrRowH}" stroke="#eeecea" stroke-width=".5"/>`;
     s+=`<text x="10" y="${iy+20}" font-size="11" fill="#854F0B" font-weight="bold" font-family="Arial,sans-serif">Livraisons fournisseurs</text>`;
     livraisons.forEach((l,lane)=>{
@@ -1467,8 +1552,8 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
       if(deliveryDay<sDay&&orderDay<sDay)return;
       if(deliveryDay>eDay&&orderDay>eDay)return;
       const ly=iy+(forceLivrLabels ? 38 : 34)+Math.max(0,lane)*(forceLivrLabels ? 24 : 18);
-      const orderX=LABEL_W+(Math.max(orderDay,sDay)-sDay)*DW+DW/2;
-      const deliveryX=LABEL_W+(Math.min(deliveryDay,eDay)-sDay)*DW+DW/2;
+      const orderX=colCenterForCalDay(Math.max(orderDay,sDay));
+      const deliveryX=colCenterForCalDay(Math.min(deliveryDay,eDay));
       if(orderDay<=eDay && deliveryDay>=sDay){
         s+=`<line x1="${orderX}" y1="${ly-2}" x2="${deliveryX}" y2="${ly-2}" stroke="#C58A20" stroke-width="1.5" stroke-dasharray="4,3"/>`;
       }
@@ -1497,7 +1582,7 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
           s+=`<text x="${tx}" y="${ly+7}" font-size="${labelFont}" fill="#854F0B" font-weight="${forceLivrLabels?'600':'400'}" font-family="Arial,sans-serif"><title>${supFull}</title>${livLabel}</text>`;
         }
         if((DW>=18 || forceLivrLabels) && orderDay<=eDay && deliveryDay>=sDay){
-          s+=`<text x="${Math.max(orderX, LABEL_W)+Math.max(12,(Math.min(deliveryX, LABEL_W+(eDay-sDay)*DW)-Math.max(orderX, LABEL_W))/2)}" y="${ly+(forceLivrLabels?20:10)}" text-anchor="middle" font-size="${forceLivrLabels?9:8}" fill="#9A7A43" font-family="Arial,sans-serif">${escapeHtml(getLivrDelayLabel(l))}</text>`;
+          s+=`<text x="${Math.max(orderX, LABEL_W)+Math.max(12,(Math.min(deliveryX, LABEL_W+totalDays*DW)-Math.max(orderX, LABEL_W))/2)}" y="${ly+(forceLivrLabels?20:10)}" text-anchor="middle" font-size="${forceLivrLabels?9:8}" fill="#9A7A43" font-family="Arial,sans-serif">${escapeHtml(getLivrDelayLabel(l))}</text>`;
         }
       }
     });
@@ -1845,24 +1930,27 @@ function renderGantt(){
   const visiblePlanTasks=visibleTasks.filter(t=>t.type!=='title');
   const taskMax=(visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>taskEndCalendarDay(t, starts[t.id]||0))):7);
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
-  const totalDays=Math.max(taskMax,livrMax)+3;
+  const forecastEndDay=Math.max(taskMax,livrMax);
+  const totalDays=forecastEndDay+3;
   const {svg}=buildSVG(pDate,DW,0,totalDays);
 
   const usedCats=[...new Set(visibleTasks.map(t=>t.cat).filter(Boolean))];
   document.getElementById('g-legend').innerHTML=
     usedCats.map(c=>`<span class="legend-item"><span class="swatch" style="background:${CATS[c]?.c||'#888'}"></span>${c}</span>`).join('')+
     (livraisons.length?`<span class="legend-item"><span class="swatch" style="background:#EF9F27"></span>Livraisons</span>`:'') +
-    `<span class="legend-item"><span class="swatch" style="background:#EF9F27;transform:rotate(45deg)"></span>Jalons</span>`;
+    `<span class="legend-item"><span class="swatch" style="background:#EF9F27;transform:rotate(45deg)"></span>Jalons</span>` +
+    `<span class="legend-item"><span class="swatch" style="background:#d9d9d4;border:1px solid #b8b8b2"></span>Férié / fermeture</span>`;
 
   const taskOnly=visibleTasks.filter(t=>t.type!=='milestone'&&t.type!=='title');
   const done=taskOnly.filter(t=>(t.progress||0)===100).length;
   const inP=taskOnly.filter(t=>(t.progress||0)>0&&(t.progress||0)<100).length;
   const todo=taskOnly.filter(t=>(t.progress||0)===0).length;
   const avg=taskOnly.length?Math.round(taskOnly.reduce((a,t)=>a+(t.progress||0),0)/taskOnly.length):0;
-  const endDate=addDays(pDate,totalDays);
+  const endDate=addDays(pDate,forecastEndDay);
+  const workedDuration=visiblePlanTasks.length?Math.max(...visiblePlanTasks.map(t=>(starts[t.id]||0)+(+t.dur||0))):0;
 
   document.getElementById('g-metrics').innerHTML=`
-    <div class="metric"><div class="lbl">Durée totale</div><div class="val">${totalDays} jours</div></div>
+    <div class="metric"><div class="lbl">Durée totale</div><div class="val">${workedDuration} j ouvrés</div></div>
     <div class="metric"><div class="lbl">Fin prévisionnelle</div><div class="val">${fmtFull(endDate)}</div></div>
     <div class="metric"><div class="lbl">Avancement global</div><div class="val">${avg}%</div></div>
     <div class="metric"><div class="lbl">Tâches</div><div class="val" style="font-size:14px">
