@@ -650,7 +650,7 @@ button:hover{background:#f5f5f3}
     <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
       <strong>Structure du PDF généré :</strong><br>
       <strong>• Page 1 (synthèse)</strong> — Planning complet sur une seule page A3, plages sans activité supprimées, zoom auto-calculé.<br>
-      <strong>• Pages suivantes (détail)</strong> — Optionnelles : planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page).<br>
+      <strong>• Pages suivantes (détail)</strong> — Optionnelles : planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page) avec une échelle uniforme sur toutes les pages.<br>
       <strong>• Dernière page (tableau)</strong> — Optionnelle : tableau avec moyens humains, moyens matériels, jours/date de début et jours/date de fin.<br><br>
       Cliquez <strong>Exporter en PDF</strong> puis choisissez <strong>Enregistrer en PDF</strong> · Format : <strong>A3 paysage</strong> · Décochez les en-têtes/pieds de page.
     </div>
@@ -734,6 +734,51 @@ function getVisibleTasks(){
     }
   });
   return visible;
+}
+
+
+function normalizeChapterParents(){
+  // Associe chaque tâche / jalon au chapitre qui le précède visuellement.
+  // C'est volontairement recalculé après chaque déplacement pour garder une hiérarchie fiable,
+  // même avec d'anciens JSON qui n'avaient pas encore de parentId.
+  let currentTitleId=null;
+  (tasks||[]).forEach(t=>{
+    if(t.type==='title'){
+      currentTitleId=t.id;
+      delete t.parentId;
+    }else{
+      t.parentId=currentTitleId;
+    }
+  });
+}
+function getChapterBlockEndIndex(titleIndex){
+  let end=titleIndex+1;
+  while(end<tasks.length && tasks[end].type!=='title') end++;
+  return end;
+}
+function moveTaskOrChapterBlock(fromIndex,toIndex){
+  if(fromIndex===null || fromIndex===undefined) return;
+  if(fromIndex<0 || fromIndex>=tasks.length || toIndex<0 || toIndex>=tasks.length) return;
+
+  const source=tasks[fromIndex];
+  const blockEnd=source.type==='title' ? getChapterBlockEndIndex(fromIndex) : fromIndex+1;
+  const blockLen=blockEnd-fromIndex;
+
+  // Si on dépose un chapitre sur une ligne déjà comprise dans son propre bloc, on ne fait rien.
+  if(toIndex>=fromIndex && toIndex<blockEnd) return;
+
+  const block=tasks.splice(fromIndex,blockLen);
+  let insertIndex=toIndex;
+  if(toIndex>fromIndex) insertIndex-=blockLen;
+  tasks.splice(insertIndex,0,...block);
+  normalizeChapterParents();
+  renderTasks();
+  renderGantt();
+  updatePdfChapterList();
+}
+function getActiveChapterId(){
+  const idx=getLastChapterIndex();
+  return idx>=0 ? tasks[idx].id : null;
 }
 
 let humanResources=[
@@ -924,6 +969,27 @@ function getLastTaskInTravaux(){
   }
   return last;
 }
+function getLastChapterIndex(){
+  for(let i=tasks.length-1;i>=0;i--){
+    if(tasks[i].type==='title') return i;
+  }
+  return -1;
+}
+function getCurrentChapterInsertIndex(){
+  // Les chapitres créés par l'utilisateur sont des séparateurs réels du planning.
+  // Une nouvelle tâche est donc ajoutée dans le dernier chapitre existant, et non plus
+  // systématiquement dans la phase travaux paramétrée d'origine.
+  return tasks.length;
+}
+function getLastTaskInCurrentChapter(){
+  const start=getLastChapterIndex();
+  let last=null;
+  for(let i=Math.max(0,start+1); i<tasks.length; i++){
+    const t=tasks[i];
+    if(t.type==='task' || t.type==='milestone') last=t;
+  }
+  return last;
+}
 function getTaskEnd(task){
   return (+task.start||0) + (+task.dur||0);
 }
@@ -932,8 +998,8 @@ function addTask(type){
     ?{type:'milestone',name:'Réunion de chantier',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
     :{type:'task',name:'Nouvelle tâche',cat:'Coordination',start:0,dur:5,human:'',material:'',pred:'',link:'FS',lag:0,progress:0};
 
-  const newTask={...def,id:uid++};
-  const prev=getLastTaskInTravaux();
+  const newTask={...def,id:uid++,parentId:getActiveChapterId()};
+  const prev=getLastTaskInCurrentChapter() || getLastTaskInTravaux();
 
   if(prev){
     newTask.pred=String(prev.id||'');
@@ -942,15 +1008,37 @@ function addTask(type){
     newTask.start=getTaskEnd(prev);
   }
 
-  const insertIndex=getTravauxInsertIndex();
+  const insertIndex=getCurrentChapterInsertIndex();
   tasks.splice(insertIndex,0,newTask);
   renderTasks();
+  renderGantt();
+  updatePdfChapterList();
 }
 function addTitle(){
   tasks.push({type:'title',id:uid++,name:'Nouveau chapitre',cat:'',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0,collapsed:false});
+  normalizeChapterParents();
   renderTasks();
+  renderGantt();
+  updatePdfChapterList();
 }
-function removeTask(id){if(!confirm('Supprimer cette ligne ?'))return;tasks=tasks.filter(t=>t.id!==id);renderTasks()}
+function removeTask(id){
+  const idx=tasks.findIndex(t=>t.id===id);
+  if(idx<0)return;
+  const t=tasks[idx];
+  if(t.type==='title'){
+    const end=getChapterBlockEndIndex(idx);
+    const count=end-idx-1;
+    if(!confirm(count>0 ? `Supprimer ce chapitre et ses ${count} ligne(s) rattachée(s) ?` : 'Supprimer ce chapitre ?'))return;
+    tasks.splice(idx,end-idx);
+  }else{
+    if(!confirm('Supprimer cette ligne ?'))return;
+    tasks.splice(idx,1);
+  }
+  normalizeChapterParents();
+  renderTasks();
+  renderGantt();
+  updatePdfChapterList();
+}
 
 // ---- RESSOURCES ----
 function addHumanRes(){
@@ -1134,13 +1222,14 @@ function renderTasks(){
     row.dataset.idx=i;
     row.style.cursor='default';
     row.addEventListener('dragstart',e=>{dragSrcIdx=i;e.dataTransfer.effectAllowed='move';row.style.opacity='0.4';});
-    row.addEventListener('dragend',()=>{row.style.opacity='1';});
+    row.addEventListener('dragend',()=>{row.style.opacity='1';dragSrcIdx=null;});
     row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';row.style.background='#EAF3DE';});
     row.addEventListener('dragleave',()=>{row.style.background='';});
     row.addEventListener('drop',e=>{
       e.preventDefault();row.style.background='';
       if(dragSrcIdx===null||dragSrcIdx===i)return;
-      const moved=tasks.splice(dragSrcIdx,1)[0];tasks.splice(i,0,moved);dragSrcIdx=null;renderTasks();
+      moveTaskOrChapterBlock(dragSrcIdx,i);
+      dragSrcIdx=null;
     });
 
     // ---- TITRE / CHAPITRE ----
@@ -1897,6 +1986,21 @@ function filterTasksForChunk(sourceTasks, startsMap, startDay, endDay){
   return out;
 }
 
+function countVisiblePdfDays(pDate, startDay, endDay){
+  let n=0;
+  for(let cd=startDay; cd<=endDay; cd++){
+    if(isVisibleGanttDay(pDate, cd)) n++;
+  }
+  return Math.max(1,n);
+}
+function padSvgCanvasForPrint(svg, width, height, targetWidth, targetHeight){
+  const w=Math.max(width, Math.ceil(targetWidth||width));
+  const h=Math.max(height, Math.ceil(targetHeight||height));
+  let out=svg.replace(`width="${width}" height="${height}"`, `width="${w}" height="${h}"`);
+  out=out.replace('</svg>', `<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" pointer-events="none"/></svg>`);
+  return {svg:out,width:w,height:h};
+}
+
 function splitTasksForPrint(sourceTasks, maxRows){
   const rowsPerPage=Math.max(4, parseInt(maxRows)||12);
   const pages=[];
@@ -2133,6 +2237,11 @@ function exportPDF(){
     ? buildActivityAwarePdfChunks(rangeStartDay, rangeEndDay, spanValue, spanUnit, filteredTasks, origLivr, startsMap)
     : buildPdfChunks(rangeStartDay, rangeEndDay, pageMode, spanValue, spanUnit);
 
+  // Dimensions de référence pour toutes les pages de détail.
+  // Cela évite qu'une page contenant seulement 1 ou 2 lignes soit agrandie à l'export PDF.
+  const DETAIL_TARGET_W = getLabelWidth() + Math.max(1, ...chunks.map(c=>countVisiblePdfDays(ps, c.startDay, c.endDay))) * DW;
+  const DETAIL_TARGET_H = 92 + (PRINT_ROWS_PER_PAGE * 40) + 120 + 8;
+
   chunks.forEach((chunk)=>{
     const livrChunk=getFilteredLivraisonsByRange(chunk.startDay, chunk.endDay);
     const activeTasksForChunk=filterTasksForChunk(filteredTasks, startsMap, chunk.startDay, chunk.endDay);
@@ -2146,12 +2255,13 @@ function exportPDF(){
     rowPages.forEach((taskPage, rowIdx)=>{
       tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
       livraisons=(rowIdx===rowPages.length-1) ? livrChunk.map(l=>JSON.parse(JSON.stringify(l))) : [];
-      const {svg,width:svgWidth,height:svgHeight}=buildSVG(ps,DW,chunk.startDay,chunk.endDay,startsMap);
+      const built=buildSVG(ps,DW,chunk.startDay,chunk.endDay,startsMap);
+      const padded=padSvgCanvasForPrint(built.svg, built.width, built.height, DETAIL_TARGET_W, DETAIL_TARGET_H);
       const chunkStartDate=addDays(ps, chunk.startDay);
       const chunkEndDate=addDays(ps, chunk.endDay);
       pageNo++;
       const isLastDetailPage = (chunk===chunks[chunks.length-1]) && (rowIdx===rowPages.length-1);
-      const styledSvg=svg.replace('<svg ','<svg viewBox="0 0 '+svgWidth+' '+svgHeight+'" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+      const styledSvg=padded.svg.replace('<svg ','<svg viewBox="0 0 '+padded.width+' '+padded.height+'" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" ');
       printBlocks.push(`
       <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
         <div style="margin-bottom:6px">
@@ -2318,6 +2428,7 @@ function loadPreset(key){
   // Keep uid above resource IDs already assigned
   uid=Math.max(uid,100);
   tasks=p.tasks.map(t=>({...t,id:uid++,collapsed:!!t.collapsed}));
+  normalizeChapterParents();
   tasks.forEach((t,i)=>{
     if(t.pred){const pi=parseInt(t.pred)-1;t.pred=pi>=0&&pi<tasks.length?String(tasks[pi].id):''}
   });
@@ -2389,8 +2500,10 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
         link:t.link||'FS',
         lag:Number.isFinite(+t.lag)?+t.lag:0,
         progress:Number.isFinite(+t.progress)?+t.progress:0,
-        collapsed:t.type==='title' ? !!t.collapsed : false
+        collapsed:t.type==='title' ? !!t.collapsed : false,
+        parentId:t.parentId!=null ? +t.parentId : null
       }));
+      normalizeChapterParents();
 
       livraisons=(d.livraisons||[]).map((l,idx)=>normalizeLivraison({
         ...l,
