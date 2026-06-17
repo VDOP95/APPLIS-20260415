@@ -9117,7 +9117,7 @@ function renderEdition(main) {
     <button class="btn btn-dark" onclick="exportActionTrackerExcel()">Export Excel actions</button>
     <button class="btn btn-dark" onclick="exportActionTrackerPDF()">Générer PDF actions</button>
     <button class="btn btn-green" onclick="imprimerSyntheseUTA3()">🖨 Synthèse par UT – A3 paysage</button>
-    <button class="btn btn-primary" onclick="window.print()">Imprimer cette édition</button>
+    <button class="btn btn-primary" onclick="imprimerEditionInspection()">Édition PDF inspection du travail</button>
   </div>
 
   <div class="report-book">
@@ -9390,6 +9390,134 @@ function renderEdition(main) {
       </section>
     </div>
   </div>`;
+}
+
+
+// ─── ÉDITION PDF INSPECTION DU TRAVAIL – DOCUMENT A4 PAYSAGE PROPRE ───
+function htmlCell(value) {
+  const txt = escapeHtml(value || '').replace(/\n/g, '<br>');
+  return txt || '<span class="muted">—</span>';
+}
+
+function imprimerEditionInspection() {
+  migrateState();
+  const all = state.risques || [];
+  const uts = getUTs();
+  const actions = getActionPlanRows();
+  const todayIso = todayISO();
+  const company = escapeHtml(state.garde["Raison sociale :"] || '');
+  const address = escapeHtml(state.garde["Adresse du site :"] || '');
+  const maj = fmtDateFr(state.garde['Date de mise à jour :']) || '';
+  const version = escapeHtml(state.validation.versionDocument || 'V9');
+  const p1 = all.filter(r => getPriority(r)==='1').length;
+  const p2 = all.filter(r => getPriority(r)==='2').length;
+  const p3 = all.filter(r => getPriority(r)==='3').length;
+  const overdueRows = actions.filter(r => {
+    const d = (r.delai||'').slice(0,10);
+    return d && d < todayIso && r.statut !== 'Réalisée';
+  });
+  const noRespRows = actions.filter(a => ((a.action_description || a.actions_proposees) && !(a.responsable || '').trim()));
+  const noDateRows = actions.filter(a => ((a.action_description || a.actions_proposees) && !(a.delai || '').trim() && a.statut !== 'Réalisée'));
+
+  const historyRows = (state.historiqueMaj || []).map(row => `
+    <tr><td>${htmlCell(fmtDateFr(row.date))}</td><td>${htmlCell(row.version)}</td><td>${htmlCell(row.auteur)}</td><td>${htmlCell(row.objet)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Aucun historique renseigné.</td></tr>';
+
+  const actionsRows = actions.map(r => {
+    const prio = r.priorite || getPriority(r);
+    const d = (r.delai||'').slice(0,10);
+    const late = d && d < todayIso && r.statut !== 'Réalisée';
+    return `<tr class="prio-${prio}">
+      <td><strong>P${htmlCell(prio)}</strong><br><span class="muted">Note ${htmlCell(r.score)}</span></td>
+      <td>${htmlCell(r.ut)}</td>
+      <td><strong>${htmlCell(r.risque)}</strong><br><span class="muted">${htmlCell(r.situation)}</span></td>
+      <td>${htmlCell(r.prevention_existante)}</td>
+      <td>${htmlCell(r.action_description || r.actions_proposees)}</td>
+      <td>${htmlCell(r.responsable)}</td>
+      <td class="${late ? 'late' : ''}">${htmlCell(fmtDateFr(r.delai))}${late ? '<br><strong>Échéance dépassée</strong>' : ''}</td>
+      <td>${htmlCell(r.statut)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" class="muted">Aucune action renseignée.</td></tr>';
+
+  const utsHtml = uts.map((ut, idx) => {
+    const rows = all.filter(r => normalizeUT(r.ut) === normalizeUT(ut));
+    const effectif = getEffectifUT(ut) || inferEffectifForUT(ut) || '—';
+    const p1u = rows.filter(r => getPriority(r)==='1').length;
+    const p2u = rows.filter(r => getPriority(r)==='2').length;
+    const p3u = rows.filter(r => getPriority(r)==='3').length;
+    const body = rows.map(r => {
+      const prio = getPriority(r);
+      const details = normalizeActionDetails(r).filter(a => a.description || a.responsable || a.delai || a.statut !== 'Non engagée');
+      const actionsHtml = details.length ? details.map(a => {
+        const ad = (a.delai||'').slice(0,10);
+        const late = ad && ad < todayIso && a.statut !== 'Réalisée';
+        return `<div class="action-block"><strong>${htmlCell(a.description || r.actions_proposees)}</strong><br><span class="muted">Resp. : ${htmlCell(a.responsable)} · Échéance : <span class="${late ? 'late' : ''}">${htmlCell(fmtDateFr(a.delai))}</span> · Statut : ${htmlCell(a.statut)}</span></div>`;
+      }).join('') : htmlCell(r.actions_proposees || r.action_description);
+      return `<tr class="prio-${prio}">
+        <td><strong>${htmlCell(r.risque)}</strong><br><span class="badge p${prio}">P${prio}</span> <span class="muted">Note ${calcScore(r)}</span></td>
+        <td>${htmlCell(r.situation)}</td>
+        <td>${htmlCell(r.dommages)}</td>
+        <td>${htmlCell(r.prevention_existante)}</td>
+        <td>${actionsHtml}</td>
+        <td>${htmlCell(r.maitrise)}<br><span class="muted">${htmlCell(r.frequence)}<br>${htmlCell(r.gravite)}</span></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="muted">Aucun risque dans cette unité de travail.</td></tr>';
+    return `<section class="page ${idx ? '' : ''}">
+      <div class="page-head"><div><h2>${htmlCell(ut)}</h2><p>Effectif exposé UT : <strong>${htmlCell(effectif)}</strong></p></div><div class="right">${rows.length} risque(s)<br><span class="red">P1 : ${p1u}</span> · <span class="orange">P2 : ${p2u}</span> · P3 : ${p3u}</div></div>
+      <table class="risk-table">
+        <thead><tr><th>Risque / priorité</th><th>Situation dangereuse</th><th>Dommages potentiels</th><th>Prévention existante</th><th>Actions à mener</th><th>Cotation</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </section>`;
+  }).join('');
+
+  const vigilanceHtml = `
+    <div class="vigilance ${overdueRows.length ? 'bad' : 'ok'}"><strong>Actions en retard :</strong> ${overdueRows.length}</div>
+    <div class="vigilance ${noRespRows.length ? 'warn' : 'ok'}"><strong>Actions sans responsable :</strong> ${noRespRows.length}</div>
+    <div class="vigilance ${noDateRows.length ? 'warn' : 'ok'}"><strong>Actions sans échéance :</strong> ${noDateRows.length}</div>`;
+
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>DUERP - Édition inspection</title>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0;padding:0;background:#fff;color:#1A1510;font-family:Arial,Helvetica,sans-serif;font-size:10.2px;line-height:1.32}
+    @page{size:A4 landscape;margin:10mm}
+    h1{font-size:22px;margin:0 0 5mm;font-family:Georgia,serif} h2{font-size:15px;margin:0 0 1mm;font-family:Georgia,serif} h3{font-size:12px;margin:0 0 3mm;text-transform:uppercase;letter-spacing:.04em}
+    .doc{width:100%}.page{break-before:page;page-break-before:always}.page:first-child{break-before:auto;page-break-before:auto}.cover{min-height:170mm;display:flex;flex-direction:column;justify-content:space-between}
+    .topline{display:flex;justify-content:space-between;gap:10mm;border-bottom:2px solid #1A1510;padding-bottom:5mm;margin-bottom:6mm}.meta{text-align:right;font-size:10px;color:#333}.muted{color:#555;font-size:9px}.right{text-align:right}.red,.late{color:#B3261E}.orange{color:#AD5A1F}.green{color:#1D7A50}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}.box{border:1px solid #CFCAC1;border-radius:4px;padding:4mm;background:#FAFAF8;min-height:18mm}.box .v{font-size:18px;font-weight:700}.box .l{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.04em}.vigilance{border:1px solid #CFCAC1;border-radius:4px;padding:3mm;margin-bottom:2mm}.bad{background:#FDF0EE;border-color:#E0AAA2}.warn{background:#FEF5ED;border-color:#E6BE9E}.ok{background:#EAF4EE;border-color:#9AC7AE}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;background:#fff} th,td{border:1px solid #C7C2B9;padding:2.2mm;vertical-align:top;overflow-wrap:anywhere;word-break:normal} th{background:#1A1510;color:#fff;font-size:8.3px;text-transform:uppercase;letter-spacing:.035em;text-align:left} thead{display:table-header-group} tfoot{display:table-footer-group} tr{break-inside:avoid;page-break-inside:avoid}
+    .small-table th{background:#EFEDE7;color:#1A1510}.small-table td,.small-table th{font-size:9.5px;padding:2mm}.action-table th:nth-child(1){width:8%}.action-table th:nth-child(2){width:14%}.action-table th:nth-child(3){width:20%}.action-table th:nth-child(4){width:18%}.action-table th:nth-child(5){width:22%}.action-table th:nth-child(6){width:8%}.action-table th:nth-child(7){width:6%}.action-table th:nth-child(8){width:6%}
+    .risk-table th:nth-child(1){width:17%}.risk-table th:nth-child(2){width:20%}.risk-table th:nth-child(3){width:15%}.risk-table th:nth-child(4){width:18%}.risk-table th:nth-child(5){width:22%}.risk-table th:nth-child(6){width:8%}
+    .prio-1 td:first-child{border-left:4px solid #C0392B}.prio-2 td:first-child{border-left:4px solid #C0622B}.prio-3 td:first-child{border-left:4px solid #B0A898}.badge{display:inline-block;border-radius:10px;padding:1px 5px;font-size:8px;font-weight:bold}.p1{background:#FDF0EE;color:#C0392B}.p2{background:#FEF5ED;color:#C0622B}.p3{background:#F0EEE8;color:#555}.action-block{border-left:3px solid #C7C2B9;padding-left:2mm;margin-bottom:1.5mm}.page-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1A1510;padding-bottom:3mm;margin-bottom:4mm}
+    .signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:8mm}.signature{border:1px solid #C7C2B9;border-radius:4px;min-height:42mm;padding:4mm}.line{border-top:1px solid #999;margin-top:24mm;padding-top:2mm;color:#555}
+    @media print{button{display:none!important} body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-cut{break-inside:avoid;page-break-inside:avoid}}
+  </style></head><body><div class="doc">
+    <section class="cover">
+      <div>
+        <div class="topline"><div><h1>DUERP - Document Unique d'Évaluation des Risques Professionnels</h1><div><strong>${company}</strong><br>${address}</div></div><div class="meta">Mise à jour : <strong>${maj}</strong><br>Version : <strong>${version}</strong><br>Édition inspection du travail</div></div>
+        <p>Cette édition consolide les informations générales de l'entreprise, la méthode de cotation, la synthèse des risques, le plan d'action et le registre détaillé par unité de travail. Elle est générée avec une mise en page A4 paysage afin d'éviter les tableaux coupés et de garantir une lecture exploitable en contrôle.</p>
+        <div class="grid" style="margin-top:7mm">
+          <div class="box"><div class="v">${uts.length}</div><div class="l">Unités de travail</div></div><div class="box"><div class="v">${all.length}</div><div class="l">Risques évalués</div></div><div class="box"><div class="v red">${p1}</div><div class="l">Priorité 1</div></div><div class="box"><div class="v orange">${p2}</div><div class="l">Priorité 2</div></div><div class="box"><div class="v">${p3}</div><div class="l">Priorité 3</div></div><div class="box"><div class="v">${actions.length}</div><div class="l">Actions suivies</div></div><div class="box"><div class="v red">${overdueRows.length}</div><div class="l">Actions en retard</div></div><div class="box"><div class="v">${escapeHtml(state.garde["Effectif total :"] || '')}</div><div class="l">Effectif total</div></div>
+        </div>
+      </div>
+      <table class="small-table"><tbody><tr><th>Représentant légal</th><td>${htmlCell(state.garde["Représentant légal :"])}</td><th>Service de santé</th><td>${htmlCell(state.garde["Service de Santé :"])}</td></tr><tr><th>Nature d'activité</th><td>${htmlCell(state.garde["Nature d'activité :"])}</td><th>Signataire</th><td>${htmlCell(state.garde["Signataire :"])}</td></tr></tbody></table>
+    </section>
+
+    <section class="page"><div class="page-head"><h2>Cadre documentaire et méthode</h2><div class="meta">${company} - ${version}</div></div><table class="small-table"><tbody><tr><th>Finalité</th><td>Support d'évaluation des risques professionnels, d'identification des mesures de prévention existantes et de planification des actions complémentaires.</td></tr><tr><th>Méthode de cotation</th><td>Hiérarchisation par Maîtrise × Fréquence × Gravité. Priorité P1 pour les risques élevés, P2 pour les risques moyens, P3 pour les risques faibles.</td></tr><tr><th>Pilotage</th><td>Les risques P1, les actions non engagées et les échéances dépassées sont à traiter en priorité. Les actions réalisées restent conservées pour assurer la traçabilité.</td></tr></tbody></table><h3 style="margin-top:6mm">Historique des mises à jour</h3><table class="small-table"><thead><tr><th>Date</th><th>Version</th><th>Auteur</th><th>Objet</th></tr></thead><tbody>${historyRows}</tbody></table></section>
+
+    <section class="page"><div class="page-head"><h2>Synthèse générale et points de vigilance</h2><div class="meta">Mise à jour : ${maj}</div></div><div class="grid"><div class="box"><div class="v">${uts.length}</div><div class="l">UT</div></div><div class="box"><div class="v">${all.length}</div><div class="l">Risques</div></div><div class="box"><div class="v red">${p1}</div><div class="l">P1</div></div><div class="box"><div class="v orange">${p2}</div><div class="l">P2</div></div></div><div style="margin-top:6mm">${vigilanceHtml}</div></section>
+
+    <section class="page"><div class="page-head"><h2>Plan d'action priorisé</h2><div class="meta">${actions.length} action(s)</div></div><table class="action-table"><thead><tr><th>Priorité</th><th>UT</th><th>Risque</th><th>Prévention existante</th><th>Actions complémentaires</th><th>Resp.</th><th>Échéance</th><th>Statut</th></tr></thead><tbody>${actionsRows}</tbody></table></section>
+
+    ${utsHtml}
+
+    <section class="page"><div class="page-head"><h2>Visa et signatures</h2><div class="meta">${company} - ${version}</div></div><table class="small-table"><tbody><tr><th>Version</th><td>${htmlCell(state.validation.versionDocument || 'V9')}</td><th>Date de validation</th><td>${htmlCell(fmtDateFr(state.validation.dateValidation))}</td></tr><tr><th>Rédigé par</th><td>${htmlCell(state.validation.redigePar)}<br><span class="muted">${htmlCell(state.validation.fonctionRedacteur)}</span></td><th>Validé par</th><td>${htmlCell(state.validation.validePar)}<br><span class="muted">${htmlCell(state.validation.fonctionValidateur)}</span></td></tr><tr><th>Référent SST</th><td>${htmlCell(state.validation.referentSST)}</td><th>Consultation CSE</th><td>${htmlCell(state.validation.consultationCSE)} ${state.validation.dateConsultationCSE ? '(' + htmlCell(fmtDateFr(state.validation.dateConsultationCSE)) + ')' : ''}</td></tr><tr><th>Commentaire</th><td colspan="3">${htmlCell(state.validation.commentaireValidation)}</td></tr></tbody></table><div class="signatures"><div class="signature"><strong>Rédaction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Validation Direction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Référent SST / diffusion</strong><div class="line">Nom, date et signature</div></div></div></section>
+  </div><script>window.onload=function(){setTimeout(function(){window.print();},500)};<\/script></body></html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('Autorisez les fenêtres contextuelles pour générer le PDF.'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
 }
 
 
