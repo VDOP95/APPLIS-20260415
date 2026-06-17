@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Générateur PPSPS — EV & VRD</title>
+<title>Générateur Santé-Sécurité — PPSPS / Plan de prévention / PGSS</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--or:#E8651A;--or2:#FEF3EC;--or3:#FDE8D4;--ink:#1F2937;--ink2:#374151;--ink3:#6B7280;--ink4:#9CA3AF;--bg:#F9FAFB;--bg2:#F3F4F6;--bg3:#E5E7EB;--gr:#16A34A;--gr2:#DCFCE7;--re:#DC2626;--re2:#FEE2E2;--sh:0 2px 12px rgba(31,41,55,.08);--sh2:0 8px 28px rgba(31,41,55,.13);--r:10px}
@@ -154,8 +154,8 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <aside>
   <div class="logo">
-    <h1>PPSPS <span>Générateur</span></h1>
-    <p>Espaces Verts & VRD</p>
+    <h1>Santé-Sécurité <span>Chantier</span></h1>
+    <p>PPSPS • Plan de prévention • PGSS</p>
   </div>
   <div class="nav-sec">Étapes</div>
   <div class="ni act" id="nav0" onclick="goTo(0)"><div class="badge">1</div>Type de chantier</div>
@@ -164,10 +164,10 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
   <div class="ni" id="nav3" onclick="goTo(3)"><div class="badge">4</div>Phasage des travaux</div>
   <div class="ni" id="nav4" onclick="goTo(4)"><div class="badge">5</div>Risques & prévention</div>
   <div class="ni" id="nav5" onclick="goTo(5)"><div class="badge">6</div>Secours & urgences</div>
-  <div class="ni" id="nav6" onclick="goTo(6)"><div class="badge">7</div>Générer le PPSPS</div>
+  <div class="ni" id="nav6" onclick="goTo(6)"><div class="badge">7</div><span id="nav-generate-label">Générer le document</span></div>
   <div class="sidebar-bottom">
     Références réglementaires :<br>
-    Art. R4532-58 à R4532-74<br>Code du travail<br><br>
+    PPSPS : R4532-58 à R4532-74<br>Plan de prévention : R4512<br>Code du travail<br><br>
     ⚠️ Document à valider par<br>votre responsable prévention
   </div>
 </aside>
@@ -177,7 +177,16 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <!-- ─── ÉTAPE 0 ─── -->
 <div class="step act" id="step0">
-  <div class="ph"><h2>Type de chantier & catégorie</h2><p>Détermine le contenu et le niveau de détail du PPSPS généré.</p></div>
+  <div class="ph"><h2>Type de document santé-sécurité</h2><p>Choisissez le livrable à produire. Le noyau commun reste identique : chantier, entreprises, phasage, risques, mesures, secours et signatures.</p></div>
+  <div class="card">
+    <div class="ct">📄 Document à générer</div>
+    <div class="tg">
+      <div class="tc sel" id="doctype-ppsps" onclick="selDocType('ppsps')"><div class="ico">🏗️</div><div class="lbl">PPSPS</div><div class="dsc">Chantier soumis à coordination SPS</div></div>
+      <div class="tc" id="doctype-prevention" onclick="selDocType('prevention')"><div class="ico">🤝</div><div class="lbl">Plan de prévention</div><div class="dsc">Entreprise extérieure / site en activité</div></div>
+      <div class="tc" id="doctype-pgss" onclick="selDocType('pgss')"><div class="ico">🛡️</div><div class="lbl">Plan Santé & Sécurité</div><div class="dsc">Management SST chantier / appel d’offre</div></div>
+    </div>
+  </div>
+  <div class="ph" style="margin-top:16px"><h2>Type de chantier & catégorie</h2><p id="doctype-help">Détermine le contenu et le niveau de détail du document généré.</p></div>
   <div class="card">
     <div class="ct">🔨 Nature des travaux</div>
     <div class="tg">
@@ -274,6 +283,24 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
         <label style="margin-top:4px">Complément / précisions libres</label>
         <textarea id="descriptionTravaux" placeholder="Complétez ou précisez ici la description des travaux..."></textarea>
       </div>
+    </div>
+  </div>
+  <div class="card" id="specific-prevention" style="display:none">
+    <div class="ct">🤝 Spécifique plan de prévention</div>
+    <div class="g2">
+      <div class="fg"><label>Entreprise utilisatrice</label><input id="entrepriseUtilisatrice" placeholder="Client / site d'accueil"></div>
+      <div class="fg"><label>Représentant entreprise utilisatrice</label><input id="representantEU" placeholder="Nom / fonction / téléphone"></div>
+      <div class="fg full"><label>Inspection commune préalable</label><textarea id="inspectionCommune" placeholder="Date, participants, zones visitées, contraintes relevées..."></textarea></div>
+      <div class="fg full"><label>Risques d'interférence / coactivité spécifiques</label><textarea id="risquesInterference" placeholder="Circulation interne, usagers, engins, consignations, horaires, accès, entreprises présentes..."></textarea></div>
+      <div class="fg full"><label>Autorisations / permis particuliers</label><textarea id="permisSpecifiques" placeholder="Permis feu, consignation, travail en hauteur, accès toiture, circulation, levage..."></textarea></div>
+    </div>
+  </div>
+  <div class="card" id="specific-pgss" style="display:none">
+    <div class="ct">🛡️ Spécifique Plan Santé & Sécurité</div>
+    <div class="g2">
+      <div class="fg full"><label>Objectifs Santé-Sécurité du chantier</label><textarea id="objectifsSST" placeholder="Zéro accident grave, maîtrise de la coactivité, maintien de la propreté, accueil sécurité..."></textarea></div>
+      <div class="fg full"><label>Organisation / responsabilités SST</label><textarea id="responsabilitesSST" placeholder="Rôle du conducteur, chef d'équipe, référent SST, sous-traitants, remontées d'alerte..."></textarea></div>
+      <div class="fg full"><label>Suivi, contrôles et amélioration continue</label><textarea id="suiviSST" placeholder="Causeries, visites chantier, contrôles EPI, suivi des actions, traitement des écarts..."></textarea></div>
     </div>
   </div>
   <div class="nb"><button class="bpv" onclick="goTo(0)">← Précédent</button><button class="bnx" onclick="goTo(2)">Suivant →</button></div>
@@ -508,7 +535,7 @@ button{font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;border:non
 
 <script>
 // ── État global ────────────────────────────────────────────────────────────────
-const S = { typeChantier:'EV', categorie:'1ere', modeIntervention:'seul', phases:[], cotraitants:[], customRisks:[], risquesEV:[], risquesVRD:[], risquesCommuns:[], risquesCustom:[], probas:{}, mesures:{}, phrases:{}, selectedPhaseFilters:[] };
+const S = { docType:'ppsps', typeChantier:'EV', categorie:'1ere', modeIntervention:'seul', phases:[], cotraitants:[], customRisks:[], risquesEV:[], risquesVRD:[], risquesCommuns:[], risquesCustom:[], probas:{}, mesures:{}, phrases:{}, selectedPhaseFilters:[] };
 let cur = 0;
 
 // ── Navigation ─────────────────────────────────────────────────────────────────
@@ -526,6 +553,7 @@ function goTo(n) {
   if(n===3) renderPhases();
   if(n===4) renderRisques();
   if(n===6) renderSummary();
+  updateDocTypeUI();
   window.scrollTo(0,0);
 }
 
@@ -540,6 +568,29 @@ function selType(t) {
 function selCat(c) {
   S.categorie = c;
   ['1ere','2eme'].forEach(k => document.getElementById('cat-'+k).classList.toggle('sel', k===c));
+}
+
+function docTypeLabel(t){
+  return ({ppsps:'PPSPS', prevention:'Plan de prévention', pgss:'Plan de gestion Santé & Sécurité'})[t || S.docType] || 'Document santé-sécurité';
+}
+function selDocType(t){
+  S.docType = t;
+  ['ppsps','prevention','pgss'].forEach(k => {
+    const el = document.getElementById('doctype-'+k);
+    if(el) el.classList.toggle('sel', k===t);
+  });
+  updateDocTypeUI();
+}
+function updateDocTypeUI(){
+  const lbl = docTypeLabel();
+  const nav = document.getElementById('nav-generate-label');
+  if(nav) nav.textContent = 'Générer le ' + lbl;
+  const h = document.getElementById('doctype-help');
+  if(h) h.textContent = S.docType === 'ppsps' ? 'Contenu orienté coordination SPS, phasage, risques chantier et secours.' : S.docType === 'prevention' ? 'Contenu orienté entreprise utilisatrice, inspection commune préalable, coactivité et risques d’interférence.' : 'Contenu orienté organisation SST, responsabilités, contrôles, suivi des actions et amélioration continue.';
+  const p = document.getElementById('specific-prevention');
+  const g = document.getElementById('specific-pgss');
+  if(p) p.style.display = S.docType === 'prevention' ? 'block' : 'none';
+  if(g) g.style.display = S.docType === 'pgss' ? 'block' : 'none';
 }
 
 function setModeIntervention(mode) {
@@ -1082,6 +1133,7 @@ function renderSummary() {
   document.getElementById('summary').innerHTML = [
     ['Chantier', v('nomChantier')||'(non renseigné)'],
     ['Entreprise', v('nomEntreprise')||'(non renseigné)'],
+    ['Document', docTypeLabel(S.docType)],
     ['Type / Catégorie', `${type} — ${cat}`],
     ['Mode', mode],
     ['Responsable', v('responsableChantier')||'—'],
@@ -1095,7 +1147,7 @@ function renderSummary() {
   const isVRD=S.typeChantier==='VRD'||S.typeChantier==='Mixte';
   const is2=S.categorie==='2eme';
   document.getElementById('contenu').innerHTML = [
-    [true,'Page de garde professionnelle'],
+    [true,`Page de garde ${docTypeLabel(S.docType)}`],
     [true,'1. Identification chantier & intervenants'],
     [true,`2. Description des travaux & phasage (${S.phases.length} phases)`],
     [true,`3. Analyse des risques ${isEV?'EV':''}${isEV&&isVRD?'+':''}${isVRD?'VRD':''} + communs`],
@@ -1115,7 +1167,7 @@ function v(id){const el=document.getElementById(id);return el?el.value.trim():''
 function collectData() {
   const fmtD = s => { if(!s) return ''; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('fr-FR'); };
   return {
-    typeChantier:S.typeChantier, categorie:S.categorie, modeIntervention:S.modeIntervention,
+    docType:S.docType, typeChantier:S.typeChantier, categorie:S.categorie, modeIntervention:S.modeIntervention,
     nomChantier:v('nomChantier'), adresseChantier:v('adresseChantier'),
     dateDebut:fmtD(v('dateDebut')), dateFin:fmtD(v('dateFin')),
     duree:v('duree'), montant:v('montant'),
@@ -1138,6 +1190,9 @@ function collectData() {
     planEvacuation:v('planEvacuation'), contactGrdf:v('contactGrdf'),
     contactEnedis:v('contactEnedis'), contactMairie:v('contactMairie'),
     contactPolice:v('contactPolice'),
+    entrepriseUtilisatrice:v('entrepriseUtilisatrice'), representantEU:v('representantEU'), inspectionCommune:v('inspectionCommune'),
+    risquesInterference:v('risquesInterference'), permisSpecifiques:v('permisSpecifiques'),
+    objectifsSST:v('objectifsSST'), responsabilitesSST:v('responsabilitesSST'), suiviSST:v('suiviSST'),
   };
 }
 
@@ -1264,11 +1319,11 @@ function buildDocumentHtml(data){
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>PPSPS - ${esc(data.nomChantier || 'Chantier')}</title>
+<title>${esc(docTypeLabel(data.docType))} - ${esc(data.nomChantier || 'Chantier')}</title>
 <style>
-  @page { size: A4; margin: 16mm; }
+  @page { size: A4; margin: 14mm 12mm; }
   body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:11pt;line-height:1.45;margin:0}
-  .doc{max-width:190mm;margin:0 auto;padding:0}
+  .doc{max-width:186mm;margin:0 auto;padding:0}
   .cover{border:2px solid #E8651A;padding:18mm 14mm;margin-bottom:10mm}
   .cover h1{margin:0 0 6mm 0;font-size:24pt;color:#E8651A}
   .cover h2{margin:0 0 4mm 0;font-size:16pt}
@@ -1278,11 +1333,14 @@ function buildDocumentHtml(data){
   h2{font-size:16pt;color:#E8651A;border-bottom:2px solid #FDE8D4;padding-bottom:2mm;margin:0 0 5mm 0}
   h3{font-size:12pt;margin:5mm 0 2mm 0;color:#374151}
   p{margin:0 0 3mm 0}
-  .doc-table{border-collapse:collapse;width:100%;margin:0 0 4mm 0}
-  .doc-table th,.doc-table td{border:1px solid #D1D5DB;padding:2.5mm 3mm;vertical-align:top;text-align:left}
-  .doc-table th{width:34%;background:#F9FAFB}
+  .doc-table{border-collapse:collapse;width:100%;margin:0 0 4mm 0;table-layout:fixed;page-break-inside:auto}
+  .doc-table th,.doc-table td{border:1px solid #D1D5DB;padding:2.2mm 2.5mm;vertical-align:top;text-align:left;word-break:normal;overflow-wrap:anywhere}
+  .doc-table th{width:30%;background:#F9FAFB}
+  thead{display:table-header-group}
+  tfoot{display:table-footer-group}
+  tr{page-break-inside:avoid;break-inside:avoid}
   .pill{display:inline-block;font-size:9pt;padding:1mm 2mm;border:1px solid #E5E7EB;background:#F9FAFB;border-radius:10px;margin-left:2mm}
-  .risk-card{border:1px solid #E5E7EB;background:#fff;padding:3mm 4mm;margin:0 0 3mm 0}
+  .risk-card{border:1px solid #E5E7EB;background:#fff;padding:3mm 4mm;margin:0 0 3mm 0;page-break-inside:avoid;break-inside:avoid}
   .risk-measures{margin-top:2mm}
   .mini-title{font-weight:700;color:#374151;margin-bottom:1mm}
   ul{margin:1.5mm 0 3mm 5mm;padding-left:4mm}
@@ -1291,13 +1349,18 @@ function buildDocumentHtml(data){
   .page-break{page-break-before:always}
   .signature-box{height:24mm;border:1px dashed #9CA3AF;margin-top:4mm}
   .footnote{font-size:9pt;color:#6B7280;margin-top:8mm}
-  @media print { .page-break{page-break-before:always} }
+  @media print {
+    html,body{width:210mm;min-height:297mm;background:#fff}
+    .page-break{page-break-before:always}
+    h2,h3{page-break-after:avoid}
+    table{page-break-inside:auto}
+  }
 </style>
 </head>
 <body>
 <div class="doc">
   <section class="cover">
-    <h1>PPSPS</h1>
+    <h1>${esc(docTypeLabel(data.docType))}</h1>
     <h2>${esc(data.nomChantier || 'Opération non renseignée')}</h2>
     <p><strong>Adresse :</strong> ${nl2br(data.adresseChantier || '—')}</p>
     <div class="meta">
@@ -1336,8 +1399,27 @@ function buildDocumentHtml(data){
     ${riskSectionsHtml(riskGroups)}
   </section>
 
+  ${data.docType === 'prevention' ? `<section class="doc-section">
+    <h2>4. Dispositions spécifiques au plan de prévention</h2>
+    ${tableHtml([
+      ['Entreprise utilisatrice', data.entrepriseUtilisatrice || data.maitreouvrage || '—'],
+      ['Représentant entreprise utilisatrice', data.representantEU || '—'],
+      ['Inspection commune préalable', data.inspectionCommune || '—'],
+      ['Risques d’interférence / coactivité spécifiques', data.risquesInterference || '—'],
+      ['Autorisations / permis particuliers', data.permisSpecifiques || '—']
+    ])}
+  </section>` : ''}
+  ${data.docType === 'pgss' ? `<section class="doc-section">
+    <h2>4. Management Santé & Sécurité</h2>
+    ${tableHtml([
+      ['Objectifs Santé-Sécurité du chantier', data.objectifsSST || '—'],
+      ['Organisation / responsabilités SST', data.responsabilitesSST || '—'],
+      ['Suivi, contrôles et amélioration continue', data.suiviSST || '—']
+    ])}
+  </section>` : ''}
+
   <section class="doc-section">
-    <h2>4. Organisation des secours & urgences</h2>
+    <h2>${data.docType === 'ppsps' ? '4' : '5'}. Organisation des secours & urgences</h2>
     ${tableHtml([
       ['Hôpital / urgences le plus proche', data.hopital || '—'],
       ['Médecin du travail', data.medecinTravail || '—'],
@@ -1354,7 +1436,7 @@ function buildDocumentHtml(data){
   ${cotraitantsHtml}
 
   <section class="doc-section page-break">
-    <h2>${data.modeIntervention === 'groupement' ? '6. Signatures' : '5. Signatures'}</h2>
+    <h2>Signatures et validation</h2>
     <table class="doc-table">
       <tbody>
         <tr><th>Entreprise principale / mandataire</th><td><div class="signature-box"></div></td></tr>
@@ -1362,7 +1444,7 @@ function buildDocumentHtml(data){
         <tr><th>Visa / validation prévention</th><td><div class="signature-box"></div></td></tr>
       </tbody>
     </table>
-    <p class="footnote">Document généré automatiquement. À relire et valider avant transmission.</p>
+    <p class="footnote">${esc(docTypeLabel(data.docType))} généré automatiquement. À relire et valider avant transmission.</p>
   </section>
 </div>
 </body>
@@ -1385,27 +1467,53 @@ function exportWordDoc() {
   const data = collectData();
   const safe = safeFileName(data.nomChantier);
   const docHtml = buildDocumentHtml(data);
-  downloadBlob('\ufeff' + docHtml, `PPSPS_${safe}.doc`, 'application/msword');
+  downloadBlob('\ufeff' + docHtml, `${docTypeLabel(data.docType).replace(/[^a-zA-Z0-9]+/g,"_")}_${safe}.doc`, 'application/msword');
   setStatus('stok', '✅ Export Word lancé. Ouvrez le fichier <strong>.doc</strong> dans Word puis enregistrez-le en <strong>.docx</strong> si besoin.');
 }
 function openPrintView() {
   const data = collectData();
   const docHtml = buildDocumentHtml(data);
-  const w = window.open('', '_blank');
-  if(!w){
-    setStatus('sterr', '❌ Le navigateur a bloqué la fenêtre d’impression. Autorisez les pop-ups pour ce fichier.');
-    return;
+  const frameId = 'print-frame-sst';
+  const oldFrame = document.getElementById(frameId);
+  if(oldFrame) oldFrame.remove();
+
+  const frame = document.createElement('iframe');
+  frame.id = frameId;
+  frame.style.position = 'fixed';
+  frame.style.right = '0';
+  frame.style.bottom = '0';
+  frame.style.width = '0';
+  frame.style.height = '0';
+  frame.style.border = '0';
+  frame.style.opacity = '0';
+  document.body.appendChild(frame);
+
+  const frameDoc = frame.contentWindow.document;
+  frameDoc.open();
+  frameDoc.write(docHtml);
+  frameDoc.close();
+
+  const launchPrint = () => {
+    try {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      setStatus('stok', '✅ Fenêtre PDF ouverte. Choisissez <strong>Enregistrer au format PDF</strong>.');
+    } catch (e) {
+      setStatus('sterr', '❌ Impression impossible depuis le navigateur. Téléchargez le Word ou autorisez l’impression du fichier HTML local.');
+    }
+  };
+
+  if(frame.contentWindow.document.readyState === 'complete') {
+    setTimeout(launchPrint, 300);
+  } else {
+    frame.onload = () => setTimeout(launchPrint, 300);
+    setTimeout(launchPrint, 900);
   }
-  w.document.open();
-  w.document.write(docHtml);
-  w.document.close();
-  w.focus();
-  setStatus('stok', '✅ Vue d’impression ouverte. Utilisez <strong>Imprimer</strong> puis <strong>Enregistrer en PDF</strong>.');
 }
 function exportJSON() {
   const data = collectData();
   const safe = safeFileName(data.nomChantier);
-  downloadBlob(JSON.stringify(data, null, 2), `PPSPS_${safe}.json`, 'application/json');
+  downloadBlob(JSON.stringify(data, null, 2), `${docTypeLabel(data.docType).replace(/[^a-zA-Z0-9]+/g,"_")}_${safe}.json`, 'application/json');
   setStatus('stok', '✅ Sauvegarde JSON téléchargée. Elle permet de conserver les données saisies du dossier.');
 }
 
@@ -1439,6 +1547,8 @@ function addDescFromSelect() {
 
 // Init
 selType('EV'); selCat('1ere'); setModeIntervention('seul');
+
+updateDocTypeUI();
 </script>
 </body>
 </html>
