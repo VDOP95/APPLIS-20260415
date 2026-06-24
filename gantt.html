@@ -3,7 +3,7 @@
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt Chantier – Espaces verts &amp; VRD</title>
+<title>Gantt Chantier – Espaces verts &amp; VRD – version corrigée</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f3;color:#2C2C2A;font-size:14px}
@@ -751,6 +751,71 @@ function normalizeChapterParents(){
     }
   });
 }
+
+function getChapterNameById(id){
+  if(id===null || id===undefined || id==='') return '';
+  const ch=(tasks||[]).find(x=>String(x.id)===String(id) && x.type==='title');
+  return ch ? String(ch.name||'').trim() : '';
+}
+function getChapterNameForTask(t){
+  if(!t || t.type==='title') return '';
+  if(t.parentId!==undefined && t.parentId!==null && t.parentId!==''){
+    const byParent=getChapterNameById(t.parentId);
+    if(byParent) return byParent;
+  }
+  const idx=(tasks||[]).findIndex(x=>String(x.id)===String(t.id));
+  for(let i=idx-1;i>=0;i--){
+    if(tasks[i] && tasks[i].type==='title') return String(tasks[i].name||'').trim();
+  }
+  return '';
+}
+function simplifyChapterName(name){
+  let n=String(name||'').trim();
+  n=n.replace(/^PHASE\s+TRAVAUX\s*-?\s*/i,'');
+  n=n.replace(/^PHASE\s+/i,'');
+  return n || String(name||'').trim();
+}
+function getTaskDisplayName(t){
+  if(!t) return '';
+  if(t.type==='title') return String(t.name||'');
+  const ch=simplifyChapterName(getChapterNameForTask(t));
+  return ch ? `${ch} > ${t.name||''}` : String(t.name||'');
+}
+function getTaskShortLabel(t, maxLen=42){
+  const label=getTaskDisplayName(t);
+  return label.length>maxLen ? label.substring(0,maxLen-1)+'…' : label;
+}
+function detectDependencyProblems(list=tasks){
+  const arr=list||[];
+  const byId={};
+  arr.forEach(t=>{ if(t && t.id!==undefined) byId[String(t.id)]=t; });
+  const problems=[];
+  arr.forEach(t=>{
+    if(!t || t.type==='title' || !t.pred) return;
+    if(!byId[String(t.pred)]) problems.push(`Prédécesseur introuvable : "${getTaskDisplayName(t)}" pointe vers l'ID ${t.pred}.`);
+  });
+  const state={};
+  const stack=[];
+  function visit(t){
+    if(!t || t.type==='title') return false;
+    const id=String(t.id);
+    if(state[id]===2) return false;
+    if(state[id]===1){
+      const pos=stack.findIndex(x=>String(x.id)===id);
+      const cycle=(pos>=0?stack.slice(pos):stack).concat([t]).map(x=>getTaskDisplayName(x)).join(' → ');
+      problems.push(`Boucle de dépendance détectée : ${cycle}.`);
+      return true;
+    }
+    state[id]=1;
+    stack.push(t);
+    if(t.pred && byId[String(t.pred)]) visit(byId[String(t.pred)]);
+    stack.pop();
+    state[id]=2;
+    return false;
+  }
+  arr.forEach(visit);
+  return [...new Set(problems)];
+}
 function getChapterBlockEndIndex(titleIndex){
   let end=titleIndex+1;
   while(end<tasks.length && tasks[end].type!=='title') end++;
@@ -761,15 +826,27 @@ function moveTaskOrChapterBlock(fromIndex,toIndex){
   if(fromIndex<0 || fromIndex>=tasks.length || toIndex<0 || toIndex>=tasks.length) return;
 
   const source=tasks[fromIndex];
-  const blockEnd=source.type==='title' ? getChapterBlockEndIndex(fromIndex) : fromIndex+1;
+  const movingChapter=source && source.type==='title';
+  const blockEnd=movingChapter ? getChapterBlockEndIndex(fromIndex) : fromIndex+1;
   const blockLen=blockEnd-fromIndex;
 
-  // Si on dépose un chapitre sur une ligne déjà comprise dans son propre bloc, on ne fait rien.
+  // Si on dépose un chapitre sur une ligne comprise dans son propre bloc, on ne fait rien.
   if(toIndex>=fromIndex && toIndex<blockEnd) return;
 
+  // Quand on déplace un chapitre, on déplace toujours le bloc complet.
+  // Si la cible est une tâche située dans un autre chapitre, on insère le bloc AVANT le chapitre cible
+  // pour éviter de couper le chapitre cible et de lui voler ses tâches.
+  let targetIndex=toIndex;
+  if(movingChapter && tasks[toIndex] && tasks[toIndex].type!=='title'){
+    for(let i=toIndex;i>=0;i--){
+      if(tasks[i] && tasks[i].type==='title') { targetIndex=i; break; }
+    }
+  }
+
   const block=tasks.splice(fromIndex,blockLen);
-  let insertIndex=toIndex;
-  if(toIndex>fromIndex) insertIndex-=blockLen;
+  let insertIndex=targetIndex;
+  if(targetIndex>fromIndex) insertIndex-=blockLen;
+  insertIndex=Math.max(0,Math.min(insertIndex,tasks.length));
   tasks.splice(insertIndex,0,...block);
   normalizeChapterParents();
   renderTasks();
@@ -1257,7 +1334,12 @@ function renderTasks(){
     }
     const isMil=t.type==='milestone';
     const catOpts=Object.keys(CATS).map(c=>`<option${c===t.cat?' selected':''}>${c}</option>`).join('');
-    const predOpts='<option value="">—</option>'+tasks.filter(x=>x.id!==t.id&&x.type!=='title').map(x=>`<option value="${x.id}"${String(t.pred)===String(x.id)?' selected':''}>${x.name.substring(0,14)}</option>`).join('');
+    const predProblems=detectDependencyProblems(tasks);
+    const predOpts='<option value="">—</option>'+tasks.filter(x=>x.id!==t.id&&x.type!=='title').map(x=>{
+      const label=escapeHtml(getTaskShortLabel(x,58));
+      const title=escapeHtml(getTaskDisplayName(x));
+      return `<option value="${x.id}" title="${title}"${String(t.pred)===String(x.id)?' selected':''}>${label}</option>`;
+    }).join('');
     const linkOpts=LINK_TYPES.map(l=>`<option value="${l}"${t.link===l?' selected':''}>${getLinkLabel(l)}</option>`).join('');
     row.style.gridTemplateColumns='22px 14px minmax(110px,1.4fr) 100px 50px 50px 110px minmax(90px,1fr) minmax(90px,1fr) minmax(150px,1fr) 80px 55px 130px 44px';
     const dot=isMil?`<span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span>`
@@ -1375,20 +1457,39 @@ function pstartDate(){const v=document.getElementById('pstart').value||today();r
 function startToDate(j){return formatISODate(addWorkingDays(pstartDate(), Math.max(0,+j||0)));}
 function dateToStart(dateStr){return Math.max(0, workingDaysBetween(pstartDate(), dateStr));}
 function resolveStarts(){
-  const map={};tasks.forEach(t=>map[t.id]=t);
+  const map={};tasks.forEach(t=>map[String(t.id)]=t);
   const resolved={};
+  const resolving={};
+  function normLink(v){
+    if(v==='Fin-Début') return 'FS';
+    if(v==='Fin-Fin') return 'FF';
+    if(v==='Début-Début') return 'SS';
+    if(v==='Début-Fin') return 'SF';
+    return v||'FS';
+  }
   function resolve(t){
+    if(!t) return 0;
     if(t.type==='title'){resolved[t.id]=0;return 0;}
-    if(resolved[t.id]!==undefined)return resolved[t.id];
-    if(!t.pred||!map[t.pred]){resolved[t.id]=t.start;return t.start}
-    const p=map[t.pred],ps=resolve(p),lag=t.lag||0;
+    const id=String(t.id);
+    if(resolved[id]!==undefined)return resolved[id];
+    if(resolving[id]){ // boucle : on ne bloque pas l'interface, on revient au début manuel
+      resolved[id]=Math.max(0,+t.start||0);
+      return resolved[id];
+    }
+    resolving[id]=true;
+    if(!t.pred||!map[String(t.pred)]){resolved[id]=Math.max(0,+t.start||0);resolving[id]=false;return resolved[id];}
+    const p=map[String(t.pred)], ps=resolve(p), lag=+t.lag||0;
+    const pDur=+p.dur||0, tDur=+t.dur||0;
     let s;
-    if(t.link==='FS')s=ps+p.dur+lag;
-    else if(t.link==='FF')s=ps+p.dur-t.dur+lag;
-    else if(t.link==='SS')s=ps+lag;
-    else if(t.link==='SF')s=ps-t.dur+lag;
-    else s=ps+p.dur+lag;
-    resolved[t.id]=Math.max(0,s);return resolved[t.id];
+    const link=normLink(t.link);
+    if(link==='FS')s=ps+pDur+lag;
+    else if(link==='FF')s=ps+pDur-tDur+lag;
+    else if(link==='SS')s=ps+lag;
+    else if(link==='SF')s=ps-tDur+lag;
+    else s=ps+pDur+lag;
+    resolved[id]=Math.max(0,s);
+    resolving[id]=false;
+    return resolved[id];
   }
   tasks.forEach(t=>resolve(t));return resolved;
 }
@@ -2123,6 +2224,12 @@ function renderGantt(){
 
 
 function exportPDF(){
+  normalizeChapterParents();
+  const depProblems=detectDependencyProblems(tasks);
+  if(depProblems.length){
+    alert('Export PDF impossible tant que les dépendances ne sont pas corrigées :\n\n' + depProblems.slice(0,12).join('\n') + (depProblems.length>12?'\n…':''));
+    return;
+  }
   normalizeLivraisons();
   const ps=getProjectStartDate();
   const startInput=document.getElementById('pdf-date-start').value || formatISODate(ps);
@@ -2299,7 +2406,7 @@ function exportPDF(){
   if(showTablePage){
     const tableShowH = true;
     const tableShowM = true;
-    const cols=['N°','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',tableShowH?'Moyens humains':null,tableShowM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
+    const cols=['N°','Chapitre','Tâche / Jalon','Catégorie','Début (j+)','Date début','Fin (j+)','Date fin','Durée',tableShowH?'Moyens humains':null,tableShowM?'Moyens matériels':null,showP?'Avancement':null].filter(Boolean);
     let rowNum=0;
     const detailStarts=startsMap;
     const taskRows=filteredTasks.filter(t=>t.type!=='title').map(t=>{
@@ -2314,6 +2421,7 @@ function exportPDF(){
       const isMilRow=t.type==='milestone';
       const vals=[
         String(rowNum),
+        simplifyChapterName(getChapterNameForTask(t))||'—',
         t.name,
         t.cat||'—',
         'j+'+ts,
@@ -2362,6 +2470,10 @@ function exportPDF(){
   };
   window.addEventListener('afterprint', restoreAfterPrint, {once:true});
   window.print();
+  // Certains navigateurs ne déclenchent pas afterprint si l'impression/PDF est annulée.
+  setTimeout(()=>{
+    if(document.getElementById('print-detail') || ganttScroll.querySelector('.print-gantt-page')) restoreAfterPrint();
+  }, 1500);
 }
 
 // ---- PRESETS ----
