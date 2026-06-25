@@ -78,6 +78,11 @@ button:hover{background:#f5f5f3}
 .print-header{display:none!important;margin-bottom:8px}
 .print-header h2{font-size:15px;font-weight:500}
 .print-header p{font-size:11px;color:#888780}
+
+.pdf-comp-row{display:grid;grid-template-columns:110px 1fr 38px;gap:8px;align-items:start;margin-bottom:8px;padding:8px;border:1px solid #e8e6e2;border-radius:8px;background:#fff}
+.pdf-comp-title{font-size:12px;font-weight:600;color:#2C2C2A;padding-top:5px}
+.pdf-comp-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.pdf-comp-checks label{display:flex;align-items:center;gap:7px;font-size:12px;color:#2C2C2A;text-transform:none;letter-spacing:0;margin:0}
 </style>
 </head>
 <body>
@@ -584,6 +589,13 @@ button:hover{background:#f5f5f3}
         </select>
       </div>
 
+      <div><label>Découpage des pages détail</label>
+        <select id="pdf-detail-mode" style="width:100%" onchange="renderPdfComposition()">
+          <option value="chapters" selected>Composition par chapitres</option>
+          <option value="calendar">Découpage calendrier</option>
+        </select>
+      </div>
+
       <div><label>Échelle par page</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <input type="number" id="pdf-span-value" min="1" value="8" style="width:100%">
@@ -639,6 +651,18 @@ button:hover{background:#f5f5f3}
     <div class="card" style="padding:12px;background:#fafaf8;border-color:#e8e6e2;margin-bottom:14px">
       <label style="margin-bottom:8px">Chapitres à afficher</label>
       <div id="pdf-chapters" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"></div>
+    </div>
+
+    <div class="card" id="pdf-composition-card" style="padding:12px;background:#fafaf8;border-color:#e8e6e2;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px">
+        <label style="margin:0">Composition des pages détail</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" onclick="autoPdfComposition()">Auto : 1 chapitre/page, puis ajustement libre</button>
+          <button type="button" onclick="addPdfCompositionPage()">+ Ajouter une page</button>
+        </div>
+      </div>
+      <div id="pdf-composition"></div>
+      <div style="font-size:11px;color:#888780;margin-top:6px;line-height:1.5">Une page peut contenir 1, 2, 3 chapitres ou plus. La composition automatique crée seulement une base neutre : 1 chapitre par page. Ensuite, vous cochez librement les chapitres à afficher sur chaque page, y compris plusieurs petits chapitres sur une même page.</div>
     </div>
 
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
@@ -714,6 +738,7 @@ const LINK_LABELS={FS:"Fin-Début",FF:"Fin-Fin",SS:"Début-Début",SF:"Début-Fi
 function getLinkLabel(v){return LINK_LABELS[v]||v||"";}
 
 let tasks=[],livraisons=[],fermetures=[],fermWeeks=[];
+let pdfPageGroups=[];
 
 function toggleCollapseTitle(id){
   const t=tasks.find(x=>x.id===id&&x.type==='title');
@@ -1843,6 +1868,7 @@ function getChapterNames(){
 function ensurePdfUiReady(){
   updatePdfDateFields();
   updatePdfChapterList();
+  renderPdfComposition();
   const wrap=document.getElementById('pdf-chapters');
   if(wrap && !wrap.querySelector('input[type=checkbox]')){
     const chapters=getChapterNames();
@@ -1886,6 +1912,89 @@ function selectAllPdfChapters(state){
 function getSelectedPdfChapters(){
   const vals=Array.from(document.querySelectorAll('#pdf-chapters input[type=checkbox]:checked')).map(x=>x.value);
   return vals.length ? vals : getChapterNames();
+}
+function getPdfChapters(){
+  return (tasks||[]).filter(t=>t.type==='title').map(t=>({id:t.id,name:String(t.name||'').trim()})).filter(x=>x.name);
+}
+function autoPdfComposition(){
+  const chapters=getPdfChapters();
+  pdfPageGroups=[];
+  if(!chapters.length){renderPdfComposition();return;}
+
+  // Règle générique : l'application ne dépend jamais du nom des chapitres.
+  // Elle lit uniquement les lignes type="title" du Gantt chargé.
+  // Par défaut neutre : 1 chapitre par page. Les regroupements restent manuels.
+  chapters.forEach((ch,idx)=>{
+    pdfPageGroups.push({id:Date.now()+idx, chapterIds:[ch.id]});
+  });
+  renderPdfComposition();
+}
+function ensurePdfComposition(){
+  const currentIds=new Set(getPdfChapters().map(ch=>String(ch.id)));
+  pdfPageGroups=(pdfPageGroups||[])
+    .map(g=>({id:g.id||Date.now()+Math.random(),chapterIds:(g.chapterIds||[]).filter(id=>currentIds.has(String(id))).map(id=>+id)}))
+    .filter(g=>g.chapterIds.length);
+  if(!pdfPageGroups.length) autoPdfComposition();
+}
+function renderPdfComposition(){
+  const card=document.getElementById('pdf-composition-card');
+  const wrap=document.getElementById('pdf-composition');
+  if(!wrap) return;
+  const detailMode=document.getElementById('pdf-detail-mode')?.value||'chapters';
+  if(card) card.style.display=detailMode==='chapters'?'block':'none';
+  if(detailMode!=='chapters') return;
+  ensurePdfComposition();
+  const chapters=getPdfChapters();
+  if(!chapters.length){wrap.innerHTML='<span style="font-size:12px;color:#888780">Aucun chapitre détecté.</span>';return;}
+  wrap.innerHTML=pdfPageGroups.map((g,idx)=>`
+    <div class="pdf-comp-row">
+      <div class="pdf-comp-title">Page ${idx+1}<br><span style="font-size:10px;color:#888780;font-weight:400">1 ou plusieurs chapitres</span></div>
+      <div class="pdf-comp-checks">
+        ${chapters.map(ch=>`<label><input type="checkbox" ${g.chapterIds.map(String).includes(String(ch.id))?'checked':''} onchange="togglePdfCompositionChapter(${idx},${ch.id},this.checked)"> <span>${escapeHtml(ch.name)}</span></label>`).join('')}
+      </div>
+      <button type="button" title="Supprimer cette page" onclick="removePdfCompositionPage(${idx})" class="btn-del-row">×</button>
+    </div>
+  `).join('');
+}
+function togglePdfCompositionChapter(pageIdx, chapterId, state){
+  const g=pdfPageGroups[pageIdx];
+  if(!g) return;
+  const ids=new Set((g.chapterIds||[]).map(x=>+x));
+  if(state) ids.add(+chapterId); else ids.delete(+chapterId);
+  g.chapterIds=Array.from(ids);
+}
+function addPdfCompositionPage(){
+  pdfPageGroups.push({id:Date.now(),chapterIds:[]});
+  renderPdfComposition();
+}
+function removePdfCompositionPage(idx){
+  pdfPageGroups.splice(idx,1);
+  if(!pdfPageGroups.length) autoPdfComposition(); else renderPdfComposition();
+}
+function getPdfCompositionGroups(){
+  ensurePdfComposition();
+  return (pdfPageGroups||[]).filter(g=>g.chapterIds && g.chapterIds.length).map(g=>({id:g.id,chapterIds:g.chapterIds.map(x=>+x)}));
+}
+function filterTasksByChapterIds(sourceTasks, chapterIds){
+  const selected=new Set((chapterIds||[]).map(x=>String(x)));
+  const out=[];
+  let keep=false;
+  sourceTasks.forEach(t=>{
+    if(t.type==='title'){
+      keep=selected.has(String(t.id));
+      if(keep) out.push(JSON.parse(JSON.stringify(t)));
+    }else if(keep){
+      out.push(JSON.parse(JSON.stringify(t)));
+    }
+  });
+  return out;
+}
+function getTaskRangeForPrint(taskSubset, startsMap, fallbackStart, fallbackEnd){
+  const real=taskSubset.filter(t=>t.type!=='title' && startsMap[t.id]!==undefined);
+  if(!real.length) return {startDay:fallbackStart,endDay:fallbackEnd};
+  const starts=real.map(t=>workdayToCalendarDay(startsMap[t.id]));
+  const ends=real.map(t=>t.type==='milestone'?workdayToCalendarDay(startsMap[t.id]):taskEndCalendarDay(t, startsMap[t.id]));
+  return {startDay:Math.min(...starts),endDay:Math.max(...ends)};
 }
 function filterTasksByChapters(sourceTasks, selectedChapters){
   if(!selectedChapters || !selectedChapters.length) return sourceTasks.slice();
@@ -2246,6 +2355,7 @@ function exportPDF(){
   const showSynthese=document.getElementById('pdf-synthese-page').value==='1';
   const showDetailPages=(document.getElementById('pdf-detail-pages')?.value||'1')==='1';
   const showTablePage=(document.getElementById('pdf-table-page')?.value||'1')==='1';
+  const detailMode=document.getElementById('pdf-detail-mode')?.value||'chapters';
   const selectedChapters=getSelectedPdfChapters();
   const name=document.getElementById('pname').value||'Planning de chantier';
   const DW=24;
@@ -2337,6 +2447,46 @@ function exportPDF(){
   // PAGES SUIVANTES — Détail paramétré (chapitres, période, lignes/page)
   // ══════════════════════════════════════════════════════════
   if(showDetailPages){
+  const useComposition = detailMode==='chapters';
+  if(useComposition){
+    const groups=getPdfCompositionGroups();
+    groups.forEach((group, groupIdx)=>{
+      const groupTasks=filterTasksByChapterIds(origTasks, group.chapterIds);
+      const selectedNames=group.chapterIds.map(id=>getChapterNameById(id)).filter(Boolean);
+      if(!groupTasks.some(t=>t.type!=='title')) return;
+      const range=getTaskRangeForPrint(groupTasks, startsMap, rangeStartDay, rangeEndDay);
+      const chunkStartDay=Math.max(rangeStartDay, range.startDay);
+      const chunkEndDay=Math.min(rangeEndDay, Math.max(range.endDay, chunkStartDay));
+      const livrChunk=[];
+      const rowPages=splitTasksForPrint(groupTasks, PRINT_ROWS_PER_PAGE);
+      const DETAIL_TARGET_W = getLabelWidth() + Math.max(1, countVisiblePdfDays(ps, chunkStartDay, chunkEndDay)) * DW;
+      const DETAIL_TARGET_H = 92 + (PRINT_ROWS_PER_PAGE * 40) + 120 + 8;
+      rowPages.forEach((taskPage,rowIdx)=>{
+        tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
+        livraisons=(rowIdx===rowPages.length-1) ? livrChunk : [];
+        const built=buildSVG(ps,DW,chunkStartDay,chunkEndDay,startsMap);
+        const padded=padSvgCanvasForPrint(built.svg, built.width, built.height, DETAIL_TARGET_W, DETAIL_TARGET_H);
+        const chunkStartDate=addDays(ps, chunkStartDay);
+        const chunkEndDate=addDays(ps, chunkEndDay);
+        pageNo++;
+        const isLastDetailPage=(groupIdx===groups.length-1) && (rowIdx===rowPages.length-1);
+        const styledSvg=padded.svg.replace('<svg ','<svg viewBox="0 0 '+padded.width+' '+padded.height+'" style="width:100%;height:248mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+        printBlocks.push(`
+        <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
+          <div style="margin-bottom:6px">
+            <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
+            <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <span>Période : ${fmtFull(chunkStartDate)} → ${fmtFull(chunkEndDate)}</span>
+              <span>Page ${pageNo}</span>
+              <span>Chapitres : ${escapeHtml(selectedNames.join(' • '))}</span>
+            </div>
+          </div>
+          <div style="width:100%;height:248mm;overflow:hidden">${styledSvg}</div>
+        </section>
+      `);
+      });
+    });
+  }else{
   tasks=filteredTasks;
   livraisons=origLivr.slice();
 
@@ -2384,6 +2534,7 @@ function exportPDF(){
     `);
     });
   });
+  }
   }
 
   tasks=filteredTasks.map(t=>JSON.parse(JSON.stringify(t)));
@@ -2550,7 +2701,7 @@ function loadPreset(key){
     if(!materialResources.some(r=>r.name===n)) materialResources.push({id:0,name:n});
   });
   ensureDefaultFermeture();
-  renderTasks();renderLivr();renderCal();updatePdfChapterList();updatePdfDateFields();renderGantt();
+  renderTasks();renderLivr();renderCal();updatePdfChapterList();renderPdfComposition();updatePdfDateFields();renderGantt();
 }
 
 // ---- SAUVEGARDE / CHARGEMENT ----
@@ -2563,6 +2714,7 @@ function sauvegarder(){
     pstart:document.getElementById('pstart').value,
     zoom:document.getElementById('zoom').value,
     tasks,livraisons,fermetures,fermWeeks,uid,
+    pdfPageGroups,
     humanResources,materialResources
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -2616,6 +2768,7 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
         parentId:t.parentId!=null ? +t.parentId : null
       }));
       normalizeChapterParents();
+      pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x)})):[];
 
       livraisons=(d.livraisons||[]).map((l,idx)=>normalizeLivraison({
         ...l,
@@ -2651,7 +2804,7 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
       ];
       uid=Math.max(...allIds)+1;
 
-      renderTasks();renderLivr();renderCal();renderResources();updatePdfChapterList();updatePdfDateFields();renderGantt();
+      renderTasks();renderLivr();renderCal();renderResources();updatePdfChapterList();renderPdfComposition();updatePdfDateFields();renderGantt();
     }catch(err){
       console.error('Erreur de chargement JSON', err);
       alert("Chargement impossible. Le fichier JSON est invalide ou n'est pas compatible avec cette version.");
@@ -2659,6 +2812,41 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
   };
   reader.readAsText(file);
   event.target.value='';
+}
+
+
+const INITIAL_PROJECT_DATA={"version": 1, "pname": "Travaux de requalification avec végétalisation de l'avenue Flachat ", "pstart": "2026-07-20", "zoom": "30", "tasks": [{"type": "title", "id": 100, "name": "PHASE PREPARATOIRE", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 101, "name": "Réunion préparatoire", "cat": "Coordination", "start": 0, "dur": 0, "human": "Conducteur de travaux", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 102, "name": "Validation dossier EXE", "cat": "Coordination", "start": 0, "dur": 10, "human": "Conducteur de travaux", "material": "", "pred": "101", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 103, "name": "DICT", "cat": "Coordination", "start": 0, "dur": 5, "human": "Conducteur de travaux", "material": "", "pred": "102", "link": "Début-Début", "lag": 5, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 104, "name": "Sélection et commande des végétaux", "cat": "Coordination", "start": 0, "dur": 5, "human": "", "material": "", "pred": "101", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "title", "id": 105, "name": "PHASE TRAVAUX - TRANCHE 1", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 111, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 84, "dur": 0, "human": "", "material": "", "pred": "104", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 112, "name": "Option : Mise en place des lisses ", "cat": "Clôtures", "start": 84, "dur": 1, "human": "", "material": "", "pred": "111", "link": "SS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 113, "name": "Apport de terre végétale ", "cat": "Terrassement", "start": 85, "dur": 2, "human": "", "material": "", "pred": "112", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 116, "name": "Mise en place de toile biodégradable", "cat": "Plantation", "start": 87, "dur": 1, "human": "", "material": "", "pred": "113", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 117, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 88, "dur": 2, "human": "", "material": "", "pred": "116", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 118, "name": "Mise en place du goutte-à-goutte ", "cat": "Drainage", "start": 90, "dur": 3, "human": "", "material": "", "pred": "117", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 119, "name": "Paillage des surfaces ", "cat": "Plantation", "start": 93, "dur": 1, "human": "", "material": "", "pred": "118", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 120, "name": "Nettoyage des espaces ", "cat": "Finitions", "start": 94, "dur": 1, "human": "", "material": "", "pred": "119", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 126, "name": "Travaux de parachèvement", "cat": "Finitions", "start": 95, "dur": 5, "human": "", "material": "", "pred": "120", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "title", "id": 121, "name": "PHASE TRAVAUX - TRANCHE 2 ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 122, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 122, "dur": 0, "human": "", "material": "", "pred": "126", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 123, "name": "Option : Mise en place des lisses", "cat": "Clôtures", "start": 122, "dur": 1, "human": "", "material": "", "pred": "122", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 124, "name": "Apport de terre végétale", "cat": "Terrassement", "start": 123, "dur": 2, "human": "", "material": "", "pred": "123", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 114, "name": "Plantation des arbres ", "cat": "Plantation", "start": 125, "dur": 1, "human": "", "material": "", "pred": "124", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 115, "name": "Installation de tuteurs ", "cat": "Plantation", "start": 126, "dur": 1, "human": "", "material": "", "pred": "114", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 125, "name": "Mise en place de toile biodégradable ", "cat": "Plantation", "start": 127, "dur": 1, "human": "", "material": "", "pred": "115", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 127, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 128, "dur": 2, "human": "", "material": "", "pred": "125", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 135, "name": "Mise en place du goutte-à-goutte ", "cat": "Drainage", "start": 129, "dur": 2, "human": "", "material": "", "pred": "127", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 134, "name": "Paillage des surfaces", "cat": "Plantation", "start": 131, "dur": 1, "human": "", "material": "", "pred": "135", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 132, "name": "Nettoyage des surfaces ", "cat": "Finitions", "start": 132, "dur": 1, "human": "", "material": "", "pred": "134", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 133, "name": "Travaux de parachèvement ", "cat": "Finitions", "start": 133, "dur": 5, "human": "", "material": "", "pred": "132", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "title", "id": 136, "name": "PHASE TRAVAUX - TRANCHE 3 ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 137, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 176, "dur": 0, "human": "", "material": "", "pred": "133", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 128, "name": "Option mise en place des lisses ", "cat": "Clôtures", "start": 176, "dur": 1, "human": "", "material": "", "pred": "137", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 129, "name": "Apport de terre végétale ", "cat": "Terrassement", "start": 177, "dur": 2, "human": "", "material": "", "pred": "128", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 130, "name": "Plantation des arbres ", "cat": "Plantation", "start": 179, "dur": 2, "human": "", "material": "", "pred": "129", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 131, "name": "Installation de tuteurs", "cat": "Plantation", "start": 181, "dur": 2, "human": "", "material": "", "pred": "130", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 138, "name": "Mise en place de toile biodégradable ", "cat": "Plantation", "start": 183, "dur": 1, "human": "", "material": "", "pred": "131", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 139, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 184, "dur": 1, "human": "", "material": "", "pred": "138", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 140, "name": "Mise en place du goutte-à-goutte", "cat": "Drainage", "start": 185, "dur": 2, "human": "", "material": "", "pred": "139", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 141, "name": "Paillage des surfaces ", "cat": "Plantation", "start": 187, "dur": 1, "human": "", "material": "", "pred": "140", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 142, "name": "Nettoyage des surfaces", "cat": "Finitions", "start": 188, "dur": 5, "human": "", "material": "", "pred": "141", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "title", "id": 106, "name": "FINALISATION DES TRAVAUX", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": true}, {"type": "task", "id": 110, "name": "Réception des travaux", "cat": "Coordination", "start": 55, "dur": 5, "human": "Conducteur de travaux", "material": "", "pred": "142", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 107, "name": "OPR", "cat": "Coordination", "start": 60, "dur": 1, "human": "Conducteur de travaux", "material": "", "pred": "110", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 108, "name": "Levées de réserve", "cat": "Finitions", "start": 61, "dur": 5, "human": "Equipe 1", "material": "", "pred": "107", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 109, "name": "DOE", "cat": "Coordination", "start": 66, "dur": 5, "human": "Bureau d'études", "material": "", "pred": "108", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "title", "id": 144, "name": "ENTRETIEN DES ESPACES VERTS - 1 AN ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "task", "id": 143, "name": "Entretien des espaces ", "cat": "Coordination", "start": 189, "dur": 5, "human": "", "material": "", "pred": "109", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 144}], "livraisons": [], "fermetures": [{"id": 34, "start": "2026-12-24", "end": "2027-01-03", "label": "Fermeture entreprise", "date": "2026-07-20", "day": 0}], "fermWeeks": [], "uid": 148, "humanResources": [{"id": 1, "name": "Conducteur de travaux"}, {"id": 2, "name": "Chef de chantier"}, {"id": 3, "name": "Chef d'équipe"}, {"id": 4, "name": "Equipe 1"}, {"id": 5, "name": "Equipe 2"}, {"id": 6, "name": "Equipe 3"}, {"id": 7, "name": "Ouvrier"}, {"id": 8, "name": "Manœuvre"}, {"id": 9, "name": "Chauffeur PL"}, {"id": 10, "name": "Bureau d'études"}], "materialResources": [{"id": 11, "name": "Camion 8x4"}, {"id": 12, "name": "Camion toupie"}, {"id": 13, "name": "Camion 20T grue"}, {"id": 14, "name": "Camion grue mobile"}, {"id": 15, "name": "Camionnette 3,5T"}, {"id": 16, "name": "Chargeur"}, {"id": 17, "name": "Chariot télescopique"}, {"id": 18, "name": "Dumper"}, {"id": 19, "name": "Rouleau compresseur"}, {"id": 20, "name": "Plaque vibrante"}, {"id": 21, "name": "Enfonce pieux"}, {"id": 22, "name": "Malaxeur"}, {"id": 23, "name": "Pelle 1T5"}, {"id": 24, "name": "Pelle 2T5"}, {"id": 25, "name": "Pelle 5T"}, {"id": 26, "name": "Pelle 10T"}, {"id": 27, "name": "Pelle 12T"}, {"id": 28, "name": "Pelle 15T"}, {"id": 29, "name": "Petit matériel"}, {"id": 30, "name": "Matériel d'élagage"}, {"id": 31, "name": "Nettoyeur haute pression"}, {"id": 32, "name": "Clôture mobile de chantier"}, {"id": 33, "name": "Panneaux de signalisation"}]};
+function loadInitialProjectData(d){
+  if(!d || !Array.isArray(d.tasks)){loadPreset('mixte');return;}
+  document.getElementById('pname').value=d.pname||'';
+  document.getElementById('pstart').value=d.pstart||today();
+  if(d.zoom)document.getElementById('zoom').value=d.zoom;
+  tasks=(d.tasks||[]).map((t,idx)=>({
+    type:t.type||'task',
+    id:Number.isFinite(+t.id)?+t.id:(1000+idx),
+    name:t.name||'',
+    cat:t.cat||'Coordination',
+    start:Number.isFinite(+t.start)?+t.start:0,
+    dur:Number.isFinite(+t.dur)?+t.dur:0,
+    human:t.human||'',
+    material:t.material||'',
+    pred:t.pred!=null?String(t.pred):'',
+    link:t.link||'FS',
+    lag:Number.isFinite(+t.lag)?+t.lag:0,
+    progress:Number.isFinite(+t.progress)?+t.progress:0,
+    collapsed:t.type==='title' ? !!t.collapsed : false,
+    parentId:t.parentId!=null ? +t.parentId : null
+  }));
+  normalizeChapterParents();
+  pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x)})):[];
+  livraisons=(d.livraisons||[]).map((l,idx)=>normalizeLivraison({...l,id:Number.isFinite(+l.id)?+l.id:(2000+idx)}));
+  fermetures=(d.fermetures||[]).map((f,idx)=>normalizeFermeture({...f,id:Number.isFinite(+f.id)?+f.id:(3000+idx),label:f.label||'Fermeture'}));
+  fermWeeks=(d.fermWeeks||[]).map((f,idx)=>({...f,id:Number.isFinite(+f.id)?+f.id:(4000+idx),start:Number.isFinite(+f.start)?+f.start:0,end:Number.isFinite(+f.end)?+f.end:(Number.isFinite(+f.start)?+f.start:0),label:f.label||'Fermeture'}));
+  if(Array.isArray(d.humanResources) && d.humanResources.length) humanResources=d.humanResources.map((r,idx)=>({id:Number.isFinite(+r.id)?+r.id:(5000+idx),name:r.name||''}));
+  if(Array.isArray(d.materialResources) && d.materialResources.length) materialResources=d.materialResources.map((r,idx)=>({id:Number.isFinite(+r.id)?+r.id:(6000+idx),name:r.name||''}));
+  const allIds=[...tasks.map(x=>+x.id||0),...livraisons.map(x=>+x.id||0),...fermetures.map(x=>+x.id||0),...fermWeeks.map(x=>+x.id||0),...humanResources.map(x=>+x.id||0),...materialResources.map(x=>+x.id||0),+d.uid||0,100];
+  uid=Math.max(...allIds)+1;
+  renderTasks();renderLivr();renderCal();renderResources();updatePdfChapterList();renderPdfComposition();updatePdfDateFields(true);renderGantt();
 }
 
 // Init
@@ -2669,7 +2857,7 @@ materialResources=materialResources.map(r=>({...r,id:uid++}));
 renderCal();
 renderResources();
 ensureDefaultFermeture();
-loadPreset('mixte');
+loadInitialProjectData(INITIAL_PROJECT_DATA);
 ensurePdfUiReady();
 const pstartInput=document.getElementById('pstart');
 if(pstartInput){
