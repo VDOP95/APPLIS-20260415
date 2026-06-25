@@ -2363,14 +2363,32 @@ function exportPDF(){
 
   const ganttScroll=document.getElementById('gantt-scroll');
   const origContent=ganttScroll.innerHTML;
-  const origTasks=tasks.slice();
-  const origLivr=livraisons.slice();
+  const origTasks=tasks.map(t=>JSON.parse(JSON.stringify(t)));
+  const origLivr=livraisons.map(l=>JSON.parse(JSON.stringify(l)));
 
-  const filteredTasks=filterTasksByChapters(origTasks, selectedChapters);
-  tasks=filteredTasks;
-  livraisons=origLivr.slice();
-
+  // Point critique : le calcul des dates doit toujours être réalisé sur le planning complet.
+  // Sinon, un chapitre affecté manuellement à une page PDF peut disparaître si un filtre
+  // global ou une dépendance extérieure au chapitre réduit la liste des tâches avant export.
+  tasks=origTasks.map(t=>JSON.parse(JSON.stringify(t)));
+  livraisons=origLivr.map(l=>JSON.parse(JSON.stringify(l)));
   const startsMap=resolveStarts();
+
+  const compositionGroupsAtExport = detailMode==='chapters' ? getPdfCompositionGroups() : [];
+  const compositionChapterIds = Array.from(new Set(
+    compositionGroupsAtExport.flatMap(g=>(g.chapterIds||[]).map(x=>+x))
+  ));
+  const filteredTasks = (detailMode==='chapters' && compositionChapterIds.length)
+    ? filterTasksByChapterIds(origTasks, compositionChapterIds)
+    : filterTasksByChapters(origTasks, selectedChapters);
+
+  tasks=filteredTasks.map(t=>JSON.parse(JSON.stringify(t)));
+  livraisons=origLivr.map(l=>JSON.parse(JSON.stringify(l)));
+
+  const getChapterNameFromOrig=(id)=>{
+    const ch=origTasks.find(x=>String(x.id)===String(id) && x.type==='title');
+    return ch ? String(ch.name||'').trim() : '';
+  };
+
   const printBlocks=[];
   let pageNo=0;
 
@@ -2449,10 +2467,10 @@ function exportPDF(){
   if(showDetailPages){
   const useComposition = detailMode==='chapters';
   if(useComposition){
-    const groups=getPdfCompositionGroups();
+    const groups=compositionGroupsAtExport;
     groups.forEach((group, groupIdx)=>{
       const groupTasks=filterTasksByChapterIds(origTasks, group.chapterIds);
-      const selectedNames=group.chapterIds.map(id=>getChapterNameById(id)).filter(Boolean);
+      const selectedNames=group.chapterIds.map(id=>getChapterNameFromOrig(id)).filter(Boolean);
       if(!groupTasks.some(t=>t.type!=='title')) return;
       const range=getTaskRangeForPrint(groupTasks, startsMap, rangeStartDay, rangeEndDay);
       const chunkStartDay=Math.max(rangeStartDay, range.startDay);
