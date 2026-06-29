@@ -63,6 +63,14 @@ button:hover{background:#f5f5f3}
 .task-name-wrap:hover::after,.task-name-wrap:hover::before{display:block}
 .task-name-input{cursor:help}
 
+
+/* ---- GANTT INTERACTIF : barres plus faciles à saisir ---- */
+.gantt-task-hit{cursor:grab}
+.gantt-task-hit:active{cursor:grabbing}
+.gantt-grip-visible{filter:drop-shadow(0 1px 2px rgba(0,0,0,.22))}
+.gantt-resize-zone{cursor:ew-resize}
+body.gantt-editing, body.gantt-editing *{user-select:none!important}
+
 /* ---- PRINT / PDF ---- */
 @media print{
   body{background:#fff}
@@ -83,14 +91,31 @@ button:hover{background:#f5f5f3}
 .pdf-comp-title{font-size:12px;font-weight:600;color:#2C2C2A;padding-top:5px}
 .pdf-comp-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .pdf-comp-checks label{display:flex;align-items:center;gap:7px;font-size:12px;color:#2C2C2A;text-transform:none;letter-spacing:0;margin:0}
+
+/* ---- V3 édition graphique : clic droit + panneau propriétés ---- */
+#gantt-card.planning-mode{display:grid!important;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:start}
+#gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 0}
+#gantt-toolbar button.active{background:#1D9E75;color:#fff;border-color:#1D9E75}
+#gantt-inspector{background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:12px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#gantt-inspector .insp-title{font-size:13px;font-weight:700;margin-bottom:10px;color:#2C2C2A}
+#gantt-inspector .field{margin-bottom:8px}
+#gantt-inspector input,#gantt-inspector select,#gantt-inspector textarea{width:100%}
+#gantt-inspector textarea{font-family:inherit;font-size:13px;padding:6px 8px;border:0.5px solid #c8c6be;border-radius:6px;min-height:55px}
+#gantt-context-menu{position:fixed;z-index:100000;background:#fff;border:0.5px solid #c8c6be;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;min-width:210px;display:none}
+#gantt-context-menu button{display:block;width:100%;text-align:left;border:none;border-radius:7px;padding:8px 10px;background:#fff}
+#gantt-context-menu button:hover{background:#f0efed}
+#gantt-context-menu .sep{height:1px;background:#ece9e4;margin:5px 0}
+#gantt-context-menu .danger{color:#C7462D}
+.gantt-edit-hint{font-size:11px;color:#888780;line-height:1.45;margin:4px 0 10px 0}
+
 </style>
 </head>
 <body>
 <div class="page">
 
 <div class="no-print">
-<h1>Gantt chantier — Espaces verts &amp; VRD</h1>
-<p class="subtitle">Planification professionnelle avec jalons, livraisons, jours fériés et export PDF</p>
+<h1>VOP Planner — Planification de chantier</h1>
+<p class="subtitle">Planning graphique • Tâches &amp; jalons • Ressources • Livraisons • Export PDF</p>
 </div>
 
 <!-- PRINT HEADER -->
@@ -102,7 +127,7 @@ button:hover{background:#f5f5f3}
 <!-- CONFIG -->
 <div class="card no-print">
   <div style="display:grid;grid-template-columns:1.6fr 1fr 100px 190px;gap:10px;align-items:end">
-    <div><label>Nom du chantier</label><input id="pname" style="width:100%" value="CAVP"></div>
+    <div><label>Nom du chantier</label><input id="pname" style="width:100%" value=""></div>
     <div><label>Date de début</label><input type="date" id="pstart" style="width:100%"></div>
     <div><label>Zoom</label>
       <select id="zoom" style="width:100%">
@@ -118,17 +143,18 @@ button:hover{background:#f5f5f3}
 
 <!-- TABS -->
 <div class="tabs no-print">
-  <button class="tab-btn active" id="tab-tasks-btn" onclick="showTab(&#39;tasks&#39;)">Tâches &amp; jalons</button>
+  <button class="tab-btn active" id="tab-planning-btn" onclick="showTab(&#39;planning&#39;)">Planning</button>
+  <button class="tab-btn" id="tab-tasks-btn" onclick="showTab(&#39;tasks&#39;)">Tâches &amp; jalons</button>
   <button class="tab-btn" id="tab-res-btn" onclick="showTab(&#39;res&#39;)">Ressources</button>
   <button class="tab-btn" id="tab-livr-btn" onclick="showTab(&#39;livr&#39;)">Livraisons fournisseurs</button>
   <button class="tab-btn" id="tab-cal-btn" onclick="showTab(&#39;cal&#39;)">Jours fériés &amp; fermetures</button>
   <button class="tab-btn" id="tab-pdf-btn" onclick="showTab(&#39;pdf&#39;)">Export PDF</button>
 </div>
 
-<div class="card no-print" style="border-radius:0 12px 12px 12px">
+<div id="tabs-content-card" class="card no-print" style="border-radius:0 12px 12px 12px;display:none">
 
   <!-- TACHES -->
-  <div class="tab-pane active" id="tab-tasks">
+  <div class="tab-pane" id="tab-tasks">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">Tâches, jalons &amp; avancement</span>
       <div style="display:flex;gap:6px">
@@ -683,7 +709,7 @@ button:hover{background:#f5f5f3}
 </div><!-- end tabs card -->
 
 <!-- BOUTONS ACTIONS -->
-<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
+<div id="planning-actions" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
   <button class="btn-g" onclick="renderGantt()">Générer le Gantt</button>
   
   
@@ -1043,13 +1069,24 @@ function escapeHtml(v){
 }
 
 function showTab(name){
-  ['tasks','res','livr','cal','pdf'].forEach(t=>{
+  const isPlanning = name === 'planning';
+  const tabsCard = document.getElementById('tabs-content-card');
+  const planningActions = document.getElementById('planning-actions');
+  const ganttCard = document.getElementById('gantt-card');
+
+  ['planning','tasks','res','livr','cal','pdf'].forEach(t=>{
     const pane=document.getElementById('tab-'+t);
     const btn=document.getElementById('tab-'+t+'-btn');
     if(pane) pane.classList.toggle('active',t===name);
     if(btn) btn.classList.toggle('active',t===name);
   });
+
+  if(tabsCard) tabsCard.style.display = isPlanning ? 'none' : 'block';
+  if(planningActions) planningActions.style.display = isPlanning ? 'flex' : 'none';
+  if(ganttCard) ganttCard.style.display = isPlanning ? 'block' : 'none';
+
   if(name==='pdf') ensurePdfUiReady();
+  if(isPlanning) renderGantt();
 }
 
 function getTravauxTitleIndex(){
@@ -1760,7 +1797,17 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
         const lastCol=cols[cols.length-1];
         const lastX=LABEL_W+(lastCol+1)*DW-4;
         if(lastCol>=0)s+=`<text x="${lastX}" y="${by-3}" text-anchor="end" font-size="9" fill="#888780" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,teCal))}</text>`;
-        barCoords[t.id]={x:LABEL_W+cols[0]*DW+2,x2:LABEL_W+(cols[cols.length-1]+1)*DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
+        const barX=LABEL_W+cols[0]*DW+2;
+        const barX2=LABEL_W+(cols[cols.length-1]+1)*DW-2;
+        const barW=Math.max(8,barX2-barX);
+        const grip=12;
+        const hit=18;
+        s+=`<rect class="gantt-task-hit" x="${barX}" y="${by-5}" width="${barW}" height="${bh+10}" rx="6" fill="transparent" pointer-events="all" style="cursor:grab" onmousedown="startGanttBarEdit(evt,${t.id},'move')"><title>Déplacer la tâche</title></rect>`;
+        s+=`<rect class="gantt-resize-zone" x="${barX-hit/2}" y="${by-7}" width="${hit}" height="${bh+14}" rx="5" fill="transparent" pointer-events="all" style="cursor:ew-resize" onmousedown="startGanttBarEdit(evt,${t.id},'resize-left')"><title>Décaler le début / raccourcir</title></rect>`;
+        s+=`<rect class="gantt-resize-zone" x="${barX2-hit/2}" y="${by-7}" width="${hit}" height="${bh+14}" rx="5" fill="transparent" pointer-events="all" style="cursor:ew-resize" onmousedown="startGanttBarEdit(evt,${t.id},'resize-right')"><title>Allonger / réduire la durée</title></rect>`;
+        s+=`<rect class="gantt-grip-visible" x="${barX-grip/2}" y="${y+ROW_H/2-grip/2}" width="${grip}" height="${grip}" rx="3" fill="#ffffff" stroke="${cat.c}" stroke-width="2" pointer-events="none"/>`;
+        s+=`<rect class="gantt-grip-visible" x="${barX2-grip/2}" y="${y+ROW_H/2-grip/2}" width="${grip}" height="${grip}" rx="3" fill="#ffffff" stroke="${cat.c}" stroke-width="2" pointer-events="none"/>`;
+        barCoords[t.id]={x:barX,x2:barX2,y:y+ROW_H/2,ts:tsCal,te:teCal};
       } else {
         const startCol=colIndexForCalDay(tsCal);
         barCoords[t.id]={x:LABEL_W+startCol*DW+2,x2:LABEL_W+startCol*DW+DW-2,y:y+ROW_H/2,ts:tsCal,te:teCal};
@@ -2262,6 +2309,48 @@ function splitTasksForPrint(sourceTasks, maxRows){
 
   pushCurrent();
   return pages;
+}
+
+
+function startGanttBarEdit(evt, taskId, mode){
+  evt.preventDefault();
+  evt.stopPropagation();
+  const t=tasks.find(x=>String(x.id)===String(taskId));
+  if(!t || t.type==='title') return;
+  const zoomEl=document.getElementById('zoom');
+  const DW=parseInt(zoomEl?.value||30)||30;
+  const startX=evt.clientX;
+  const originalStart=Math.max(0,+t.start||0);
+  const originalDur=Math.max(t.type==='milestone'?0:1,+t.dur||0);
+  document.body.classList.add('gantt-editing');
+  const apply=(clientX)=>{
+    const delta=Math.round((clientX-startX)/DW);
+    if(mode==='move'){
+      t.start=Math.max(0,originalStart+delta);
+    }else if(mode==='resize-right'){
+      if(t.type==='milestone') return;
+      t.dur=Math.max(1,originalDur+delta);
+    }else if(mode==='resize-left'){
+      if(t.type==='milestone') return;
+      const maxDelta=originalDur-1;
+      const safeDelta=Math.min(delta,maxDelta);
+      t.start=Math.max(0,originalStart+safeDelta);
+      t.dur=Math.max(1,originalDur-safeDelta);
+    }
+    t.pred='';
+    renderTasks();
+    renderGantt();
+  };
+  const onMove=(e)=>apply(e.clientX);
+  const onUp=()=>{
+    document.body.classList.remove('gantt-editing');
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    renderTasks();
+    renderGantt();
+  };
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
 }
 
 function renderGantt(){
@@ -2833,7 +2922,7 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
 }
 
 
-const INITIAL_PROJECT_DATA={"version": 1, "pname": "Travaux de requalification avec végétalisation de l'avenue Flachat ", "pstart": "2026-07-20", "zoom": "30", "tasks": [{"type": "title", "id": 100, "name": "PHASE PREPARATOIRE", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 101, "name": "Réunion préparatoire", "cat": "Coordination", "start": 0, "dur": 0, "human": "Conducteur de travaux", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 102, "name": "Validation dossier EXE", "cat": "Coordination", "start": 0, "dur": 10, "human": "Conducteur de travaux", "material": "", "pred": "101", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 103, "name": "DICT", "cat": "Coordination", "start": 0, "dur": 5, "human": "Conducteur de travaux", "material": "", "pred": "102", "link": "Début-Début", "lag": 5, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 104, "name": "Sélection et commande des végétaux", "cat": "Coordination", "start": 0, "dur": 5, "human": "", "material": "", "pred": "101", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "title", "id": 105, "name": "PHASE TRAVAUX - TRANCHE 1", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 111, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 84, "dur": 0, "human": "", "material": "", "pred": "104", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 112, "name": "Option : Mise en place des lisses ", "cat": "Clôtures", "start": 84, "dur": 1, "human": "", "material": "", "pred": "111", "link": "SS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 113, "name": "Apport de terre végétale ", "cat": "Terrassement", "start": 85, "dur": 2, "human": "", "material": "", "pred": "112", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 116, "name": "Mise en place de toile biodégradable", "cat": "Plantation", "start": 87, "dur": 1, "human": "", "material": "", "pred": "113", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 117, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 88, "dur": 2, "human": "", "material": "", "pred": "116", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 118, "name": "Mise en place du goutte-à-goutte ", "cat": "Drainage", "start": 90, "dur": 3, "human": "", "material": "", "pred": "117", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 119, "name": "Paillage des surfaces ", "cat": "Plantation", "start": 93, "dur": 1, "human": "", "material": "", "pred": "118", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 120, "name": "Nettoyage des espaces ", "cat": "Finitions", "start": 94, "dur": 1, "human": "", "material": "", "pred": "119", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "task", "id": 126, "name": "Travaux de parachèvement", "cat": "Finitions", "start": 95, "dur": 5, "human": "", "material": "", "pred": "120", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 105}, {"type": "title", "id": 121, "name": "PHASE TRAVAUX - TRANCHE 2 ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 122, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 122, "dur": 0, "human": "", "material": "", "pred": "126", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 123, "name": "Option : Mise en place des lisses", "cat": "Clôtures", "start": 122, "dur": 1, "human": "", "material": "", "pred": "122", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 124, "name": "Apport de terre végétale", "cat": "Terrassement", "start": 123, "dur": 2, "human": "", "material": "", "pred": "123", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 114, "name": "Plantation des arbres ", "cat": "Plantation", "start": 125, "dur": 1, "human": "", "material": "", "pred": "124", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 115, "name": "Installation de tuteurs ", "cat": "Plantation", "start": 126, "dur": 1, "human": "", "material": "", "pred": "114", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 125, "name": "Mise en place de toile biodégradable ", "cat": "Plantation", "start": 127, "dur": 1, "human": "", "material": "", "pred": "115", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 127, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 128, "dur": 2, "human": "", "material": "", "pred": "125", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 135, "name": "Mise en place du goutte-à-goutte ", "cat": "Drainage", "start": 129, "dur": 2, "human": "", "material": "", "pred": "127", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 134, "name": "Paillage des surfaces", "cat": "Plantation", "start": 131, "dur": 1, "human": "", "material": "", "pred": "135", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 132, "name": "Nettoyage des surfaces ", "cat": "Finitions", "start": 132, "dur": 1, "human": "", "material": "", "pred": "134", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "task", "id": 133, "name": "Travaux de parachèvement ", "cat": "Finitions", "start": 133, "dur": 5, "human": "", "material": "", "pred": "132", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 121}, {"type": "title", "id": 136, "name": "PHASE TRAVAUX - TRANCHE 3 ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "milestone", "id": 137, "name": "Réception du Lot VRD", "cat": "Coordination", "start": 176, "dur": 0, "human": "", "material": "", "pred": "133", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 128, "name": "Option mise en place des lisses ", "cat": "Clôtures", "start": 176, "dur": 1, "human": "", "material": "", "pred": "137", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 129, "name": "Apport de terre végétale ", "cat": "Terrassement", "start": 177, "dur": 2, "human": "", "material": "", "pred": "128", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 130, "name": "Plantation des arbres ", "cat": "Plantation", "start": 179, "dur": 2, "human": "", "material": "", "pred": "129", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 131, "name": "Installation de tuteurs", "cat": "Plantation", "start": 181, "dur": 2, "human": "", "material": "", "pred": "130", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 138, "name": "Mise en place de toile biodégradable ", "cat": "Plantation", "start": 183, "dur": 1, "human": "", "material": "", "pred": "131", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 139, "name": "Plantation des arbustes et vivaces ", "cat": "Plantation", "start": 184, "dur": 1, "human": "", "material": "", "pred": "138", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 140, "name": "Mise en place du goutte-à-goutte", "cat": "Drainage", "start": 185, "dur": 2, "human": "", "material": "", "pred": "139", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 141, "name": "Paillage des surfaces ", "cat": "Plantation", "start": 187, "dur": 1, "human": "", "material": "", "pred": "140", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "task", "id": 142, "name": "Nettoyage des surfaces", "cat": "Finitions", "start": 188, "dur": 5, "human": "", "material": "", "pred": "141", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 136}, {"type": "title", "id": 106, "name": "FINALISATION DES TRAVAUX", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": true}, {"type": "task", "id": 110, "name": "Réception des travaux", "cat": "Coordination", "start": 55, "dur": 5, "human": "Conducteur de travaux", "material": "", "pred": "142", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 107, "name": "OPR", "cat": "Coordination", "start": 60, "dur": 1, "human": "Conducteur de travaux", "material": "", "pred": "110", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 108, "name": "Levées de réserve", "cat": "Finitions", "start": 61, "dur": 5, "human": "Equipe 1", "material": "", "pred": "107", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "task", "id": 109, "name": "DOE", "cat": "Coordination", "start": 66, "dur": 5, "human": "Bureau d'études", "material": "", "pred": "108", "link": "Fin-Début", "lag": 0, "progress": 0, "collapsed": false, "parentId": 106}, {"type": "title", "id": 144, "name": "ENTRETIEN DES ESPACES VERTS - 1 AN ", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "task", "id": 143, "name": "Entretien des espaces ", "cat": "Coordination", "start": 189, "dur": 5, "human": "", "material": "", "pred": "109", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 144}], "livraisons": [], "fermetures": [{"id": 34, "start": "2026-12-24", "end": "2027-01-03", "label": "Fermeture entreprise", "date": "2026-07-20", "day": 0}], "fermWeeks": [], "uid": 148, "humanResources": [{"id": 1, "name": "Conducteur de travaux"}, {"id": 2, "name": "Chef de chantier"}, {"id": 3, "name": "Chef d'équipe"}, {"id": 4, "name": "Equipe 1"}, {"id": 5, "name": "Equipe 2"}, {"id": 6, "name": "Equipe 3"}, {"id": 7, "name": "Ouvrier"}, {"id": 8, "name": "Manœuvre"}, {"id": 9, "name": "Chauffeur PL"}, {"id": 10, "name": "Bureau d'études"}], "materialResources": [{"id": 11, "name": "Camion 8x4"}, {"id": 12, "name": "Camion toupie"}, {"id": 13, "name": "Camion 20T grue"}, {"id": 14, "name": "Camion grue mobile"}, {"id": 15, "name": "Camionnette 3,5T"}, {"id": 16, "name": "Chargeur"}, {"id": 17, "name": "Chariot télescopique"}, {"id": 18, "name": "Dumper"}, {"id": 19, "name": "Rouleau compresseur"}, {"id": 20, "name": "Plaque vibrante"}, {"id": 21, "name": "Enfonce pieux"}, {"id": 22, "name": "Malaxeur"}, {"id": 23, "name": "Pelle 1T5"}, {"id": 24, "name": "Pelle 2T5"}, {"id": 25, "name": "Pelle 5T"}, {"id": 26, "name": "Pelle 10T"}, {"id": 27, "name": "Pelle 12T"}, {"id": 28, "name": "Pelle 15T"}, {"id": 29, "name": "Petit matériel"}, {"id": 30, "name": "Matériel d'élagage"}, {"id": 31, "name": "Nettoyeur haute pression"}, {"id": 32, "name": "Clôture mobile de chantier"}, {"id": 33, "name": "Panneaux de signalisation"}]};
+const INITIAL_PROJECT_DATA={"version": 2, "pname": "", "pstart": "", "zoom": "30", "tasks": [{"type": "title", "id": 100, "name": "PHASE PRÉPARATOIRE", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "task", "id": 101, "name": "Installation de chantier", "cat": "Coordination", "start": 0, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 102, "name": "Balisage et signalisation provisoire", "cat": "Coordination", "start": 1, "dur": 1, "human": "", "material": "", "pred": "101", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 103, "name": "DICT", "cat": "Coordination", "start": 0, "dur": 5, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 104, "name": "Arrêtés de circulation", "cat": "Coordination", "start": 0, "dur": 5, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 105, "name": "Piquetage", "cat": "Coordination", "start": 2, "dur": 1, "human": "", "material": "", "pred": "102", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 106, "name": "Constat contradictoire", "cat": "Coordination", "start": 3, "dur": 1, "human": "", "material": "", "pred": "105", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "milestone", "id": 107, "name": "Réunion de lancement", "cat": "Coordination", "start": 4, "dur": 0, "human": "", "material": "", "pred": "106", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "task", "id": 108, "name": "Approvisionnements initiaux", "cat": "Coordination", "start": 5, "dur": 2, "human": "", "material": "", "pred": "107", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 100}, {"type": "title", "id": 200, "name": "TRAVAUX", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "title", "id": 300, "name": "FINALISATION DES TRAVAUX", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "task", "id": 301, "name": "Nettoyage complet du chantier", "cat": "Finitions", "start": 0, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "task", "id": 302, "name": "Repliement des installations de chantier", "cat": "Finitions", "start": 1, "dur": 1, "human": "", "material": "", "pred": "301", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "task", "id": 303, "name": "Contrôles et essais finaux", "cat": "Coordination", "start": 2, "dur": 1, "human": "", "material": "", "pred": "302", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "task", "id": 304, "name": "DOE", "cat": "Coordination", "start": 3, "dur": 2, "human": "", "material": "", "pred": "303", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "milestone", "id": 305, "name": "Réception des travaux", "cat": "Coordination", "start": 5, "dur": 0, "human": "", "material": "", "pred": "304", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "task", "id": 306, "name": "Levée des réserves", "cat": "Finitions", "start": 6, "dur": 3, "human": "", "material": "", "pred": "305", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 300}, {"type": "title", "id": 400, "name": "ENTRETIEN DES ESPACES VERTS - 1 AN", "cat": "Coordination", "start": 0, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false}, {"type": "task", "id": 401, "name": "Arrosages", "cat": "Plantation", "start": 0, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 402, "name": "Désherbage", "cat": "Finitions", "start": 20, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 403, "name": "Taille", "cat": "Finitions", "start": 60, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 404, "name": "Remplacement des végétaux", "cat": "Plantation", "start": 120, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 405, "name": "Contrôle des tuteurs", "cat": "Plantation", "start": 30, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 406, "name": "Reprise des attaches", "cat": "Plantation", "start": 30, "dur": 1, "human": "", "material": "", "pred": "405", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "task", "id": 407, "name": "Contrôle sanitaire", "cat": "Plantation", "start": 90, "dur": 1, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}, {"type": "milestone", "id": 408, "name": "Réception de garantie", "cat": "Coordination", "start": 250, "dur": 0, "human": "", "material": "", "pred": "", "link": "FS", "lag": 0, "progress": 0, "collapsed": false, "parentId": 400}], "livraisons": [], "fermetures": [{"id": 34, "start": "2026-12-24", "end": "2027-01-03", "label": "Fermeture entreprise", "date": "2026-07-20", "day": 0}], "fermWeeks": [], "uid": 501, "humanResources": [{"id": 1, "name": "Conducteur de travaux"}, {"id": 2, "name": "Chef de chantier"}, {"id": 3, "name": "Chef d'équipe"}, {"id": 4, "name": "Equipe 1"}, {"id": 5, "name": "Equipe 2"}, {"id": 6, "name": "Equipe 3"}, {"id": 7, "name": "Ouvrier"}, {"id": 8, "name": "Manœuvre"}, {"id": 9, "name": "Chauffeur PL"}, {"id": 10, "name": "Bureau d'études"}], "materialResources": [{"id": 11, "name": "Camion 8x4"}, {"id": 12, "name": "Camion toupie"}, {"id": 13, "name": "Camion 20T grue"}, {"id": 14, "name": "Camion grue mobile"}, {"id": 15, "name": "Camionnette 3,5T"}, {"id": 16, "name": "Chargeur"}, {"id": 17, "name": "Chariot télescopique"}, {"id": 18, "name": "Dumper"}, {"id": 19, "name": "Rouleau compresseur"}, {"id": 20, "name": "Plaque vibrante"}, {"id": 21, "name": "Enfonce pieux"}, {"id": 22, "name": "Malaxeur"}, {"id": 23, "name": "Pelle 1T5"}, {"id": 24, "name": "Pelle 2T5"}, {"id": 25, "name": "Pelle 5T"}, {"id": 26, "name": "Pelle 10T"}, {"id": 27, "name": "Pelle 12T"}, {"id": 28, "name": "Pelle 15T"}, {"id": 29, "name": "Petit matériel"}, {"id": 30, "name": "Matériel d'élagage"}, {"id": 31, "name": "Nettoyeur haute pression"}, {"id": 32, "name": "Clôture mobile de chantier"}, {"id": 33, "name": "Panneaux de signalisation"}]};
 function loadInitialProjectData(d){
   if(!d || !Array.isArray(d.tasks)){loadPreset('mixte');return;}
   document.getElementById('pname').value=d.pname||'';
@@ -2867,8 +2956,268 @@ function loadInitialProjectData(d){
   renderTasks();renderLivr();renderCal();renderResources();updatePdfChapterList();renderPdfComposition();updatePdfDateFields(true);renderGantt();
 }
 
+/* =========================================================
+   V3 — ÉDITION GRAPHIQUE DU GANTT
+   Objectif : créer / modifier directement depuis le graphique,
+   sans ajouter de fiche chantier.
+   ========================================================= */
+let ganttSelectedId=null;
+let ganttContext={task:null,day:0,row:null,x:0,y:0};
+let ganttDrag=null;
+const _showTabBase=showTab;
+showTab=function(name){
+  ['planning','tasks','res','livr','cal','pdf'].forEach(t=>{
+    const pane=document.getElementById('tab-'+t);
+    const btn=document.getElementById('tab-'+t+'-btn');
+    if(pane) pane.classList.toggle('active',t===name);
+    if(btn) btn.classList.toggle('active',t===name);
+  });
+  const tabsCard=document.querySelector('.tabs.no-print')?.nextElementSibling;
+  const ganttCard=document.getElementById('gantt-card');
+  if(tabsCard) tabsCard.style.display=(name==='planning')?'none':'block';
+  if(ganttCard) ganttCard.style.display=(name==='planning')?'grid':'none';
+  if(name==='planning'){ renderGantt(); ensureGanttV3Ui(); }
+  if(name==='pdf') ensurePdfUiReady();
+};
+
+function ensureGanttV3Ui(){
+  const card=document.getElementById('gantt-card');
+  if(!card || document.getElementById('gantt-inspector')) return;
+  card.classList.add('planning-mode');
+  const left=document.createElement('div');
+  left.id='gantt-left-wrap';
+  while(card.firstChild) left.appendChild(card.firstChild);
+  card.appendChild(left);
+  const inspector=document.createElement('aside');
+  inspector.id='gantt-inspector';
+  inspector.innerHTML='<div class="insp-title">Propriétés</div><div class="gantt-edit-hint">Sélectionnez une ligne du Gantt. Clic droit pour ajouter une tâche, un jalon ou un chapitre. Glisser une barre pour déplacer une tâche. Glisser son bord droit pour modifier la durée.</div><div id="gantt-inspector-body"></div>';
+  card.appendChild(inspector);
+  const titleBlock=left.querySelector('#g-title')?.parentElement?.parentElement;
+  if(titleBlock && !document.getElementById('gantt-toolbar')){
+    const tb=document.createElement('div');
+    tb.id='gantt-toolbar';
+    tb.className='no-print';
+    tb.innerHTML=`
+      <button type="button" onclick="graphicAddTitle()">+ Chapitre</button>
+      <button type="button" onclick="graphicAddTask('task')">+ Tâche</button>
+      <button type="button" onclick="graphicAddTask('milestone')">+ Jalon</button>
+      <button type="button" onclick="graphicDuplicateSelected()">Dupliquer</button>
+      <button type="button" onclick="graphicDeleteSelected()" style="color:#C7462D">Supprimer</button>
+      <button type="button" onclick="showTab('tasks')">Tableau détaillé</button>`;
+    titleBlock.parentElement.insertBefore(tb,titleBlock);
+  }
+  if(!document.getElementById('gantt-context-menu')){
+    const cm=document.createElement('div');
+    cm.id='gantt-context-menu';
+    cm.innerHTML=`
+      <button onclick="graphicAddTitleAtContext()">+ Nouveau chapitre</button>
+      <button onclick="graphicAddTaskAtContext('task')">+ Nouvelle tâche</button>
+      <button onclick="graphicAddTaskAtContext('milestone')">+ Nouveau jalon</button>
+      <div class="sep"></div>
+      <button onclick="graphicOpenContextTask()">Propriétés</button>
+      <button onclick="graphicDuplicateContextTask()">Dupliquer</button>
+      <button onclick="graphicToggleContextChapter()">Replier / déplier le chapitre</button>
+      <div class="sep"></div>
+      <button class="danger" onclick="graphicDeleteContextTask()">Supprimer</button>`;
+    document.body.appendChild(cm);
+    document.addEventListener('click',()=>hideGanttContextMenu());
+  }
+  renderGanttInspector();
+}
+
+function getGanttDisplayDays(){
+  const pDate=getProjectStartDate();
+  const end=getProjectTotalEndDay();
+  const days=[];
+  for(let cd=0;cd<=end;cd++) if(isVisibleGanttDay(pDate,cd)) days.push(cd);
+  return days.length?days:[0];
+}
+function getTaskFromGanttEvent(ev){
+  const sc=document.getElementById('gantt-scroll');
+  const svg=sc?.querySelector('.gantt-main svg');
+  if(!sc||!svg) return {task:null,day:0,row:null,svgX:0,svgY:0};
+  const r=svg.getBoundingClientRect();
+  const vbW=parseFloat(svg.getAttribute('width'))||r.width;
+  const vbH=parseFloat(svg.getAttribute('height'))||r.height;
+  const svgX=(ev.clientX-r.left)*(vbW/r.width);
+  const svgY=(ev.clientY-r.top)*(vbH/r.height);
+  const ROW_H=40,HDR_H=92,LABEL_W=getLabelWidth(),DW=parseInt(document.getElementById('zoom').value)||30;
+  const row=Math.floor((svgY-HDR_H)/ROW_H);
+  const visible=getVisibleTasks();
+  const task=(row>=0 && row<visible.length)?visible[row]:null;
+  const col=Math.max(0,Math.floor((svgX-LABEL_W)/DW));
+  const days=getGanttDisplayDays();
+  const calDay=days[Math.max(0,Math.min(col,days.length-1))]||0;
+  return {task,day:calDay,row,svgX,svgY};
+}
+function calDayToWorkday(calDay){
+  const p=getProjectStartDate();
+  return workingDaysBetween(p, addDays(p,Math.max(0,+calDay||0)));
+}
+function selectGanttTask(id){
+  ganttSelectedId=id;
+  renderGanttInspector();
+}
+function selectedTask(){return tasks.find(t=>String(t.id)===String(ganttSelectedId));}
+function createTaskObject(type,day){
+  const w=calDayToWorkday(day||0);
+  return type==='milestone'
+    ? {type:'milestone',id:uid++,name:'Nouveau jalon',cat:'Coordination',start:w,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
+    : {type:'task',id:uid++,name:'Nouvelle tâche',cat:'Coordination',start:w,dur:5,human:'',material:'',pred:'',link:'FS',lag:0,progress:0};
+}
+function insertAfterContextChapter(obj){
+  normalizeChapterParents();
+  let idx=tasks.length;
+  if(ganttContext.task){
+    const baseIdx=tasks.findIndex(t=>String(t.id)===String(ganttContext.task.id));
+    if(baseIdx>=0){
+      if(ganttContext.task.type==='title') idx=baseIdx+1;
+      else idx=baseIdx+1;
+    }
+  }
+  tasks.splice(idx,0,obj);
+  normalizeChapterParents();
+  ganttSelectedId=obj.id;
+  renderTasks();renderGantt();updatePdfChapterList();
+}
+function graphicAddTask(type){
+  const end=getProjectForecastEndDay();
+  const obj=createTaskObject(type,end+1);
+  insertAfterContextChapter(obj);
+}
+function graphicAddTitle(){
+  const obj={type:'title',id:uid++,name:'Nouveau chapitre',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0,collapsed:false};
+  tasks.push(obj); normalizeChapterParents(); ganttSelectedId=obj.id;
+  renderTasks();renderGantt();updatePdfChapterList();
+}
+function graphicAddTaskAtContext(type){hideGanttContextMenu(); insertAfterContextChapter(createTaskObject(type,ganttContext.day));}
+function graphicAddTitleAtContext(){
+  hideGanttContextMenu();
+  const obj={type:'title',id:uid++,name:'Nouveau chapitre',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0,collapsed:false};
+  let idx=tasks.length;
+  if(ganttContext.task){
+    const base=tasks.findIndex(t=>String(t.id)===String(ganttContext.task.id));
+    if(base>=0) idx=ganttContext.task.type==='title'?base:base+1;
+  }
+  tasks.splice(idx,0,obj); normalizeChapterParents(); ganttSelectedId=obj.id;
+  renderTasks();renderGantt();updatePdfChapterList();
+}
+function graphicOpenContextTask(){hideGanttContextMenu(); if(ganttContext.task) selectGanttTask(ganttContext.task.id);}
+function graphicDuplicateSelected(){const t=selectedTask(); if(t) duplicateGanttTask(t);}
+function graphicDuplicateContextTask(){hideGanttContextMenu(); if(ganttContext.task) duplicateGanttTask(ganttContext.task);}
+function duplicateGanttTask(t){
+  const idx=tasks.findIndex(x=>String(x.id)===String(t.id)); if(idx<0)return;
+  if(t.type==='title'){
+    const end=getChapterBlockEndIndex(idx);
+    const block=tasks.slice(idx,end).map((x,i)=>({...x,id:uid++,name:i===0?String(x.name||'')+' (copie)':x.name,pred:'',parentId:null}));
+    tasks.splice(end,0,...block);
+    ganttSelectedId=block[0].id;
+  }else{
+    const copy={...t,id:uid++,name:String(t.name||'')+' (copie)',pred:'',start:(+t.start||0)+(+t.dur||1)};
+    tasks.splice(idx+1,0,copy); ganttSelectedId=copy.id;
+  }
+  normalizeChapterParents(); renderTasks(); renderGantt(); updatePdfChapterList();
+}
+function graphicDeleteSelected(){const t=selectedTask(); if(t) removeTask(t.id);}
+function graphicDeleteContextTask(){hideGanttContextMenu(); if(ganttContext.task) removeTask(ganttContext.task.id);}
+function graphicToggleContextChapter(){hideGanttContextMenu(); if(ganttContext.task?.type==='title') toggleCollapseTitle(ganttContext.task.id);}
+function hideGanttContextMenu(){const m=document.getElementById('gantt-context-menu'); if(m)m.style.display='none';}
+function showGanttContextMenu(ev,info){
+  const m=document.getElementById('gantt-context-menu'); if(!m)return;
+  ganttContext={task:info.task,day:info.day,row:info.row,x:ev.clientX,y:ev.clientY};
+  if(info.task) ganttSelectedId=info.task.id;
+  renderGanttInspector();
+  m.style.display='block';
+  m.style.left=Math.min(ev.clientX,window.innerWidth-230)+'px';
+  m.style.top=Math.min(ev.clientY,window.innerHeight-250)+'px';
+}
+function inspectorOptionsCats(val){return Object.keys(CATS).map(c=>`<option ${c===val?'selected':''}>${escapeHtml(c)}</option>`).join('');}
+function inspectorOptionsPred(t){
+  return `<option value="">—</option>`+tasks.filter(x=>x.type!=='title'&&String(x.id)!==String(t.id)).map(x=>`<option value="${x.id}" ${String(t.pred)===String(x.id)?'selected':''}>${escapeHtml(getTaskShortLabel(x,34))}</option>`).join('');
+}
+function renderGanttInspector(){
+  const body=document.getElementById('gantt-inspector-body'); if(!body)return;
+  const t=selectedTask();
+  if(!t){body.innerHTML='<div style="font-size:12px;color:#888780;line-height:1.5">Aucune ligne sélectionnée.</div>';return;}
+  if(t.type==='title'){
+    body.innerHTML=`
+      <div class="field"><label>Nom du chapitre</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdate(${t.id},'name',this.value)"></div>
+      <div class="field"><label>Affichage</label><select onchange="ganttUpdate(${t.id},'collapsed',this.value==='1')"><option value="0" ${!t.collapsed?'selected':''}>Déplié</option><option value="1" ${t.collapsed?'selected':''}>Replié</option></select></div>
+      <button type="button" onclick="toggleCollapseTitle(${t.id});renderGanttInspector()">Replier / déplier</button>`;
+    return;
+  }
+  body.innerHTML=`
+    <div class="field"><label>Nom</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdate(${t.id},'name',this.value)"></div>
+    <div class="field"><label>Type</label><select onchange="ganttUpdate(${t.id},'type',this.value)"><option value="task" ${t.type==='task'?'selected':''}>Tâche</option><option value="milestone" ${t.type==='milestone'?'selected':''}>Jalon</option></select></div>
+    <div class="field"><label>Catégorie</label><select onchange="ganttUpdate(${t.id},'cat',this.value)">${inspectorOptionsCats(t.cat)}</select></div>
+    <div class="field"><label>Début J+</label><input type="number" value="${+t.start||0}" onchange="ganttUpdate(${t.id},'start',+this.value||0)"></div>
+    <div class="field"><label>Date début</label><input type="date" value="${startToDate(+t.start||0)}" onchange="ganttUpdate(${t.id},'start',dateToStart(this.value))"></div>
+    <div class="field"><label>Durée jours ouvrés</label><input type="number" min="0" value="${+t.dur||0}" onchange="ganttUpdate(${t.id},'dur',+this.value||0)" ${t.type==='milestone'?'disabled':''}></div>
+    <div class="field"><label>Prédécesseur</label><select onchange="ganttUpdate(${t.id},'pred',this.value)">${inspectorOptionsPred(t)}</select></div>
+    <div class="field"><label>Lien</label><select onchange="ganttUpdate(${t.id},'link',this.value)">${LINK_TYPES.map(l=>`<option value="${l}" ${t.link===l?'selected':''}>${LINK_LABELS[l]}</option>`).join('')}</select></div>
+    <div class="field"><label>Décalage</label><input type="number" value="${+t.lag||0}" onchange="ganttUpdate(${t.id},'lag',+this.value||0)"></div>
+    <div class="field"><label>Moyens humains</label><input value="${escapeHtml(t.human||'')}" oninput="ganttUpdate(${t.id},'human',this.value)"></div>
+    <div class="field"><label>Moyens matériels</label><input value="${escapeHtml(t.material||'')}" oninput="ganttUpdate(${t.id},'material',this.value)"></div>
+    <div class="field"><label>Avancement %</label><input type="number" min="0" max="100" value="${+t.progress||0}" onchange="ganttUpdate(${t.id},'progress',Math.max(0,Math.min(100,+this.value||0)))"></div>`;
+}
+function ganttUpdate(id,field,value){
+  const t=tasks.find(x=>String(x.id)===String(id)); if(!t)return;
+  if(field==='type' && value==='milestone'){t.dur=0;t.progress=0;}
+  t[field]=value;
+  normalizeChapterParents(); renderTasks(); renderGantt(); updatePdfChapterList();
+}
+function bindGanttGraphicEvents(){
+  const sc=document.getElementById('gantt-scroll'); if(!sc || sc.dataset.v3Bound==='1')return;
+  sc.dataset.v3Bound='1';
+  sc.addEventListener('contextmenu',ev=>{ev.preventDefault(); showGanttContextMenu(ev,getTaskFromGanttEvent(ev));});
+  sc.addEventListener('dblclick',ev=>{const info=getTaskFromGanttEvent(ev); if(info.task){selectGanttTask(info.task.id);} else {ganttContext=info; graphicAddTaskAtContext('task');}});
+  sc.addEventListener('mousedown',ev=>{
+    if(ev.button!==0) return;
+    const info=getTaskFromGanttEvent(ev); if(!info.task)return;
+    selectGanttTask(info.task.id);
+    if(info.task.type==='title') return;
+    const starts=resolveStarts();
+    const ts=workdayToCalendarDay(starts[info.task.id]||info.task.start||0);
+    const te=info.task.type==='milestone'?ts:taskEndCalendarDay(info.task,starts[info.task.id]||info.task.start||0);
+    const DW=parseInt(document.getElementById('zoom').value)||30;
+    const days=getGanttDisplayDays();
+    const colStart=days.findIndex(d=>d>=ts);
+    const colEnd=days.findIndex(d=>d>=te);
+    const startX=getLabelWidth()+Math.max(0,colStart)*DW;
+    const endX=getLabelWidth()+Math.max(0,colEnd+1)*DW;
+    const mode=(Math.abs(info.svgX-endX)<16 && info.task.type!=='milestone')?'resize':'move';
+    if(info.svgX>=startX-6 && info.svgX<=endX+8){
+      ganttDrag={id:info.task.id,mode,startClientX:ev.clientX,origStart:+info.task.start||0,origDur:+info.task.dur||0,origDay:info.day};
+      document.body.style.cursor=mode==='resize'?'ew-resize':'grabbing';
+      ev.preventDefault();
+    }
+  });
+  window.addEventListener('mouseup',()=>{if(ganttDrag){ganttDrag=null;document.body.style.cursor='';}});
+  window.addEventListener('mousemove',ev=>{
+    if(!ganttDrag)return;
+    const DW=parseInt(document.getElementById('zoom').value)||30;
+    const deltaCols=Math.round((ev.clientX-ganttDrag.startClientX)/DW);
+    const t=tasks.find(x=>String(x.id)===String(ganttDrag.id)); if(!t)return;
+    if(ganttDrag.mode==='move') t.start=Math.max(0,ganttDrag.origStart+deltaCols);
+    else t.dur=Math.max(1,ganttDrag.origDur+deltaCols);
+    renderTasks(); renderGantt(); renderGanttInspector();
+  });
+}
+const _renderGanttBase=renderGantt;
+renderGantt=function(){
+  _renderGanttBase();
+  ensureGanttV3Ui();
+  bindGanttGraphicEvents();
+  const card=document.getElementById('gantt-card');
+  const planningActive=document.getElementById('tab-planning-btn')?.classList.contains('active');
+  if(card){
+    card.classList.add('planning-mode');
+    card.style.display=planningActive?'grid':'none';
+  }
+};
+
 // Init
-document.getElementById('pstart').value='2026-07-20';
+document.getElementById('pstart').value=today();
 // Assign UIDs to predefined resources
 humanResources=humanResources.map(r=>({...r,id:uid++}));
 materialResources=materialResources.map(r=>({...r,id:uid++}));
@@ -2877,6 +3226,7 @@ renderResources();
 ensureDefaultFermeture();
 loadInitialProjectData(INITIAL_PROJECT_DATA);
 ensurePdfUiReady();
+showTab('planning');
 const pstartInput=document.getElementById('pstart');
 if(pstartInput){
   pstartInput.addEventListener('change',()=>{ updatePdfDateFields(true); });
