@@ -3,7 +3,7 @@
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt Chantier – Espaces verts &amp; VRD – version corrigée</title>
+<title>Gantt Chantier – Espaces verts &amp; VRD – V8 stabilisée</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f3;color:#2C2C2A;font-size:14px}
@@ -1564,9 +1564,55 @@ function recalculateFollowingStarts(anchorIdx){
     if(t.pred){ t.start = resolved[t.id]; }
   }
 }
+
+function syncResolvedLinkedStarts(){
+  // Les tâches liées gardent leur prédécesseur : leur date affichée est celle du moteur.
+  // On synchronise uniquement la valeur stockée pour éviter les anciens start incohérents
+  // dans le tableau, les exports et les calculs suivants.
+  const resolved=resolveStarts();
+  tasks.forEach(t=>{
+    if(t && t.type!=='title' && t.pred && resolved[t.id]!==undefined){
+      t.start=Math.max(0,+resolved[t.id]||0);
+    }
+  });
+  return resolved;
+}
+
+function normLinkValue(v){
+  if(v==='Fin-Début') return 'FS';
+  if(v==='Fin-Fin') return 'FF';
+  if(v==='Début-Début') return 'SS';
+  if(v==='Début-Fin') return 'SF';
+  return v||'FS';
+}
+
+function computeLagForTargetStart(t,targetStart,startsOverride){
+  if(!t || !t.pred) return +t.lag||0;
+  const pred=tasks.find(x=>String(x.id)===String(t.pred));
+  if(!pred) return +t.lag||0;
+  const starts=startsOverride||resolveStarts();
+  const ps=Math.max(0,+starts[pred.id]||+pred.start||0);
+  const pDur=Math.max(0,+pred.dur||0);
+  const tDur=Math.max(t.type==='milestone'?0:1,+t.dur||0);
+  const link=normLinkValue(t.link);
+  const wanted=Math.max(0,+targetStart||0);
+  if(link==='FS') return wanted - (ps + pDur);
+  if(link==='FF') return wanted - (ps + pDur - tDur);
+  if(link==='SS') return wanted - ps;
+  if(link==='SF') return wanted - (ps - tDur);
+  return wanted - (ps + pDur);
+}
+
 function updateTaskStart(idx,newStart){
-  tasks[idx].start = Math.max(0, +newStart || 0);
-  recalculateFollowingStarts(idx);
+  const t=tasks[idx];
+  if(!t) return;
+  const wanted=Math.max(0, +newStart || 0);
+  if(t.pred){
+    t.lag=computeLagForTargetStart(t,wanted);
+  }else{
+    t.start=wanted;
+  }
+  syncResolvedLinkedStarts();
   renderTasks();
   renderGantt();
 }
@@ -2320,35 +2366,73 @@ function startGanttBarEdit(evt, taskId, mode){
   const zoomEl=document.getElementById('zoom');
   const DW=parseInt(zoomEl?.value||30)||30;
   const startX=evt.clientX;
-  const originalStart=Math.max(0,+t.start||0);
+  const baseStarts=resolveStarts();
+  const originalStart=Math.max(0,+baseStarts[t.id]||+t.start||0);
   const originalDur=Math.max(t.type==='milestone'?0:1,+t.dur||0);
+  const originalLag=+t.lag||0;
+  const hadPred=!!t.pred;
+  let lastDelta=0;
+  let rafPending=false;
+
   document.body.classList.add('gantt-editing');
-  const apply=(clientX)=>{
-    const delta=Math.round((clientX-startX)/DW);
+
+  const applyDelta=(delta)=>{
+    lastDelta=delta;
     if(mode==='move'){
-      t.start=Math.max(0,originalStart+delta);
+      const wantedStart=Math.max(0,originalStart+delta);
+      if(hadPred){
+        t.lag=computeLagForTargetStart(t,wantedStart,baseStarts);
+      }else{
+        t.start=wantedStart;
+      }
     }else if(mode==='resize-right'){
       if(t.type==='milestone') return;
       t.dur=Math.max(1,originalDur+delta);
+      // Allonger/réduire par la droite ne doit jamais déplacer le début.
+      if(hadPred){
+        t.lag=computeLagForTargetStart(t,originalStart,baseStarts);
+      }
     }else if(mode==='resize-left'){
       if(t.type==='milestone') return;
       const maxDelta=originalDur-1;
       const safeDelta=Math.min(delta,maxDelta);
-      t.start=Math.max(0,originalStart+safeDelta);
+      const wantedStart=Math.max(0,originalStart+safeDelta);
       t.dur=Math.max(1,originalDur-safeDelta);
+      if(hadPred){
+        t.lag=computeLagForTargetStart(t,wantedStart,baseStarts);
+      }else{
+        t.start=wantedStart;
+      }
     }
-    t.pred='';
+  };
+
+  const redraw=()=>{
+    rafPending=false;
+    syncResolvedLinkedStarts();
     renderTasks();
     renderGantt();
   };
-  const onMove=(e)=>apply(e.clientX);
+
+  const onMove=(e)=>{
+    const delta=Math.round((e.clientX-startX)/DW);
+    if(delta===lastDelta) return;
+    applyDelta(delta);
+    if(!rafPending){
+      rafPending=true;
+      requestAnimationFrame(redraw);
+    }
+  };
+
   const onUp=()=>{
     document.body.classList.remove('gantt-editing');
     document.removeEventListener('mousemove',onMove);
     document.removeEventListener('mouseup',onUp);
+    applyDelta(lastDelta);
+    syncResolvedLinkedStarts();
     renderTasks();
     renderGantt();
   };
+
   document.addEventListener('mousemove',onMove);
   document.addEventListener('mouseup',onUp);
 }
