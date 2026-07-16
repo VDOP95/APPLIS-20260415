@@ -70,6 +70,10 @@ button:hover{background:#f5f5f3}
 .gantt-grip-visible{filter:drop-shadow(0 1px 2px rgba(0,0,0,.22))}
 .gantt-resize-zone{cursor:ew-resize}
 body.gantt-editing, body.gantt-editing *{user-select:none!important}
+body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!important;cursor:grabbing!important}
+.gantt-row-handle{cursor:grab}
+.gantt-row-handle:hover{opacity:1!important}
+#gantt-row-drop-line{position:fixed;z-index:100001;height:3px;background:#1D9E75;border-radius:2px;pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(255,255,255,.85)}
 
 /* ---- PRINT / PDF ---- */
 @media print{
@@ -107,6 +111,16 @@ body.gantt-editing, body.gantt-editing *{user-select:none!important}
 #gantt-context-menu .sep{height:1px;background:#ece9e4;margin:5px 0}
 #gantt-context-menu .danger{color:#C7462D}
 .gantt-edit-hint{font-size:11px;color:#888780;line-height:1.45;margin:4px 0 10px 0}
+
+/* ---- Fenêtre d’ajout avec choix du chapitre ---- */
+.task-modal-backdrop{position:fixed;inset:0;z-index:200000;background:rgba(44,44,42,.42);display:none;align-items:center;justify-content:center;padding:20px}
+.task-modal-backdrop.open{display:flex}
+.task-modal{width:min(460px,100%);background:#fff;border:1px solid #d8d5cf;border-radius:14px;box-shadow:0 18px 55px rgba(0,0,0,.24);padding:18px}
+.task-modal h3{font-size:16px;margin:0 0 4px;font-weight:650}
+.task-modal .modal-sub{font-size:12px;color:#888780;margin-bottom:16px}
+.task-modal .field{margin-bottom:12px}
+.task-modal input,.task-modal select{width:100%;padding:8px 10px;font-size:13px}
+.task-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 
 </style>
 </head>
@@ -749,6 +763,40 @@ body.gantt-editing, body.gantt-editing *{user-select:none!important}
 
 </div><!-- end .page -->
 
+<!-- MODALE AJOUT TÂCHE / JALON -->
+<div id="task-chapter-modal" class="task-modal-backdrop no-print" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+  <div class="task-modal" onclick="event.stopPropagation()">
+    <h3 id="task-modal-title">Ajouter une tâche</h3>
+    <p class="modal-sub">La nouvelle ligne sera intégrée directement dans le chapitre sélectionné.</p>
+    <div class="field">
+      <label for="new-task-name">Nom</label>
+      <input id="new-task-name" type="text" autocomplete="off">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 110px;gap:10px">
+      <div class="field">
+        <label for="new-task-type">Type</label>
+        <select id="new-task-type">
+          <option value="task">Tâche</option>
+          <option value="milestone">Jalon</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="new-task-duration">Durée (jours)</label>
+        <input id="new-task-duration" type="number" min="1" value="5">
+      </div>
+    </div>
+    <div class="field">
+      <label for="new-task-chapter">Chapitre</label>
+      <select id="new-task-chapter"></select>
+    </div>
+    <div class="task-modal-actions">
+      <button type="button" onclick="closeTaskChapterModal()">Annuler</button>
+      <button type="button" class="btn-g" onclick="confirmTaskChapterModal()">Créer</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 const CATS={
   'Terrassement':{c:'#888780'},'Réseaux VRD':{c:'#378ADD'},'Voirie':{c:'#BA7517'},
@@ -1132,26 +1180,91 @@ function getLastTaskInCurrentChapter(){
 function getTaskEnd(task){
   return (+task.start||0) + (+task.dur||0);
 }
-function addTask(type){
+let pendingTaskType='task';
+let pendingChapterId=null;
+function getChapterOptions(){
+  return (tasks||[]).filter(t=>t.type==='title');
+}
+function openTaskChapterModal(type,chapterId=null){
+  pendingTaskType=type==='milestone'?'milestone':'task';
+  pendingChapterId=chapterId;
+  const modal=document.getElementById('task-chapter-modal');
+  const title=document.getElementById('task-modal-title');
+  const name=document.getElementById('new-task-name');
+  const select=document.getElementById('new-task-chapter');
+  const typeEl=document.getElementById('new-task-type');
+  const durEl=document.getElementById('new-task-duration');
+  if(!modal||!title||!name||!select) return;
+
+  title.textContent=chapterId!==null?'Ajouter dans ce chapitre':(pendingTaskType==='milestone'?'Ajouter un jalon':'Ajouter une tâche');
+  name.value=pendingTaskType==='milestone'?'Nouveau jalon':'Nouvelle tâche';
+  if(typeEl) typeEl.value=pendingTaskType;
+  if(durEl){
+    durEl.value=pendingTaskType==='milestone'?'1':'5';
+    durEl.disabled=pendingTaskType==='milestone';
+  }
+  const chapters=getChapterOptions();
+  select.innerHTML=chapters.length
+    ? chapters.map(ch=>`<option value="${ch.id}">${escapeHtml(ch.name||'Chapitre sans nom')}</option>`).join('')
+    : '<option value="">Sans chapitre</option>';
+  const targetId=chapterId!==null?chapterId:getActiveChapterId();
+  if(targetId!==null) select.value=String(targetId);
+  modal.classList.add('open');
+  setTimeout(()=>{name.focus();name.select();},0);
+}
+function closeTaskChapterModal(){
+  const modal=document.getElementById('task-chapter-modal');
+  if(modal) modal.classList.remove('open');
+}
+function getChapterInsertIndexById(chapterId){
+  if(chapterId===null || chapterId===undefined || chapterId==='') return tasks.length;
+  const titleIndex=tasks.findIndex(t=>t.type==='title' && String(t.id)===String(chapterId));
+  return titleIndex<0 ? tasks.length : getChapterBlockEndIndex(titleIndex);
+}
+function getLastTaskInChapterById(chapterId){
+  const titleIndex=tasks.findIndex(t=>t.type==='title' && String(t.id)===String(chapterId));
+  if(titleIndex<0) return null;
+  let last=null;
+  for(let i=titleIndex+1;i<tasks.length && tasks[i].type!=='title';i++){
+    if(tasks[i].type==='task' || tasks[i].type==='milestone') last=tasks[i];
+  }
+  return last;
+}
+function confirmTaskChapterModal(){
+  const nameEl=document.getElementById('new-task-name');
+  const chapterEl=document.getElementById('new-task-chapter');
+  const typeEl=document.getElementById('new-task-type');
+  const durEl=document.getElementById('new-task-duration');
+  const name=(nameEl?.value||'').trim();
+  if(!name){ nameEl?.focus(); return; }
+  const type=typeEl?.value==='milestone'?'milestone':'task';
+  const duration=type==='milestone'?0:Math.max(1,parseInt(durEl?.value)||1);
+  createTaskInChapter(type,chapterEl?.value||'',name,duration);
+  closeTaskChapterModal();
+}
+function createTaskInChapter(type,chapterId,name,duration=5){
   const def=type==='milestone'
-    ?{type:'milestone',name:'Réunion de chantier',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
-    :{type:'task',name:'Nouvelle tâche',cat:'Coordination',start:0,dur:5,human:'',material:'',pred:'',link:'FS',lag:0,progress:0};
+    ?{type:'milestone',name:name||'Nouveau jalon',cat:'Coordination',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0}
+    :{type:'task',name:name||'Nouvelle tâche',cat:'Coordination',start:0,dur:Math.max(1,+duration||1),human:'',material:'',pred:'',link:'FS',lag:0,progress:0};
 
-  const newTask={...def,id:uid++,parentId:getActiveChapterId()};
-  const prev=getLastTaskInCurrentChapter() || getLastTaskInTravaux();
-
+  const parentId=chapterId===''?null:Number(chapterId);
+  const newTask={...def,id:uid++,parentId};
+  const prev=getLastTaskInChapterById(chapterId);
   if(prev){
     newTask.pred=String(prev.id||'');
     newTask.link='FS';
     newTask.lag=0;
     newTask.start=getTaskEnd(prev);
   }
-
-  const insertIndex=getCurrentChapterInsertIndex();
+  const insertIndex=getChapterInsertIndexById(chapterId);
   tasks.splice(insertIndex,0,newTask);
+  normalizeChapterParents();
   renderTasks();
   renderGantt();
   updatePdfChapterList();
+}
+function addTask(type){
+  openTaskChapterModal(type);
 }
 function addTitle(){
   tasks.push({type:'title',id:uid++,name:'Nouveau chapitre',cat:'',start:0,dur:0,human:'',material:'',pred:'',link:'FS',lag:0,progress:0,collapsed:false});
@@ -1628,6 +1741,7 @@ function getClosedDays(pDate,totalDays){
 function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
   const LABEL_W=getLabelWidth(),ROW_H=40,HDR_H=92,FOOT=8;
   const forceLivrLabels = !!options.forceLivrLabels;
+  const showChapterAdd = !!options.showChapterAdd;
   const starts=startsOverride||resolveStarts();
   const visibleTasks=getVisibleTasks();
   const sDay=rangeStart||0;
@@ -1773,6 +1887,11 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
       const titleTxt=escapeHtml(t.name||'');
       const arrow=t.collapsed?'▸':'▾';
       s+=`<text x="10" y="${y+ROW_H/2+5}" font-size="13" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.5" style="cursor:pointer;user-select:none" onclick="toggleCollapseTitle(${t.id})"><title>${titleTxt}</title>${arrow} ${titleTxt}</text>`;
+      if(showChapterAdd){
+        const bx=Math.max(10,LABEL_W-34), by=y+7;
+        s+=`<rect x="${bx}" y="${by}" width="26" height="26" rx="6" fill="#ffffff" opacity=".16" stroke="#ffffff" stroke-width="1" style="cursor:pointer" onclick="event.stopPropagation();openTaskChapterModal('task',${t.id})"><title>Ajouter une tâche ou un jalon dans ce chapitre</title></rect>`;
+        s+=`<text x="${bx+13}" y="${by+18}" text-anchor="middle" font-size="20" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" style="cursor:pointer;user-select:none;pointer-events:none">+</text>`;
+      }
       barCoords[t.id]={x:LABEL_W,x2:LABEL_W,y:y+ROW_H/2,ts:0,te:0};
       return;
     }
@@ -1782,6 +1901,11 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
     s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#eeecea" stroke-width=".5"/>`;
     const cat=CATS[t.cat]||CATS['Coordination'];
     s+=`<rect x="3" y="${y+12}" width="3" height="16" rx="1" fill="${cat.c}"/>`;
+    const moveX=Math.max(8,LABEL_W-52);
+    s+=`<rect x="${moveX}" y="${y+6}" width="20" height="${ROW_H-12}" rx="5" fill="#f0efed" stroke="#c8c6be" stroke-width=".7" pointer-events="all" style="cursor:pointer" onclick="event.stopPropagation();moveGanttTaskStep(${t.id},-1)"><title>Monter cette ligne dans le chapitre</title></rect>`;
+    s+=`<text x="${moveX+10}" y="${y+ROW_H/2+4}" text-anchor="middle" font-size="12" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold" pointer-events="none">▲</text>`;
+    s+=`<rect x="${moveX+23}" y="${y+6}" width="20" height="${ROW_H-12}" rx="5" fill="#f0efed" stroke="#c8c6be" stroke-width=".7" pointer-events="all" style="cursor:pointer" onclick="event.stopPropagation();moveGanttTaskStep(${t.id},1)"><title>Descendre cette ligne dans le chapitre</title></rect>`;
+    s+=`<text x="${moveX+33}" y="${y+ROW_H/2+4}" text-anchor="middle" font-size="12" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold" pointer-events="none">▼</text>`;
     // Wrap task name on 2 lines (max ~26 chars per line)
     const MAX_LINE=Math.max(26, Math.floor((LABEL_W-24)/7));
     let line1=t.name,line2='';
@@ -2358,6 +2482,98 @@ function splitTasksForPrint(sourceTasks, maxRows){
 }
 
 
+
+function moveGanttTaskStep(taskId, direction){
+  const index=tasks.findIndex(t=>String(t.id)===String(taskId));
+  if(index<0 || tasks[index].type==='title') return;
+
+  let chapterStart=-1;
+  for(let i=index-1;i>=0;i--){
+    if(tasks[i].type==='title'){ chapterStart=i; break; }
+  }
+  let chapterEnd=tasks.length;
+  for(let i=index+1;i<tasks.length;i++){
+    if(tasks[i].type==='title'){ chapterEnd=i; break; }
+  }
+
+  if(direction<0){
+    let target=index-1;
+    while(target>chapterStart && tasks[target].type==='title') target--;
+    if(target<=chapterStart) return;
+    const tmp=tasks[target]; tasks[target]=tasks[index]; tasks[index]=tmp;
+  }else{
+    let target=index+1;
+    while(target<chapterEnd && tasks[target].type==='title') target++;
+    if(target>=chapterEnd) return;
+    const tmp=tasks[target]; tasks[target]=tasks[index]; tasks[index]=tmp;
+  }
+
+  normalizeChapterParents();
+  renderTasks();
+  renderGantt();
+  updatePdfChapterList();
+}
+
+function startGanttRowReorder(evt, taskId){
+  if(!evt) return;
+  evt.preventDefault();
+  evt.stopPropagation();
+  const source=tasks.find(t=>String(t.id)===String(taskId));
+  if(!source || source.type==='title') return;
+  const svg=evt.target.ownerSVGElement;
+  if(!svg) return;
+  const line=document.getElementById('gantt-row-drop-line');
+  const rect=svg.getBoundingClientRect();
+  const visible=getVisibleTasks();
+  let targetId=taskId;
+  let placeAfter=false;
+
+  document.body.classList.add('gantt-row-reordering');
+
+  const updateTarget=(clientY)=>{
+    const localY=clientY-rect.top;
+    let idx=Math.floor((localY-HDR_H)/ROW_H);
+    idx=Math.max(0,Math.min(visible.length-1,idx));
+    const target=visible[idx];
+    if(!target) return;
+    targetId=target.id;
+    const rowTop=rect.top+HDR_H+idx*ROW_H;
+    placeAfter=(clientY-rowTop)>(ROW_H/2);
+    if(target.type==='title') placeAfter=true;
+    if(line){
+      line.style.display='block';
+      line.style.left=rect.left+'px';
+      line.style.width=rect.width+'px';
+      line.style.top=(placeAfter?rowTop+ROW_H:rowTop)+'px';
+    }
+  };
+
+  const onMove=(e)=>updateTarget(e.clientY);
+  const onUp=()=>{
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.body.classList.remove('gantt-row-reordering');
+    if(line) line.style.display='none';
+
+    const from=tasks.findIndex(t=>String(t.id)===String(taskId));
+    const targetIndexOriginal=tasks.findIndex(t=>String(t.id)===String(targetId));
+    if(from<0 || targetIndexOriginal<0 || String(taskId)===String(targetId)) return;
+    const [moved]=tasks.splice(from,1);
+    const targetIndex=tasks.findIndex(t=>String(t.id)===String(targetId));
+    if(targetIndex<0){ tasks.splice(from,0,moved); return; }
+    const insertAt=targetIndex+(placeAfter?1:0);
+    tasks.splice(insertAt,0,moved);
+    normalizeChapterParents();
+    renderTasks();
+    renderGantt();
+    updatePdfChapterList();
+  };
+
+  updateTarget(evt.clientY);
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+
 function startGanttBarEdit(evt, taskId, mode){
   evt.preventDefault();
   evt.stopPropagation();
@@ -2451,7 +2667,7 @@ function renderGantt(){
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
   const forecastEndDay=Math.max(taskMax,livrMax);
   const totalDays=forecastEndDay+3;
-  const {svg}=buildSVG(pDate,DW,0,totalDays);
+  const {svg}=buildSVG(pDate,DW,0,totalDays,null,{showChapterAdd:true});
 
   const usedCats=[...new Set(visibleTasks.map(t=>t.cat).filter(Boolean))];
   document.getElementById('g-legend').innerHTML=
@@ -3317,6 +3533,27 @@ if(pstartInput){
 }
 const exportBtn=document.getElementById('btn-export-pdf');
 if(exportBtn) exportBtn.addEventListener('click', exportPDF);
+
+
+document.addEventListener('keydown',function(e){
+  const modal=document.getElementById('task-chapter-modal');
+  if(!modal || !modal.classList.contains('open')) return;
+  if(e.key==='Escape') closeTaskChapterModal();
+  if(e.key==='Enter' && e.target?.id!=='new-task-chapter'){
+    e.preventDefault();
+    confirmTaskChapterModal();
+  }
+});
+document.getElementById('task-chapter-modal')?.addEventListener('click',closeTaskChapterModal);
+document.getElementById('new-task-type')?.addEventListener('change',function(){
+  const dur=document.getElementById('new-task-duration');
+  if(!dur) return;
+  const isMilestone=this.value==='milestone';
+  dur.disabled=isMilestone;
+  if(isMilestone) dur.value='1';
+});
+
+
 </script>
 
 
