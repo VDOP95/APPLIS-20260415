@@ -97,10 +97,12 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 .pdf-comp-checks label{display:flex;align-items:center;gap:7px;font-size:12px;color:#2C2C2A;text-transform:none;letter-spacing:0;margin:0}
 
 /* ---- V3 édition graphique : clic droit + panneau propriétés ---- */
-#gantt-card.planning-mode{display:grid!important;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:start}
+#gantt-card.planning-mode{display:block!important}
+#gantt-card.planning-mode.inspector-open{display:grid!important;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:start}
 #gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 0}
 #gantt-toolbar button.active{background:#1D9E75;color:#fff;border-color:#1D9E75}
-#gantt-inspector{background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:12px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#gantt-inspector{display:none;background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:12px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#gantt-card.inspector-open #gantt-inspector{display:block}
 #gantt-inspector .insp-title{font-size:13px;font-weight:700;margin-bottom:10px;color:#2C2C2A}
 #gantt-inspector .field{margin-bottom:8px}
 #gantt-inspector input,#gantt-inspector select,#gantt-inspector textarea{width:100%}
@@ -1882,14 +1884,14 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
 
     // ---- TITRE / CHAPITRE ----
     if(t.type==='title'){
-      s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="#2C2C2A" style="cursor:pointer" onclick="toggleCollapseTitle(${t.id})"/>`;
+      s+=`<rect x="0" y="${y}" width="${svgW}" height="${ROW_H}" fill="#2C2C2A"/>`;
       s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#444" stroke-width="1"/>`;
       const titleTxt=escapeHtml(t.name||'');
       const arrow=t.collapsed?'▸':'▾';
       s+=`<text x="10" y="${y+ROW_H/2+5}" font-size="13" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.5" style="cursor:pointer;user-select:none" onclick="toggleCollapseTitle(${t.id})"><title>${titleTxt}</title>${arrow} ${titleTxt}</text>`;
       if(showChapterAdd){
         const bx=Math.max(10,LABEL_W-34), by=y+7;
-        s+=`<rect x="${bx}" y="${by}" width="26" height="26" rx="6" fill="#ffffff" opacity=".16" stroke="#ffffff" stroke-width="1" style="cursor:pointer" onclick="event.stopPropagation();openTaskChapterModal('task',${t.id})"><title>Ajouter une tâche ou un jalon dans ce chapitre</title></rect>`;
+        s+=`<rect x="${bx}" y="${by}" width="26" height="26" rx="6" fill="#ffffff" opacity=".16" stroke="#ffffff" stroke-width="1" pointer-events="all" style="cursor:pointer" onmousedown="return false" onclick="openTaskChapterModal('task',${t.id});return false"><title>Ajouter une tâche ou un jalon dans ce chapitre</title></rect>`;
         s+=`<text x="${bx+13}" y="${by+18}" text-anchor="middle" font-size="20" fill="#ffffff" font-weight="bold" font-family="Arial,sans-serif" style="cursor:pointer;user-select:none;pointer-events:none">+</text>`;
       }
       barCoords[t.id]={x:LABEL_W,x2:LABEL_W,y:y+ROW_H/2,ts:0,te:0};
@@ -3282,16 +3284,23 @@ showTab=function(name){
 
 function ensureGanttV3Ui(){
   const card=document.getElementById('gantt-card');
-  if(!card || document.getElementById('gantt-inspector')) return;
+  if(!card) return;
   card.classList.add('planning-mode');
-  const left=document.createElement('div');
-  left.id='gantt-left-wrap';
-  while(card.firstChild) left.appendChild(card.firstChild);
-  card.appendChild(left);
-  const inspector=document.createElement('aside');
-  inspector.id='gantt-inspector';
-  inspector.innerHTML='<div class="insp-title">Propriétés</div><div class="gantt-edit-hint">Sélectionnez une ligne du Gantt. Clic droit pour ajouter une tâche, un jalon ou un chapitre. Glisser une barre pour déplacer une tâche. Glisser son bord droit pour modifier la durée.</div><div id="gantt-inspector-body"></div>';
-  card.appendChild(inspector);
+  let left=document.getElementById('gantt-left-wrap');
+  if(!left){
+    left=document.createElement('div');
+    left.id='gantt-left-wrap';
+    while(card.firstChild) left.appendChild(card.firstChild);
+    card.appendChild(left);
+  }
+  let inspector=document.getElementById('gantt-inspector');
+  if(!inspector){
+    inspector=document.createElement('aside');
+    inspector.id='gantt-inspector';
+    inspector.className='no-print';
+    inspector.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><div class="insp-title" style="margin:0">Propriétés</div><button type="button" onclick="closeGanttInspector()" title="Fermer" style="padding:2px 8px;font-size:16px">×</button></div><div id="gantt-inspector-body"></div>`;
+    card.appendChild(inspector);
+  }
   const titleBlock=left.querySelector('#g-title')?.parentElement?.parentElement;
   if(titleBlock && !document.getElementById('gantt-toolbar')){
     const tb=document.createElement('div');
@@ -3356,7 +3365,13 @@ function calDayToWorkday(calDay){
 }
 function selectGanttTask(id){
   ganttSelectedId=id;
+  const card=document.getElementById('gantt-card');
+  if(card) card.classList.add('inspector-open');
   renderGanttInspector();
+}
+function closeGanttInspector(){
+  const card=document.getElementById('gantt-card');
+  if(card) card.classList.remove('inspector-open');
 }
 function selectedTask(){return tasks.find(t=>String(t.id)===String(ganttSelectedId));}
 function createTaskObject(type,day){
