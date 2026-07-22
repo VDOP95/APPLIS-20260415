@@ -98,7 +98,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 
 /* ---- V3 édition graphique : clic droit + panneau propriétés ---- */
 #gantt-card.planning-mode{display:block!important}
-#gantt-card.planning-mode.inspector-open{display:grid!important;grid-template-columns:minmax(0,1fr) 310px;gap:12px;align-items:start}
+#gantt-card.planning-mode.inspector-open{display:grid!important;grid-template-columns:minmax(0,1fr) 380px;gap:12px;align-items:start}
 #gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 0}
 #gantt-toolbar button.active{background:#1D9E75;color:#fff;border-color:#1D9E75}
 #gantt-inspector{display:none;background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:12px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
@@ -3492,7 +3492,10 @@ function showGanttContextMenu(ev,info){
 }
 function inspectorOptionsCats(val){return Object.keys(CATS).map(c=>`<option ${c===val?'selected':''}>${escapeHtml(c)}</option>`).join('');}
 function inspectorOptionsPred(t){
-  return `<option value="">—</option>`+tasks.filter(x=>x.type!=='title'&&String(x.id)!==String(t.id)).map(x=>`<option value="${x.id}" ${String(t.pred)===String(x.id)?'selected':''}>${escapeHtml(getTaskShortLabel(x,34))}</option>`).join('');
+  return `<option value="">—</option>`+tasks.filter(x=>x.type!=='title'&&String(x.id)!==String(t.id)).map(x=>{
+    const full=getTaskDisplayName(x);
+    return `<option value="${x.id}" title="${escapeHtml(full)}" ${String(t.pred)===String(x.id)?'selected':''}>${escapeHtml(getTaskShortLabel(x,90))}</option>`;
+  }).join('');
 }
 function renderGanttInspector(){
   if(isTypingInTextField()) return; // ne pas reconstruire le panneau pendant la frappe
@@ -3513,7 +3516,7 @@ function renderGanttInspector(){
     <div class="field"><label>Début J+</label><input type="number" value="${+t.start||0}" onchange="ganttUpdate(${t.id},'start',+this.value||0)"></div>
     <div class="field"><label>Date début</label><input type="date" value="${startToDate(+t.start||0)}" onchange="ganttUpdate(${t.id},'start',dateToStart(this.value))"></div>
     <div class="field"><label>Durée jours ouvrés</label><input type="number" min="0" value="${+t.dur||0}" onchange="ganttUpdate(${t.id},'dur',+this.value||0)" ${t.type==='milestone'?'disabled':''}></div>
-    <div class="field"><label>Prédécesseur</label><select onchange="ganttUpdate(${t.id},'pred',this.value)">${inspectorOptionsPred(t)}</select></div>
+    <div class="field"><label>Prédécesseur</label><select onchange="ganttUpdate(${t.id},'pred',this.value)">${inspectorOptionsPred(t)}</select>${(()=>{const p=tasks.find(x=>String(x.id)===String(t.pred));return p?`<div style="font-size:11px;color:#1D9E75;margin-top:3px;line-height:1.35;word-break:break-word">→ ${escapeHtml(getTaskDisplayName(p))}</div>`:'';})()}</div>
     <div class="field"><label>Lien</label><select onchange="ganttUpdate(${t.id},'link',this.value)">${LINK_TYPES.map(l=>`<option value="${l}" ${t.link===l?'selected':''}>${LINK_LABELS[l]}</option>`).join('')}</select></div>
     <div class="field"><label>Décalage</label><input type="number" value="${+t.lag||0}" onchange="ganttUpdate(${t.id},'lag',+this.value||0)"></div>
     <div class="field"><label>Moyens humains</label><input value="${escapeHtml(t.human||'')}" oninput="ganttUpdateLive(${t.id},'human',this.value)" onchange="ganttUpdate(${t.id},'human',this.value)"></div>
