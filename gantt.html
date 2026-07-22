@@ -959,6 +959,26 @@ function getActiveChapterId(){
   return idx>=0 ? tasks[idx].id : null;
 }
 
+// Déplace une tâche/jalon à la fin du chapitre cible (réaffectation sans glisser-déposer).
+function moveTaskToChapter(taskId, chapterId){
+  const fromIndex=tasks.findIndex(x=>String(x.id)===String(taskId));
+  if(fromIndex<0) return;
+  const moving=tasks[fromIndex];
+  if(moving.type==='title') return; // on ne réaffecte pas un chapitre via ce menu
+  // Retire la tâche
+  tasks.splice(fromIndex,1);
+  // Trouve le chapitre cible et la fin de son bloc
+  const titleIndex=tasks.findIndex(x=>String(x.id)===String(chapterId) && x.type==='title');
+  if(titleIndex<0){ tasks.splice(fromIndex,0,moving); return; } // sécurité : on remet en place
+  let insertIndex=titleIndex+1;
+  while(insertIndex<tasks.length && tasks[insertIndex].type!=='title') insertIndex++;
+  tasks.splice(insertIndex,0,moving);
+  normalizeChapterParents();
+  renderTasks();
+  renderGantt();
+  updatePdfChapterList();
+}
+
 let humanResources=[
   {id:0,name:'Conducteur de travaux'},
   {id:0,name:'Chef de chantier'},
@@ -1539,6 +1559,8 @@ function renderTasks(){
       return `<option value="${x.id}" title="${title}"${String(t.pred)===String(x.id)?' selected':''}>${label}</option>`;
     }).join('');
     const linkOpts=LINK_TYPES.map(l=>`<option value="${l}"${t.link===l?' selected':''}>${getLinkLabel(l)}</option>`).join('');
+    const currentChapterId=(()=>{ for(let k=i;k>=0;k--){ if(tasks[k].type==='title') return tasks[k].id; } return ''; })();
+    const chapterOpts=tasks.filter(x=>x.type==='title').map(x=>`<option value="${x.id}"${String(currentChapterId)===String(x.id)?' selected':''}>${escapeHtml(simplifyChapterName(x.name)||x.name||'(chapitre)')}</option>`).join('');
     row.style.gridTemplateColumns='22px 14px minmax(110px,1.4fr) 100px 50px 50px 110px minmax(90px,1fr) minmax(90px,1fr) minmax(150px,1fr) 80px 55px 130px 44px';
     const dot=isMil?`<span style="display:inline-block;width:10px;height:10px;background:#EF9F27;transform:rotate(45deg);border-radius:2px"></span>`
                    :`<span style="display:inline-block;width:10px;height:10px;background:${CATS[t.cat]?.c||'#888'};border-radius:2px"></span>`;
@@ -1549,6 +1571,7 @@ function renderTasks(){
       <span style="display:flex;justify-content:center">${dot}</span>
       <div class="task-name-wrap" data-tooltip="${escapeHtml(t.name)}">
       <input class="task-name-input" value="${escapeHtml(t.name)}" title="" onchange="tasks[${i}].name=this.value;renderTasks()" style="width:100%">
+      <select title="Chapitre — déplacer vers…" onchange="moveTaskToChapter(${t.id}, this.value)" style="width:100%;margin-top:3px;font-size:10px;color:#888780;border:none;background:transparent;padding:1px 2px;cursor:pointer">${chapterOpts}</select>
       </div>
       <select onchange="tasks[${i}].cat=this.value;renderTasks()" style="width:100%">${catOpts}</select>
       <input type="number" value="${t.start}" min="0" onchange="updateTaskStart(${i}, this.value)" style="width:100%">
