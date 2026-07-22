@@ -61,7 +61,7 @@ button:hover{background:#f5f5f3}
 .task-name-wrap::after{content:attr(data-tooltip);position:absolute;left:0;top:calc(100% + 6px);z-index:10000;display:none;min-width:220px;max-width:520px;padding:8px 10px;background:#2C2C2A;color:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:12px;line-height:1.35;font-weight:500;white-space:normal;pointer-events:none;text-transform:none;letter-spacing:0}
 .task-name-wrap::before{content:"";position:absolute;left:14px;top:100%;z-index:10001;display:none;border:6px solid transparent;border-bottom-color:#2C2C2A;pointer-events:none}
 .task-name-wrap:hover::after,.task-name-wrap:hover::before{display:block}
-.task-name-input{cursor:help}
+.task-name-input{cursor:text;position:relative;z-index:2}
 
 
 /* ---- GANTT INTERACTIF : barres plus faciles à saisir ---- */
@@ -1463,7 +1463,20 @@ function removeFermWeek(id){fermWeeks=fermWeeks.filter(f=>f.id!==id);renderCal()
 
 let dragSrcIdx=null;
 
+// Vrai si l'utilisateur est en train de taper dans un champ texte éditable.
+// Reconstruire le DOM à ce moment détruit l'input et bloque la saisie.
+function isTypingInTextField(){
+  const a=document.activeElement;
+  if(!a) return false;
+  const tag=(a.tagName||'').toLowerCase();
+  if(tag==='textarea') return true;
+  if(tag!=='input') return false;
+  const type=(a.getAttribute('type')||'text').toLowerCase();
+  return type==='text'||type==='search'||type==='';
+}
+
 function renderTasks(){
+  if(isTypingInTextField()) return; // ne pas reconstruire pendant la frappe
   const el=document.getElementById('task-list');
   el.innerHTML='';
   let hiddenByCollapse=false;
@@ -1475,7 +1488,15 @@ function renderTasks(){
     row.draggable=true;
     row.dataset.idx=i;
     row.style.cursor='default';
-    row.addEventListener('dragstart',e=>{dragSrcIdx=i;e.dataTransfer.effectAllowed='move';row.style.opacity='0.4';});
+    // Empêche le drag de la ligne quand on interagit avec un champ (sinon impossible de
+    // sélectionner/effacer le texte : le navigateur lance le glisser au lieu de sélectionner).
+    const isInteractive=el=>!!(el&&el.closest&&el.closest('input,select,textarea,button,.ms-trigger'));
+    row.addEventListener('pointerdown',e=>{ row.draggable=!isInteractive(e.target); },true);
+    row.addEventListener('mousedown',e=>{ row.draggable=!isInteractive(e.target); },true);
+    row.addEventListener('dragstart',e=>{
+      if(isInteractive(e.target)){ e.preventDefault(); return; }
+      dragSrcIdx=i;e.dataTransfer.effectAllowed='move';row.style.opacity='0.4';
+    });
     row.addEventListener('dragend',()=>{row.style.opacity='1';dragSrcIdx=null;});
     row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';row.style.background='#EAF3DE';});
     row.addEventListener('dragleave',()=>{row.style.background='';});
@@ -3451,18 +3472,19 @@ function inspectorOptionsPred(t){
   return `<option value="">—</option>`+tasks.filter(x=>x.type!=='title'&&String(x.id)!==String(t.id)).map(x=>`<option value="${x.id}" ${String(t.pred)===String(x.id)?'selected':''}>${escapeHtml(getTaskShortLabel(x,34))}</option>`).join('');
 }
 function renderGanttInspector(){
+  if(isTypingInTextField()) return; // ne pas reconstruire le panneau pendant la frappe
   const body=document.getElementById('gantt-inspector-body'); if(!body)return;
   const t=selectedTask();
   if(!t){body.innerHTML='<div style="font-size:12px;color:#888780;line-height:1.5">Aucune ligne sélectionnée.</div>';return;}
   if(t.type==='title'){
     body.innerHTML=`
-      <div class="field"><label>Nom du chapitre</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdate(${t.id},'name',this.value)"></div>
+      <div class="field"><label>Nom du chapitre</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdateLive(${t.id},'name',this.value)" onchange="ganttUpdate(${t.id},'name',this.value)"></div>
       <div class="field"><label>Affichage</label><select onchange="ganttUpdate(${t.id},'collapsed',this.value==='1')"><option value="0" ${!t.collapsed?'selected':''}>Déplié</option><option value="1" ${t.collapsed?'selected':''}>Replié</option></select></div>
       <button type="button" onclick="toggleCollapseTitle(${t.id});renderGanttInspector()">Replier / déplier</button>`;
     return;
   }
   body.innerHTML=`
-    <div class="field"><label>Nom</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdate(${t.id},'name',this.value)"></div>
+    <div class="field"><label>Nom</label><input value="${escapeHtml(t.name||'')}" oninput="ganttUpdateLive(${t.id},'name',this.value)" onchange="ganttUpdate(${t.id},'name',this.value)"></div>
     <div class="field"><label>Type</label><select onchange="ganttUpdate(${t.id},'type',this.value)"><option value="task" ${t.type==='task'?'selected':''}>Tâche</option><option value="milestone" ${t.type==='milestone'?'selected':''}>Jalon</option></select></div>
     <div class="field"><label>Catégorie</label><select onchange="ganttUpdate(${t.id},'cat',this.value)">${inspectorOptionsCats(t.cat)}</select></div>
     <div class="field"><label>Début J+</label><input type="number" value="${+t.start||0}" onchange="ganttUpdate(${t.id},'start',+this.value||0)"></div>
@@ -3471,9 +3493,15 @@ function renderGanttInspector(){
     <div class="field"><label>Prédécesseur</label><select onchange="ganttUpdate(${t.id},'pred',this.value)">${inspectorOptionsPred(t)}</select></div>
     <div class="field"><label>Lien</label><select onchange="ganttUpdate(${t.id},'link',this.value)">${LINK_TYPES.map(l=>`<option value="${l}" ${t.link===l?'selected':''}>${LINK_LABELS[l]}</option>`).join('')}</select></div>
     <div class="field"><label>Décalage</label><input type="number" value="${+t.lag||0}" onchange="ganttUpdate(${t.id},'lag',+this.value||0)"></div>
-    <div class="field"><label>Moyens humains</label><input value="${escapeHtml(t.human||'')}" oninput="ganttUpdate(${t.id},'human',this.value)"></div>
-    <div class="field"><label>Moyens matériels</label><input value="${escapeHtml(t.material||'')}" oninput="ganttUpdate(${t.id},'material',this.value)"></div>
+    <div class="field"><label>Moyens humains</label><input value="${escapeHtml(t.human||'')}" oninput="ganttUpdateLive(${t.id},'human',this.value)" onchange="ganttUpdate(${t.id},'human',this.value)"></div>
+    <div class="field"><label>Moyens matériels</label><input value="${escapeHtml(t.material||'')}" oninput="ganttUpdateLive(${t.id},'material',this.value)" onchange="ganttUpdate(${t.id},'material',this.value)"></div>
     <div class="field"><label>Avancement %</label><input type="number" min="0" max="100" value="${+t.progress||0}" onchange="ganttUpdate(${t.id},'progress',Math.max(0,Math.min(100,+this.value||0)))"></div>`;
+}
+function ganttUpdateLive(id,field,value){
+  // Met à jour le modèle SANS aucun re-render (préserve totalement le focus/curseur pendant la frappe).
+  // Le Gantt et le tableau sont redessinés au 'change' (sortie du champ) via ganttUpdate.
+  const t=tasks.find(x=>String(x.id)===String(id)); if(!t)return;
+  t[field]=value;
 }
 function ganttUpdate(id,field,value){
   const t=tasks.find(x=>String(x.id)===String(id)); if(!t)return;
@@ -3568,6 +3596,22 @@ document.getElementById('new-task-type')?.addEventListener('change',function(){
   if(isMilestone) dur.value='1';
 });
 
+// Quand on quitte un champ texte (tableau ou inspecteur), on rejoue un rendu propre.
+// Le focus est déjà parti, donc les gardes anti-frappe laissent passer et l'affichage se met à jour.
+document.addEventListener('focusout',function(e){
+  const t=e.target;
+  if(!t) return;
+  const tag=(t.tagName||'').toLowerCase();
+  const type=(t.getAttribute&&(t.getAttribute('type')||'text')||'text').toLowerCase();
+  const isText=tag==='textarea'||(tag==='input'&&(type==='text'||type==='search'||type===''));
+  if(!isText) return;
+  setTimeout(()=>{
+    if(isTypingInTextField()) return; // l'utilisateur est reparti taper ailleurs
+    if(typeof renderTasks==='function') renderTasks();
+    if(typeof renderGantt==='function') renderGantt();
+    if(typeof renderGanttInspector==='function') renderGanttInspector();
+  },0);
+});
 
 </script>
 
