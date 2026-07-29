@@ -101,6 +101,9 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 #gantt-card.planning-mode.inspector-open{display:grid!important;grid-template-columns:minmax(0,1fr) 380px;gap:12px;align-items:start}
 #gantt-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 0}
 #gantt-toolbar button.active{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.row.row-selected{outline:2px solid #1D9E75;outline-offset:-1px;background:#EAF7F2!important}
+.row.row-selected input,.row.row-selected select{background:#fff}
+.move-selection-label{font-size:11px;color:#888780;align-self:center;margin:0 2px 0 6px}
 #gantt-inspector{display:none;background:#fff;border:0.5px solid #e0dedd;border-radius:12px;padding:12px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
 #gantt-card.inspector-open #gantt-inspector{display:block}
 #gantt-inspector .insp-title{font-size:13px;font-weight:700;margin-bottom:10px;color:#2C2C2A}
@@ -173,7 +176,10 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
   <div class="tab-pane" id="tab-tasks">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <span style="font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:.05em">Tâches, jalons &amp; avancement</span>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="move-selection-label">Ligne sélectionnée :</span>
+        <button type="button" onclick="moveSelectedLine(-1)" title="Monter la ligne sélectionnée">↑ Monter</button>
+        <button type="button" onclick="moveSelectedLine(1)" title="Descendre la ligne sélectionnée">↓ Descendre</button>
         <button onclick="addTask(&#39;task&#39;)">+ Tâche</button>
         <button onclick="addTask(&#39;milestone&#39;)" style="color:#854F0B;border-color:#EF9F27">+ Jalon</button>
         <button onclick="addTitle()" style="color:#2C2C2A;border-color:#2C2C2A;font-weight:600;letter-spacing:.03em">+ Titre / Chapitre</button>
@@ -961,6 +967,49 @@ function moveTaskOrChapterBlock(fromIndex,toIndex){
   renderGantt();
   updatePdfChapterList();
 }
+function selectLine(id, openInspector=false){
+  ganttSelectedId=id;
+  if(openInspector){
+    const card=document.getElementById('gantt-card');
+    if(card) card.classList.add('inspector-open');
+    renderGanttInspector();
+  }
+  renderTasks();
+}
+function moveSelectedLine(direction){
+  const idx=tasks.findIndex(t=>String(t.id)===String(ganttSelectedId));
+  if(idx<0){ alert('Sélectionnez d’abord une ligne.'); return; }
+  const t=tasks[idx];
+  if(direction<0){
+    if(idx===0) return;
+    if(t.type==='title'){
+      let prevStart=idx-1;
+      while(prevStart>0 && tasks[prevStart].type!=='title') prevStart--;
+      if(tasks[prevStart]?.type!=='title') return;
+      moveTaskOrChapterBlock(idx,prevStart);
+    }else{
+      const chapterStart=(()=>{for(let i=idx-1;i>=0;i--)if(tasks[i].type==='title')return i;return -1;})();
+      if(idx-1<=chapterStart) return;
+      const item=tasks.splice(idx,1)[0]; tasks.splice(idx-1,0,item);
+      normalizeChapterParents(); renderTasks(); renderGantt(); updatePdfChapterList();
+    }
+  }else{
+    if(t.type==='title'){
+      const end=getChapterBlockEndIndex(idx);
+      if(end>=tasks.length) return;
+      const nextEnd=getChapterBlockEndIndex(end);
+      const block=tasks.splice(idx,end-idx);
+      const insertAt=nextEnd-block.length;
+      tasks.splice(insertAt,0,...block);
+      normalizeChapterParents(); renderTasks(); renderGantt(); updatePdfChapterList();
+    }else{
+      if(idx+1>=tasks.length || tasks[idx+1].type==='title') return;
+      const item=tasks.splice(idx,1)[0]; tasks.splice(idx+1,0,item);
+      normalizeChapterParents(); renderTasks(); renderGantt(); updatePdfChapterList();
+    }
+  }
+}
+
 function getActiveChapterId(){
   const idx=getLastChapterIndex();
   return idx>=0 ? tasks[idx].id : null;
@@ -1514,7 +1563,15 @@ function renderTasks(){
     row.className='row';
     row.draggable=true;
     row.dataset.idx=i;
+    row.dataset.taskId=t.id;
+    if(String(t.id)===String(ganttSelectedId)) row.classList.add('row-selected');
     row.style.cursor='default';
+    row.addEventListener('click',e=>{
+      if(e.target.closest('button') && e.target.closest('button').dataset.collapseButton==='1') return;
+      ganttSelectedId=t.id;
+      document.querySelectorAll('#task-list .row-selected').forEach(x=>x.classList.remove('row-selected'));
+      row.classList.add('row-selected');
+    });
     // Empêche le drag de la ligne quand on interagit avec un champ (sinon impossible de
     // sélectionner/effacer le texte : le navigateur lance le glisser au lieu de sélectionner).
     const isInteractive=el=>!!(el&&el.closest&&el.closest('input,select,textarea,button,.ms-trigger'));
@@ -1548,7 +1605,7 @@ function renderTasks(){
         <span style="display:flex;justify-content:center;align-items:center">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:#2C2C2A;border-radius:3px;font-size:9px;color:white;font-weight:bold">T</span>
         </span>
-        <button type="button" onclick="toggleCollapseTitle(${t.id})" title="${t.collapsed?'Déplier':'Replier'} le chapitre" style="width:20px;height:20px;padding:0;border:1px solid #c8c6be;border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${t.collapsed?'▸':'▾'}</button>
+        <button type="button" data-collapse-button="1" onpointerdown="event.stopPropagation()" onclick="event.preventDefault();event.stopPropagation();toggleCollapseTitle(${t.id})" title="${t.collapsed?'Déplier':'Replier'} le chapitre" style="width:20px;height:20px;padding:0;border:1px solid #c8c6be;border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${t.collapsed?'▸':'▾'}</button>
         <div class="task-name-wrap" data-tooltip="${escapeHtml(t.name)}">
         <input class="task-name-input" value="${escapeHtml(t.name)}" title="" onchange="tasks[${i}].name=this.value;renderTasks();renderGantt()" style="width:100%;font-weight:700;font-size:14px;border:none;border-bottom:2px solid #2C2C2A;border-radius:0;background:transparent;padding:3px 4px;color:#2C2C2A;letter-spacing:.02em" placeholder="Nom du chapitre…">
       </div>
@@ -1954,11 +2011,6 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
     s+=`<line x1="0" y1="${y+ROW_H}" x2="${svgW}" y2="${y+ROW_H}" stroke="#eeecea" stroke-width=".5"/>`;
     const cat=CATS[t.cat]||CATS['Coordination'];
     s+=`<rect x="3" y="${y+12}" width="3" height="16" rx="1" fill="${cat.c}"/>`;
-    const moveX=Math.max(8,LABEL_W-52);
-    s+=`<rect x="${moveX}" y="${y+6}" width="20" height="${ROW_H-12}" rx="5" fill="#f0efed" stroke="#c8c6be" stroke-width=".7" pointer-events="all" style="cursor:pointer" onclick="event.stopPropagation();moveGanttTaskStep(${t.id},-1)"><title>Monter cette ligne dans le chapitre</title></rect>`;
-    s+=`<text x="${moveX+10}" y="${y+ROW_H/2+4}" text-anchor="middle" font-size="12" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold" pointer-events="none">▲</text>`;
-    s+=`<rect x="${moveX+23}" y="${y+6}" width="20" height="${ROW_H-12}" rx="5" fill="#f0efed" stroke="#c8c6be" stroke-width=".7" pointer-events="all" style="cursor:pointer" onclick="event.stopPropagation();moveGanttTaskStep(${t.id},1)"><title>Descendre cette ligne dans le chapitre</title></rect>`;
-    s+=`<text x="${moveX+33}" y="${y+ROW_H/2+4}" text-anchor="middle" font-size="12" fill="#5F5E5A" font-family="Arial,sans-serif" font-weight="bold" pointer-events="none">▼</text>`;
     // Wrap task name on 2 lines (max ~26 chars per line)
     const MAX_LINE=Math.max(26, Math.floor((LABEL_W-24)/7));
     let line1=t.name,line2='';
@@ -3371,6 +3423,8 @@ function ensureGanttV3Ui(){
       <button type="button" onclick="graphicAddTitle()">+ Chapitre</button>
       <button type="button" onclick="graphicAddTask('task')">+ Tâche</button>
       <button type="button" onclick="graphicAddTask('milestone')">+ Jalon</button>
+      <button type="button" onclick="moveSelectedLine(-1)" title="Monter la ligne sélectionnée">↑ Monter</button>
+      <button type="button" onclick="moveSelectedLine(1)" title="Descendre la ligne sélectionnée">↓ Descendre</button>
       <button type="button" onclick="graphicDuplicateSelected()">Dupliquer</button>
       <button type="button" onclick="graphicDeleteSelected()" style="color:#C7462D">Supprimer</button>
       <button type="button" onclick="showTab('tasks')">Tableau détaillé</button>`;
@@ -3561,7 +3615,10 @@ function bindGanttGraphicEvents(){
     if(ev.button!==0) return;
     const info=getTaskFromGanttEvent(ev); if(!info.task)return;
     selectGanttTask(info.task.id);
-    if(info.task.type==='title') return;
+    if(info.task.type==='title'){
+      if(info.svgX<=42) toggleCollapseTitle(info.task.id);
+      return;
+    }
     const starts=resolveStarts();
     const ts=workdayToCalendarDay(starts[info.task.id]||info.task.start||0);
     const te=info.task.type==='milestone'?ts:taskEndCalendarDay(info.task,starts[info.task.id]||info.task.start||0);
