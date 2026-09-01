@@ -91,7 +91,11 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 .print-header h2{font-size:15px;font-weight:500}
 .print-header p{font-size:11px;color:#888780}
 
-.pdf-comp-row{display:grid;grid-template-columns:110px 1fr 38px;gap:8px;align-items:start;margin-bottom:8px;padding:8px;border:1px solid #e8e6e2;border-radius:8px;background:#fff}
+.pdf-comp-row{display:grid;grid-template-columns:110px minmax(0,1fr) 220px 38px;gap:8px;align-items:start;margin-bottom:8px;padding:8px;border:1px solid #e8e6e2;border-radius:8px;background:#fff}
+.pdf-comp-calib{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px 6px;border-left:1px solid #ece9e4}
+.pdf-comp-calib label{font-size:9px;margin:0;color:#888780}
+.pdf-comp-calib input{width:100%;font-size:11px;padding:4px 6px}
+.pdf-comp-calib .auto-note{grid-column:1/-1;font-size:9px;line-height:1.3;color:#888780}
 .pdf-comp-title{font-size:12px;font-weight:600;color:#2C2C2A;padding-top:5px}
 .pdf-comp-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .pdf-comp-checks label{display:flex;align-items:center;gap:7px;font-size:12px;color:#2C2C2A;text-transform:none;letter-spacing:0;margin:0}
@@ -651,7 +655,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
         </select>
       </div>
 
-      <div><label>Échelle par page</label>
+      <div><label>Échelle par page (mode calendrier)</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <input type="number" id="pdf-span-value" min="1" value="8" style="width:100%">
           <select id="pdf-span-unit" style="width:100%">
@@ -698,7 +702,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
         <select id="pdf-prog" style="width:100%"><option value="1">Oui</option><option value="0">Non</option></select>
       </div>
 
-      <div><label>Lignes par page</label>
+      <div><label>Lignes par page (mode calendrier)</label>
         <input type="number" id="pdf-rows-per-page" min="4" value="12" style="width:100%">
       </div>
     </div>
@@ -717,7 +721,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
         </div>
       </div>
       <div id="pdf-composition"></div>
-      <div style="font-size:11px;color:#888780;margin-top:6px;line-height:1.5">Une page peut contenir 1, 2, 3 chapitres ou plus. La composition automatique crée seulement une base neutre : 1 chapitre par page. Ensuite, vous cochez librement les chapitres à afficher sur chaque page, y compris plusieurs petits chapitres sur une même page.</div>
+      <div style="font-size:11px;color:#888780;margin-top:6px;line-height:1.5">Une page peut contenir 1, 2, 3 chapitres ou plus. Pour chaque page, vous pouvez laisser le calibrage en Auto (0) ou fixer un nombre maximal de lignes et de semaines. Si le contenu dépasse cette capacité, l'export crée automatiquement les pages de continuation nécessaires au lieu de réduire le planning jusqu'à le rendre illisible.</div>
     </div>
 
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
@@ -729,7 +733,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
     <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
       <strong>Structure du PDF généré :</strong><br>
       <strong>• Page 1 (synthèse)</strong> — Planning complet sur une seule page A3, plages sans activité supprimées, zoom auto-calculé.<br>
-      <strong>• Pages suivantes (détail)</strong> — Optionnelles : planning découpé selon vos paramètres (chapitres, semaines/mois par page, lignes/page) avec une échelle uniforme sur toutes les pages.<br>
+      <strong>• Pages suivantes (détail)</strong> — Optionnelles : chaque page est recalibrée sur son contenu réel : nombre de lignes, jours visibles, largeur des titres et largeur des colonnes de dates. En composition par chapitres, 0 = Auto ; l'application optimise la page et évite les pages de continuation ne contenant qu'une ligne lorsque l'A3 peut encore l'accueillir.<br>
       <strong>• Dernière page (tableau)</strong> — Optionnelle : tableau avec moyens humains, moyens matériels, jours/date de début et jours/date de fin.<br><br>
       Cliquez <strong>Exporter en PDF</strong> puis choisissez <strong>Enregistrer en PDF</strong> · Format : <strong>A3</strong>, orientation selon votre choix (<strong>Paysage</strong> ou <strong>Portrait</strong>) · Vérifiez que l'orientation du navigateur correspond et décochez les en-têtes/pieds de page.
     </div>
@@ -1849,7 +1853,7 @@ function getClosedDays(pDate,totalDays){
 }
 
 function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
-  const LABEL_W=getLabelWidth(),ROW_H=40,HDR_H=92,FOOT=8;
+  const LABEL_W=Math.max(180, Math.min(520, +options.labelWidth || getLabelWidth())),ROW_H=40,HDR_H=92,FOOT=8;
   const forceLivrLabels = !!options.forceLivrLabels;
   const showChapterAdd = !!options.showChapterAdd;
   const starts=startsOverride||resolveStarts();
@@ -2247,14 +2251,14 @@ function autoPdfComposition(){
   // Elle lit uniquement les lignes type="title" du Gantt chargé.
   // Par défaut neutre : 1 chapitre par page. Les regroupements restent manuels.
   chapters.forEach((ch,idx)=>{
-    pdfPageGroups.push({id:Date.now()+idx, chapterIds:[ch.id]});
+    pdfPageGroups.push({id:Date.now()+idx, chapterIds:[ch.id], rows:0, weeks:0});
   });
   renderPdfComposition();
 }
 function ensurePdfComposition(){
   const currentIds=new Set(getPdfChapters().map(ch=>String(ch.id)));
   pdfPageGroups=(pdfPageGroups||[])
-    .map(g=>({id:g.id||Date.now()+Math.random(),chapterIds:(g.chapterIds||[]).filter(id=>currentIds.has(String(id))).map(id=>+id)}))
+    .map(g=>({id:g.id||Date.now()+Math.random(),chapterIds:(g.chapterIds||[]).filter(id=>currentIds.has(String(id))).map(id=>+id),rows:Math.max(0,+g.rows||0),weeks:Math.max(0,+g.weeks||0)}))
     .filter(g=>g.chapterIds.length);
   if(!pdfPageGroups.length) autoPdfComposition();
 }
@@ -2274,19 +2278,48 @@ function renderPdfComposition(){
       <div class="pdf-comp-checks">
         ${chapters.map(ch=>`<label><input type="checkbox" ${g.chapterIds.map(String).includes(String(ch.id))?'checked':''} onchange="togglePdfCompositionChapter(${idx},${ch.id},this.checked)"> <span>${escapeHtml(ch.name)}</span></label>`).join('')}
       </div>
+      <div class="pdf-comp-calib">
+        <div><label>Lignes max.</label><input type="number" min="0" max="40" value="${g.rows||0}" onchange="updatePdfPageCalibration(${idx},'rows',this.value)" title="0 = automatique"></div>
+        <div><label>Semaines max.</label><input type="number" min="0" max="30" value="${g.weeks||0}" onchange="updatePdfPageCalibration(${idx},'weeks',this.value)" title="0 = automatique"></div>
+        <div class="auto-note">0 = Auto recommandé. L'échelle graphique est ensuite recalculée selon le contenu réel de chaque page.</div>
+      </div>
       <button type="button" title="Supprimer cette page" onclick="removePdfCompositionPage(${idx})" class="btn-del-row">×</button>
     </div>
   `).join('');
 }
+function updatePdfPageCalibration(pageIdx, field, value){
+  const g=pdfPageGroups[pageIdx];
+  if(!g) return;
+  const v=Math.max(0,parseInt(value)||0);
+  if(field==='rows') g.rows=v;
+  if(field==='weeks') g.weeks=v;
+}
+function getPdfPageCalibration(group, orientation){
+  const portrait=orientation==='portrait';
+  return {
+    rows: Math.max(4, +group?.rows || (portrait?20:15)),
+    weeks: Math.max(1, +group?.weeks || (portrait?4:7))
+  };
+}
+
 function togglePdfCompositionChapter(pageIdx, chapterId, state){
   const g=pdfPageGroups[pageIdx];
   if(!g) return;
+  const cid=+chapterId;
+  // Un chapitre ne peut appartenir qu'à une seule page de composition :
+  // cela évite les duplications involontaires dans le PDF.
+  if(state){
+    pdfPageGroups.forEach((pg,i)=>{
+      if(i!==pageIdx) pg.chapterIds=(pg.chapterIds||[]).filter(id=>+id!==cid);
+    });
+  }
   const ids=new Set((g.chapterIds||[]).map(x=>+x));
-  if(state) ids.add(+chapterId); else ids.delete(+chapterId);
+  if(state) ids.add(cid); else ids.delete(cid);
   g.chapterIds=Array.from(ids);
+  renderPdfComposition();
 }
 function addPdfCompositionPage(){
-  pdfPageGroups.push({id:Date.now(),chapterIds:[]});
+  pdfPageGroups.push({id:Date.now(),chapterIds:[],rows:0,weeks:0});
   renderPdfComposition();
 }
 function removePdfCompositionPage(idx){
@@ -2295,7 +2328,7 @@ function removePdfCompositionPage(idx){
 }
 function getPdfCompositionGroups(){
   ensurePdfComposition();
-  return (pdfPageGroups||[]).filter(g=>g.chapterIds && g.chapterIds.length).map(g=>({id:g.id,chapterIds:g.chapterIds.map(x=>+x)}));
+  return (pdfPageGroups||[]).filter(g=>g.chapterIds && g.chapterIds.length).map(g=>({id:g.id,chapterIds:g.chapterIds.map(x=>+x),rows:Math.max(0,+g.rows||0),weeks:Math.max(0,+g.weeks||0)}));
 }
 function filterTasksByChapterIds(sourceTasks, chapterIds){
   const selected=new Set((chapterIds||[]).map(x=>String(x)));
@@ -2525,6 +2558,43 @@ function countVisiblePdfDays(pDate, startDay, endDay){
   }
   return Math.max(1,n);
 }
+
+function getAutoPrintGeometry(pDate,startDay,endDay,rowCount,orientation){
+  // Référence de lisibilité : page 4 du PDF Bagnolet.
+  // En paysage, la densité cible est d'environ 15 lignes pour 35 jours ouvrés visibles.
+  // Les pages moins chargées NE sont plus agrandies pour remplir la feuille :
+  // elles conservent la même taille de texte, de lignes et de colonnes que la page de référence.
+  const portrait=orientation==='portrait';
+  const rows=Math.max(1,rowCount||1);
+  const visibleDays=countVisiblePdfDays(pDate,startDay,endDay);
+  if(!portrait){
+    const refRows=15;
+    const refDays=35;
+    const refLabelW=270;
+    const refSvgH=92 + refRows*40 + 8;
+    const refPageRatio=400/248;
+    const refSvgW=refSvgH*refPageRatio;
+    const refDayWidth=(refSvgW-refLabelW)/refDays;
+    return {
+      labelWidth:refLabelW,
+      dayWidth:refDayWidth,
+      minCanvasWidth:refSvgW,
+      minCanvasHeight:refSvgH,
+      referenceRows:refRows,
+      referenceDays:refDays
+    };
+  }
+  // Portrait : comportement conservateur, avec une référence fixe également.
+  const refRows=20;
+  const refDays=20;
+  const refLabelW=200;
+  const refSvgH=92 + refRows*40 + 8;
+  const refPageRatio=277/372;
+  const refSvgW=refSvgH*refPageRatio;
+  const refDayWidth=Math.max(12,(refSvgW-refLabelW)/refDays);
+  return {labelWidth:refLabelW,dayWidth:refDayWidth,minCanvasWidth:refSvgW,minCanvasHeight:refSvgH,referenceRows:refRows,referenceDays:refDays};
+}
+
 function padSvgCanvasForPrint(svg, width, height, targetWidth, targetHeight){
   const w=Math.max(width, Math.ceil(targetWidth||width));
   const h=Math.max(height, Math.ceil(targetHeight||height));
@@ -2971,35 +3041,42 @@ function exportPDF(){
       const selectedNames=group.chapterIds.map(id=>getChapterNameFromOrig(id)).filter(Boolean);
       if(!groupTasks.some(t=>t.type!=='title')) return;
       const range=getTaskRangeForPrint(groupTasks, startsMap, rangeStartDay, rangeEndDay);
-      const chunkStartDay=Math.max(rangeStartDay, range.startDay);
-      const chunkEndDay=Math.min(rangeEndDay, Math.max(range.endDay, chunkStartDay));
-      const livrChunk=[];
-      const rowPages=splitTasksForPrint(groupTasks, PRINT_ROWS_PER_PAGE);
-      const DETAIL_TARGET_W = getLabelWidth() + Math.max(1, countVisiblePdfDays(ps, chunkStartDay, chunkEndDay)) * DW;
-      const DETAIL_TARGET_H = 92 + (PRINT_ROWS_PER_PAGE * 40) + 120 + 8;
-      rowPages.forEach((taskPage,rowIdx)=>{
-        tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
-        livraisons=(rowIdx===rowPages.length-1) ? livrChunk : [];
-        const built=buildSVG(ps,DW,chunkStartDay,chunkEndDay,startsMap);
-        const padded=padSvgCanvasForPrint(built.svg, built.width, built.height, DETAIL_TARGET_W, DETAIL_TARGET_H);
-        const chunkStartDate=addDays(ps, chunkStartDay);
-        const chunkEndDate=addDays(ps, chunkEndDay);
-        pageNo++;
-        const isLastDetailPage=(groupIdx===groups.length-1) && (rowIdx===rowPages.length-1);
-        const styledSvg=padded.svg.replace('<svg ','<svg viewBox="0 0 '+padded.width+' '+padded.height+'" style="width:100%;height:'+PAGE_GANTT_H_MM+'mm;display:block" preserveAspectRatio="xMinYMin meet" ');
-        printBlocks.push(`
-        <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
-          <div style="margin-bottom:6px">
-            <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
-            <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-              <span>Période : ${fmtFull(chunkStartDate)} → ${fmtFull(chunkEndDate)}</span>
-              <span>Page ${pageNo}</span>
-              <span>Chapitres : ${escapeHtml(selectedNames.join(' • '))}</span>
+      const groupStartDay=Math.max(rangeStartDay, range.startDay);
+      const groupEndDay=Math.min(rangeEndDay, Math.max(range.endDay, groupStartDay));
+      const calib=getPdfPageCalibration(group,orientation);
+      // En mode chapitres, chaque page possède désormais sa propre capacité.
+      // Les semaines sans activité sont ignorées et un contenu trop large est réparti
+      // sur plusieurs pages plutôt que compressé à une échelle illisible.
+      let pageChunks=buildActivityAwarePdfChunks(groupStartDay,groupEndDay,calib.weeks,'weeks',groupTasks,[],startsMap);
+      if(!pageChunks.length) pageChunks=[{startDay:groupStartDay,endDay:groupEndDay}];
+      pageChunks.forEach((chunk,chunkIdx)=>{
+        const activeTasksForChunk=filterTasksForChunk(groupTasks,startsMap,chunk.startDay,chunk.endDay);
+        const rowPages=splitTasksForPrint(activeTasksForChunk,calib.rows);
+        rowPages.forEach((taskPage,rowIdx)=>{
+          tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
+          livraisons=[];
+          const geom=getAutoPrintGeometry(ps,chunk.startDay,chunk.endDay,taskPage.length,orientation);
+          const builtRaw=buildSVG(ps,geom.dayWidth,chunk.startDay,chunk.endDay,startsMap,{labelWidth:geom.labelWidth});
+          const built=padSvgCanvasForPrint(builtRaw.svg,builtRaw.width,builtRaw.height,geom.minCanvasWidth,geom.minCanvasHeight);
+          const chunkStartDate=addDays(ps, chunk.startDay);
+          const chunkEndDate=addDays(ps, chunk.endDay);
+          pageNo++;
+          const isLastDetailPage=(groupIdx===groups.length-1) && (chunkIdx===pageChunks.length-1) && (rowIdx===rowPages.length-1);
+          const styledSvg=built.svg.replace('<svg ','<svg viewBox="0 0 '+built.width+' '+built.height+'" style="width:100%;height:auto;max-height:'+PAGE_GANTT_H_MM+'mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+          printBlocks.push(`
+          <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
+            <div style="margin-bottom:6px">
+              <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
+              <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <span>Période : ${fmtFull(chunkStartDate)} → ${fmtFull(chunkEndDate)}</span>
+                <span>Page ${pageNo}</span>
+                <span>Auto : ${taskPage.length} lignes · ${countVisiblePdfDays(ps,chunk.startDay,chunk.endDay)} jours affichés · ${selectedNames.length>2 ? selectedNames.length+' chapitres' : escapeHtml(selectedNames.join(' • '))}</span>
+              </div>
             </div>
-          </div>
-          <div style="width:100%;height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
-        </section>
-      `);
+            <div style="width:100%;max-height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
+          </section>
+        `);
+        });
       });
     });
   }else{
@@ -3009,11 +3086,6 @@ function exportPDF(){
   const chunks=(hideEmpty && pageMode!=='single')
     ? buildActivityAwarePdfChunks(rangeStartDay, rangeEndDay, spanValue, spanUnit, filteredTasks, origLivr, startsMap)
     : buildPdfChunks(rangeStartDay, rangeEndDay, pageMode, spanValue, spanUnit);
-
-  // Dimensions de référence pour toutes les pages de détail.
-  // Cela évite qu'une page contenant seulement 1 ou 2 lignes soit agrandie à l'export PDF.
-  const DETAIL_TARGET_W = getLabelWidth() + Math.max(1, ...chunks.map(c=>countVisiblePdfDays(ps, c.startDay, c.endDay))) * DW;
-  const DETAIL_TARGET_H = 92 + (PRINT_ROWS_PER_PAGE * 40) + 120 + 8;
 
   chunks.forEach((chunk)=>{
     const livrChunk=getFilteredLivraisonsByRange(chunk.startDay, chunk.endDay);
@@ -3028,13 +3100,16 @@ function exportPDF(){
     rowPages.forEach((taskPage, rowIdx)=>{
       tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
       livraisons=(rowIdx===rowPages.length-1) ? livrChunk.map(l=>JSON.parse(JSON.stringify(l))) : [];
-      const built=buildSVG(ps,DW,chunk.startDay,chunk.endDay,startsMap);
-      const padded=padSvgCanvasForPrint(built.svg, built.width, built.height, DETAIL_TARGET_W, DETAIL_TARGET_H);
+      const geom=getAutoPrintGeometry(ps,chunk.startDay,chunk.endDay,taskPage.length,orientation);
+      const builtRaw=buildSVG(ps,geom.dayWidth,chunk.startDay,chunk.endDay,startsMap,{labelWidth:geom.labelWidth});
+      const built=padSvgCanvasForPrint(builtRaw.svg,builtRaw.width,builtRaw.height,geom.minCanvasWidth,geom.minCanvasHeight);
+      // Échelle visuelle constante : les pages peu chargées ne sont pas agrandies.
+      // La densité cible reprend celle de la page 4 de référence.
       const chunkStartDate=addDays(ps, chunk.startDay);
       const chunkEndDate=addDays(ps, chunk.endDay);
       pageNo++;
       const isLastDetailPage = (chunk===chunks[chunks.length-1]) && (rowIdx===rowPages.length-1);
-      const styledSvg=padded.svg.replace('<svg ','<svg viewBox="0 0 '+padded.width+' '+padded.height+'" style="width:100%;height:'+PAGE_GANTT_H_MM+'mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+      const styledSvg=built.svg.replace('<svg ','<svg viewBox="0 0 '+built.width+' '+built.height+'" style="width:100%;height:auto;max-height:'+PAGE_GANTT_H_MM+'mm;display:block" preserveAspectRatio="xMinYMin meet" ');
       printBlocks.push(`
       <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
         <div style="margin-bottom:6px">
@@ -3045,7 +3120,7 @@ function exportPDF(){
             <span>Lignes/page : ${PRINT_ROWS_PER_PAGE} · Chapitres : ${escapeHtml(selectedChapters.join(' • '))}</span>
           </div>
         </div>
-        <div style="width:100%;height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
+        <div style="width:100%;max-height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
       </section>
     `);
     });
@@ -3290,7 +3365,7 @@ ${d.tasks.length} tâche(s). Les données actuelles seront remplacées.`))return
         parentId:t.parentId!=null ? +t.parentId : null
       }));
       normalizeChapterParents();
-      pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x)})):[];
+      pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x),rows:Math.max(0,+g.rows||0),weeks:Math.max(0,+g.weeks||0)})):[];
 
       livraisons=(d.livraisons||[]).map((l,idx)=>normalizeLivraison({
         ...l,
@@ -3360,7 +3435,7 @@ function loadInitialProjectData(d){
     parentId:t.parentId!=null ? +t.parentId : null
   }));
   normalizeChapterParents();
-  pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x)})):[];
+  pdfPageGroups=Array.isArray(d.pdfPageGroups)?d.pdfPageGroups.map((g,idx)=>({id:g.id||7000+idx,chapterIds:(g.chapterIds||[]).map(x=>+x),rows:Math.max(0,+g.rows||0),weeks:Math.max(0,+g.weeks||0)})):[];
   livraisons=(d.livraisons||[]).map((l,idx)=>normalizeLivraison({...l,id:Number.isFinite(+l.id)?+l.id:(2000+idx)}));
   fermetures=(d.fermetures||[]).map((f,idx)=>normalizeFermeture({...f,id:Number.isFinite(+f.id)?+f.id:(3000+idx),label:f.label||'Fermeture'}));
   fermWeeks=(d.fermWeeks||[]).map((f,idx)=>({...f,id:Number.isFinite(+f.id)?+f.id:(4000+idx),start:Number.isFinite(+f.start)?+f.start:0,end:Number.isFinite(+f.end)?+f.end:(Number.isFinite(+f.start)?+f.start:0),label:f.label||'Fermeture'}));
