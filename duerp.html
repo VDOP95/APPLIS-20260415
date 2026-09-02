@@ -8187,13 +8187,13 @@ function renderGestionUT() {
         <input class="garde-input" id="ut-edit-${safeUT}" value="${safeUT}">
         <div style="font-size:11px;color:var(--ink3);white-space:nowrap">${index + 1} • ${count} risque(s)</div>
       </div>
-      <div style="display:grid;grid-template-columns:auto 90px auto 220px auto auto;gap:8px;align-items:center">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
         <button class="btn btn-outline btn-sm" onclick="renommerUT('${safeUT}')">Renommer</button>
         <input class="garde-input ut-effectif-input" id="ut-effectif-${safeUT}" type="number" min="0" value="${escapeHtml(effectifUT)}" title="Effectif concerné par cette UT">
         <button class="btn btn-outline btn-sm" onclick="appliquerEffectifUT('${safeUT}')">Appliquer effectif</button>
-        <select class="garde-input" id="ut-move-target-${safeUT}">${options}</select>
+        <select class="garde-input" id="ut-move-target-${safeUT}" style="flex:1 1 220px;min-width:180px;max-width:100%">${options}</select>
         <button class="btn btn-outline btn-sm" onclick="deplacerRisquesUT('${safeUT}')">Déplacer les risques</button>
-        <button class="btn btn-red btn-sm" onclick="supprimerUT('${safeUT}')">Supprimer</button>
+        <button class="btn btn-red btn-sm" style="margin-left:auto" onclick="supprimerUT('${safeUT}')">🗑 Supprimer l’UT</button>
       </div>
     </div>`;
   }).join('');
