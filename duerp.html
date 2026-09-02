@@ -356,9 +356,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--ink
     </div>
 
     <div class="sidebar-section" style="margin-top:auto">Données</div>
-    <div class="nav-item" onclick="showView('synthese')" id="nav-synthese">
-      <span>📑</span> Synthèse tableau
-    </div>
     <div class="nav-item" onclick="showView('edition')" id="nav-edition">
       <span>🗂</span> Édition contrôle
     </div>
@@ -7735,7 +7732,7 @@ let state = {
     "STOCKAGE ADMINISTRATIF RDC"
   ],
   "validation": {
-    "versionDocument": "V7",
+    "versionDocument": "V2",
     "redigePar": "",
     "fonctionRedacteur": "",
     "validePar": "",
@@ -7751,9 +7748,16 @@ let state = {
     {
       "id": 1,
       "date": "2024-06-01",
-      "auteur": "M. Arnaud BOUTERUCHE - Directeur d'agence ",
-      "objet": "Création / reprise initiale du DUERP dans l’outil.",
-      "version": "V7"
+      "auteur": "VAL D’OISE PAYSAGE",
+      "objet": "Création initiale du DUERP",
+      "version": "V1"
+    },
+    {
+      "id": 2,
+      "date": "2026-04-15",
+      "auteur": "VAL D’OISE PAYSAGE",
+      "objet": "Mise à jour des unités de travail : de « HANGAR 1 » à « VÉHICULES »",
+      "version": "V2"
     }
   ]
 };
@@ -8052,7 +8056,7 @@ function migrateState(applyEffectifs = true) {
 
   if (!state.validation || typeof state.validation !== 'object') state.validation = {};
   state.validation = {
-    versionDocument: state.validation.versionDocument || 'V9',
+    versionDocument: state.validation.versionDocument || 'V2',
     redigePar: state.validation.redigePar || '',
     fonctionRedacteur: state.validation.fonctionRedacteur || '',
     validePar: state.validation.validePar || '',
@@ -8074,13 +8078,24 @@ function migrateState(applyEffectifs = true) {
     version: row.version || ''
   }));
 
+  // Migration de l'ancien historique livré en V7 vers l'historique réel V1 / V2.
+  const legacyInitial = state.historiqueMaj.length === 1 && state.historiqueMaj[0].version === 'V7'
+    && (state.historiqueMaj[0].date === '2024-06-01' || /Création \/ reprise initiale/i.test(state.historiqueMaj[0].objet || ''));
+  if (legacyInitial) {
+    state.historiqueMaj = [
+      { id: 1, date: '2024-06-01', auteur: 'VAL D’OISE PAYSAGE', objet: 'Création initiale du DUERP', version: 'V1' },
+      { id: 2, date: '2026-04-15', auteur: 'VAL D’OISE PAYSAGE', objet: 'Mise à jour des unités de travail : de « HANGAR 1 » à « VÉHICULES »', version: 'V2' }
+    ];
+    if (state.validation.versionDocument === 'V7') state.validation.versionDocument = 'V2';
+  }
+
   if (!state.historiqueMaj.length) {
     state.historiqueMaj.push({
       id: 1,
       date: state.garde['Date de création :'] || state.garde['Date de mise à jour :'] || '',
       auteur: state.garde['Signataire :'] || '',
       objet: 'Création / reprise initiale du DUERP dans l’outil.',
-      version: state.validation.versionDocument || 'V9'
+      version: state.validation.versionDocument || 'V2'
     });
   }
 }
@@ -8755,10 +8770,27 @@ function setValidationField(field, value) {
   save();
 }
 
+
+function enregistrerValidationTracabilite() {
+  migrateState();
+  save();
+  const el = document.getElementById('validation-save-status');
+  if (el) {
+    el.textContent = 'Informations enregistrées ✓';
+    clearTimeout(window.__duerpSaveStatusTimer);
+    window.__duerpSaveStatusTimer = setTimeout(() => {
+      const target = document.getElementById('validation-save-status');
+      if (target) target.textContent = '';
+    }, 3000);
+  } else {
+    alert('Informations de validation et de traçabilité enregistrées.');
+  }
+}
+
 function addHistoriqueRow() {
   migrateState();
   const nextId = state.historiqueMaj.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1;
-  state.historiqueMaj.push({ id: nextId, date: todayISO(), auteur: '', objet: '', version: state.validation.versionDocument || 'V9' });
+  state.historiqueMaj.push({ id: nextId, date: todayISO(), auteur: '', objet: '', version: state.validation.versionDocument || 'V2' });
   save();
   if (currentView === 'edition') showView('edition');
 }
@@ -8786,7 +8818,7 @@ function addRevisionSnapshot() {
     date: state.validation.dateValidation || todayISO(),
     auteur: state.validation.validePar || state.validation.redigePar || '',
     objet: 'Mise à jour / revue du DUERP et du plan d’action.',
-    version: state.validation.versionDocument || 'V9'
+    version: state.validation.versionDocument || 'V2'
   });
   save();
   if (currentView === 'edition') showView('edition');
@@ -8872,7 +8904,7 @@ function exportActionTrackerPDF() {
   </style></head><body>
   <h1>Suivi des actions DUERP</h1><h2>${company}</h2>
   <div class="meta">Date d'édition : ${escapeHtml(new Date().toLocaleDateString('fr-FR'))} · ${rows.length} action(s)</div>
-  <table><thead><tr><th>Priorité</th><th>UT</th><th>Risque</th><th>Action</th><th>Responsable</th><th>Échéance</th><th>Statut</th></tr></thead><tbody>
+  <table><thead><tr><th>Priorité</th><th>UT</th><th>Risque</th><th style="min-width:280px">Action à réaliser</th><th>Responsable</th><th>Échéance</th><th>Statut</th></tr></thead><tbody>
   ${rows.map(r => {
     const delaiIso = (r.delai||'').slice(0,10);
     const late = delaiIso && delaiIso < todayISO() && r.statut !== 'Réalisée';
@@ -9041,10 +9073,11 @@ function renderEdition(main) {
 
   const historyRows = (state.historiqueMaj || []).map(row => `
     <tr>
-      <td>${fmtDateFr(row.date)}</td>
-      <td>${escapeHtml(row.version || '')}</td>
-      <td>${escapeHtml(row.auteur || '')}</td>
-      <td>${escapeHtml(row.objet || '')}</td>
+      <td><input class="report-input" type="date" value="${escapeHtml(row.date || '')}" onchange="updateHistoriqueField(${Number(row.id)}, 'date', this.value)"></td>
+      <td><input class="report-input" value="${escapeHtml(row.version || '')}" oninput="updateHistoriqueField(${Number(row.id)}, 'version', this.value)"></td>
+      <td><input class="report-input" value="${escapeHtml(row.auteur || '')}" oninput="updateHistoriqueField(${Number(row.id)}, 'auteur', this.value)"></td>
+      <td><textarea class="report-textarea" style="min-height:54px" oninput="updateHistoriqueField(${Number(row.id)}, 'objet', this.value)">${escapeHtml(row.objet || '')}</textarea></td>
+      <td class="no-print" style="width:90px;text-align:center"><button class="btn btn-red btn-sm" onclick="removeHistoriqueRow(${Number(row.id)})">Supprimer</button></td>
     </tr>
   `).join('');
 
@@ -9081,7 +9114,7 @@ function renderEdition(main) {
             <th>Situation dangereuse</th>
             <th>Dommages</th>
             <th>Prévention existante</th>
-            <th>Plan d’actions</th>
+            <th style="min-width:280px">Actions à réaliser</th>
             <th>Resp.</th>
             <th>Échéance</th>
             <th>Statut</th>
@@ -9091,17 +9124,23 @@ function renderEdition(main) {
           ${rows.map(r => {
             const prio = getPriority(r);
             const details = normalizeActionDetails(r).filter(a => a.description || a.responsable || a.delai || a.statut !== 'Non engagée');
-            const first = details[0] || createEmptyActionDetail();
-            const late = details.some(a => (a.delai||'').slice(0,10) && (a.delai||'').slice(0,10) < todayIso && a.statut !== 'Réalisée');
+            const effectiveDetails = details.length ? details : [createEmptyActionDetail()];
+            const late = effectiveDetails.some(a => (a.delai||'').slice(0,10) && (a.delai||'').slice(0,10) < todayIso && a.statut !== 'Réalisée');
+            const actionsHtml = details.length
+              ? `<div class="action-print">${details.map((a, i) => `<div class="action-print-item"><strong>${i+1}. ${escapeHtml(a.description || 'Action à préciser')}</strong><div class="action-print-meta">Resp. : ${escapeHtml(a.responsable || '—')} · Échéance : ${escapeHtml(fmtDateFr(a.delai) || '—')} · Statut : ${escapeHtml(a.statut || 'Non engagée')}</div></div>`).join('')}</div>`
+              : `<div>${escapeHtml(r.actions_proposees || 'Aucune action détaillée renseignée')}</div>`;
+            const responsables = [...new Set(effectiveDetails.map(a => (a.responsable||'').trim()).filter(Boolean))].join(', ') || '—';
+            const echeances = effectiveDetails.map(a => fmtDateFr(a.delai)).filter(Boolean).join('<br>') || '—';
+            const statuts = [...new Set(effectiveDetails.map(a => a.statut || 'Non engagée'))].join('<br>');
             return `<tr class="p${prio}-row">
               <td>${escapeHtml(r.risque||'')}<br><span class="ut-mini">P${prio} · Note ${calcScore(r)}</span></td>
               <td>${escapeHtml(r.situation||'')}</td>
               <td>${escapeHtml(r.dommages||'')}</td>
               <td>${escapeHtml(r.prevention_existante||'')}</td>
-              <td>${escapeHtml(r.action_description || r.actions_proposees || '')}</td>
-              <td>${escapeHtml(r.responsable||'')}</td>
-              <td class="${late ? 'late' : ''}">${fmtDateFr(r.delai)}</td>
-              <td>${escapeHtml(r.statut||'')}</td>
+              <td style="min-width:260px">${actionsHtml}</td>
+              <td>${escapeHtml(responsables)}</td>
+              <td class="${late ? 'late' : ''}">${echeances}${late ? '<br><strong>Échéance dépassée</strong>' : ''}</td>
+              <td>${statuts}</td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -9110,21 +9149,21 @@ function renderEdition(main) {
   }).join('');
 
   main.innerHTML = `
-  <h1 class="page-title">Édition contrôle – V9</h1>
+  <h1 class="page-title">Édition contrôle – ${escapeHtml(state.validation.versionDocument || 'V2')}</h1>
   <p class="page-sub">Version imprimable structurée pour édition PDF/Word, suivi des actions et présentation renforcée en cas de contrôle.</p>
   <div class="report-actions no-print">
     <button class="btn btn-outline" onclick="showView('dashboard')">Retour tableau de bord</button>
     <button class="btn btn-dark" onclick="exportActionTrackerExcel()">Export Excel actions</button>
     <button class="btn btn-dark" onclick="exportActionTrackerPDF()">Générer PDF actions</button>
     <button class="btn btn-green" onclick="imprimerSyntheseUTA3()">🖨 Synthèse par UT – A3 paysage</button>
-    <button class="btn btn-primary" onclick="imprimerEditionInspection()">Édition PDF inspection du travail</button>
+    <button class="btn btn-primary" onclick="imprimerEditionInspection()">Édition contrôle – A3 paysage</button>
   </div>
 
   <div class="report-book">
     <div class="report-doc-header">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
         <div><strong>DUERP</strong> — ${escapeHtml(state.garde["Raison sociale :"] || '')}</div>
-        <div>Mise à jour : ${fmtDateFr(maj)} · Version : ${escapeHtml(state.validation.versionDocument || 'V9')}</div>
+        <div>Mise à jour : ${fmtDateFr(maj)} · Version : ${escapeHtml(state.validation.versionDocument || 'V2')}</div>
       </div>
     </div>
     <div class="report-doc-footer">
@@ -9142,14 +9181,14 @@ function renderEdition(main) {
             <div class="report-subtitle">Document unique d'évaluation des risques professionnels</div>
             <h2>${escapeHtml(state.garde["Raison sociale :"] || '')}</h2>
             <div class="report-note">
-              Cette édition V9 regroupe les informations générales de l'entreprise, le cadre documentaire, la méthode de cotation, la synthèse des risques par unité de travail, l'historique des mises à jour, le plan d'action consolidé et une page de validation / signatures. Elle est conçue pour une lecture opérationnelle par la direction, le référent SST, le CSE, le service de santé au travail et les organismes de contrôle.
+              Cette édition ${escapeHtml(state.validation.versionDocument || 'V2')} regroupe les informations générales de l'entreprise, le cadre documentaire, la méthode de cotation, la synthèse des risques par unité de travail, l'historique des mises à jour, le plan d'action consolidé et une page de validation / signatures. Elle est conçue pour une lecture opérationnelle par la direction, le référent SST, le CSE, le service de santé au travail et les organismes de contrôle.
             </div>
           </div>
           <div class="report-stamp">
             <div class="report-meta-label">Statut documentaire</div>
             <div class="report-status-line">${statusBadge}</div>
             <div class="report-note" style="margin-top:10px">
-              Version : <strong>${escapeHtml(state.validation.versionDocument || 'V9')}</strong><br>
+              Version : <strong>${escapeHtml(state.validation.versionDocument || 'V2')}</strong><br>
               Date de validation : <strong>${fmtDateFr(state.validation.dateValidation)}</strong><br>
               Prochaine revue : <strong>${fmtDateFr(state.validation.prochaineMaj)}</strong>
             </div>
@@ -9221,7 +9260,7 @@ function renderEdition(main) {
             <table class="report-table compact">
               <tr>
                 <th>Version</th>
-                <td><input class="report-input" value="${escapeHtml(state.validation.versionDocument || 'V9')}" oninput="setValidationField('versionDocument', this.value)"></td>
+                <td><input class="report-input" value="${escapeHtml(state.validation.versionDocument || 'V2')}" oninput="setValidationField('versionDocument', this.value)"></td>
               </tr>
               <tr>
                 <th>Rédigé par</th>
@@ -9259,6 +9298,10 @@ function renderEdition(main) {
             </table>
             <label class="report-label" style="margin-top:10px">Commentaire de validation</label>
             <textarea class="report-textarea" oninput="setValidationField('commentaireValidation', this.value)">${escapeHtml(state.validation.commentaireValidation || '')}</textarea>
+            <div class="no-print" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap">
+              <span id="validation-save-status" style="font-size:11px;color:var(--green);min-height:16px"></span>
+              <button type="button" class="btn btn-green" onclick="enregistrerValidationTracabilite()">✓ Enregistrer les informations</button>
+            </div>
           </div>
           <div class="report-panel">
             <h3>Checklist de contrôle</h3>
@@ -9287,10 +9330,15 @@ function renderEdition(main) {
           <h3>Historique des mises à jour</h3>
           <table class="report-table compact">
             <thead>
-              <tr><th>Date</th><th>Version</th><th>Auteur</th><th>Objet</th></tr>
+              <tr><th>Date</th><th>Version</th><th>Auteur</th><th>Objet / nature de la mise à jour</th><th class="no-print">Action</th></tr>
             </thead>
             <tbody>${historyRows}</tbody>
           </table>
+          <div class="no-print" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">
+            <button type="button" class="btn btn-outline" onclick="addHistoriqueRow()">+ Ajouter une ligne</button>
+            <button type="button" class="btn btn-primary" onclick="addRevisionSnapshot()">Créer une ligne depuis la validation</button>
+            <button type="button" class="btn btn-green" onclick="enregistrerValidationTracabilite()">✓ Enregistrer l'historique</button>
+          </div>
         </div>
       </section>
 
@@ -9384,7 +9432,7 @@ function renderEdition(main) {
           </div>
         </div>
         <div class="report-footnote">
-          Version du document : ${escapeHtml(state.validation.versionDocument || 'V9')} · Date de validation : ${fmtDateFr(state.validation.dateValidation)} · Consultation CSE : ${escapeHtml(state.validation.consultationCSE || '')} ${state.validation.dateConsultationCSE ? '(' + fmtDateFr(state.validation.dateConsultationCSE) + ')' : ''}<br>
+          Version du document : ${escapeHtml(state.validation.versionDocument || 'V2')} · Date de validation : ${fmtDateFr(state.validation.dateValidation)} · Consultation CSE : ${escapeHtml(state.validation.consultationCSE || '')} ${state.validation.dateConsultationCSE ? '(' + fmtDateFr(state.validation.dateConsultationCSE) + ')' : ''}<br>
           Site concerné : ${escapeHtml(state.garde["Adresse du site :"] || '')}
         </div>
       </section>
@@ -9393,7 +9441,7 @@ function renderEdition(main) {
 }
 
 
-// ─── ÉDITION PDF INSPECTION DU TRAVAIL – DOCUMENT A4 PAYSAGE PROPRE ───
+// ─── ÉDITION PDF INSPECTION DU TRAVAIL – DOCUMENT A3 PAYSAGE ───
 function htmlCell(value) {
   const txt = escapeHtml(value || '').replace(/\n/g, '<br>');
   return txt || '<span class="muted">—</span>';
@@ -9408,7 +9456,7 @@ function imprimerEditionInspection() {
   const company = escapeHtml(state.garde["Raison sociale :"] || '');
   const address = escapeHtml(state.garde["Adresse du site :"] || '');
   const maj = fmtDateFr(state.garde['Date de mise à jour :']) || '';
-  const version = escapeHtml(state.validation.versionDocument || 'V9');
+  const version = escapeHtml(state.validation.versionDocument || 'V2');
   const p1 = all.filter(r => getPriority(r)==='1').length;
   const p2 = all.filter(r => getPriority(r)==='2').length;
   const p3 = all.filter(r => getPriority(r)==='3').length;
@@ -9478,7 +9526,7 @@ function imprimerEditionInspection() {
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>DUERP - Édition inspection</title>
   <style>
     *{box-sizing:border-box} html,body{margin:0;padding:0;background:#fff;color:#1A1510;font-family:Arial,Helvetica,sans-serif;font-size:10.2px;line-height:1.32}
-    @page{size:A4 landscape;margin:10mm}
+    @page{size:A3 landscape;margin:10mm}
     h1{font-size:22px;margin:0 0 5mm;font-family:Georgia,serif} h2{font-size:15px;margin:0 0 1mm;font-family:Georgia,serif} h3{font-size:12px;margin:0 0 3mm;text-transform:uppercase;letter-spacing:.04em}
     .doc{width:100%}.page{break-before:page;page-break-before:always}.page:first-child{break-before:auto;page-break-before:auto}.cover{min-height:170mm;display:flex;flex-direction:column;justify-content:space-between}
     .topline{display:flex;justify-content:space-between;gap:10mm;border-bottom:2px solid #1A1510;padding-bottom:5mm;margin-bottom:6mm}.meta{text-align:right;font-size:10px;color:#333}.muted{color:#555;font-size:9px}.right{text-align:right}.red,.late{color:#B3261E}.orange{color:#AD5A1F}.green{color:#1D7A50}
@@ -9509,7 +9557,7 @@ function imprimerEditionInspection() {
 
     ${utsHtml}
 
-    <section class="page"><div class="page-head"><h2>Visa et signatures</h2><div class="meta">${company} - ${version}</div></div><table class="small-table"><tbody><tr><th>Version</th><td>${htmlCell(state.validation.versionDocument || 'V9')}</td><th>Date de validation</th><td>${htmlCell(fmtDateFr(state.validation.dateValidation))}</td></tr><tr><th>Rédigé par</th><td>${htmlCell(state.validation.redigePar)}<br><span class="muted">${htmlCell(state.validation.fonctionRedacteur)}</span></td><th>Validé par</th><td>${htmlCell(state.validation.validePar)}<br><span class="muted">${htmlCell(state.validation.fonctionValidateur)}</span></td></tr><tr><th>Référent SST</th><td>${htmlCell(state.validation.referentSST)}</td><th>Consultation CSE</th><td>${htmlCell(state.validation.consultationCSE)} ${state.validation.dateConsultationCSE ? '(' + htmlCell(fmtDateFr(state.validation.dateConsultationCSE)) + ')' : ''}</td></tr><tr><th>Commentaire</th><td colspan="3">${htmlCell(state.validation.commentaireValidation)}</td></tr></tbody></table><div class="signatures"><div class="signature"><strong>Rédaction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Validation Direction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Référent SST / diffusion</strong><div class="line">Nom, date et signature</div></div></div></section>
+    <section class="page"><div class="page-head"><h2>Visa et signatures</h2><div class="meta">${company} - ${version}</div></div><table class="small-table"><tbody><tr><th>Version</th><td>${htmlCell(state.validation.versionDocument || 'V2')}</td><th>Date de validation</th><td>${htmlCell(fmtDateFr(state.validation.dateValidation))}</td></tr><tr><th>Rédigé par</th><td>${htmlCell(state.validation.redigePar)}<br><span class="muted">${htmlCell(state.validation.fonctionRedacteur)}</span></td><th>Validé par</th><td>${htmlCell(state.validation.validePar)}<br><span class="muted">${htmlCell(state.validation.fonctionValidateur)}</span></td></tr><tr><th>Référent SST</th><td>${htmlCell(state.validation.referentSST)}</td><th>Consultation CSE</th><td>${htmlCell(state.validation.consultationCSE)} ${state.validation.dateConsultationCSE ? '(' + htmlCell(fmtDateFr(state.validation.dateConsultationCSE)) + ')' : ''}</td></tr><tr><th>Commentaire</th><td colspan="3">${htmlCell(state.validation.commentaireValidation)}</td></tr></tbody></table><div class="signatures"><div class="signature"><strong>Rédaction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Validation Direction</strong><div class="line">Nom, date et signature</div></div><div class="signature"><strong>Référent SST / diffusion</strong><div class="line">Nom, date et signature</div></div></div></section>
   </div><script>window.onload=function(){setTimeout(function(){window.print();},500)};<\/script></body></html>`;
 
   const win = window.open('', '_blank');
@@ -9728,7 +9776,7 @@ function imprimerSyntheseUTA3() {
   const company = escapeHtml(state.garde["Raison sociale :"] || 'Entreprise');
   const address = escapeHtml(state.garde["Adresse du site :"] || '');
   const dateMAJ = escapeHtml(fmtDateFr(state.garde['Date de mise à jour :']) || new Date().toLocaleDateString('fr-FR'));
-  const version = escapeHtml(state.validation.versionDocument || 'V9');
+  const version = escapeHtml(state.validation.versionDocument || 'V2');
 
   // Génération des tableaux par UT
   const utsHtml = uts.map((ut, idx) => {
