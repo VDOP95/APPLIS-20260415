@@ -3,7 +3,7 @@
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt Chantier – Espaces verts &amp; VRD – V8 stabilisée</title>
+<title>Gantt Chantier – Espaces verts &amp; VRD – V9.5 IMPRESSION A3 NETTE</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f3;color:#2C2C2A;font-size:14px}
@@ -131,14 +131,161 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 .task-modal input,.task-modal select{width:100%;padding:8px 10px;font-size:13px}
 .task-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 
+
+/* ---- V9 : export PDF type Project ---- */
+.project-print-wrap{width:100%;overflow:hidden}
+.project-print-grid{display:grid;grid-template-columns:7mm 78mm 15mm 22mm 22mm minmax(0,1fr);border-top:1px solid #666;border-left:1px solid #888;font-family:Arial,sans-serif;font-size:8.2px;background:#fff}
+.pp-head{font-weight:700;background:#f0f0f0;border-right:1px solid #777;border-bottom:1px solid #777;min-height:12mm}
+.pp-head-left{grid-column:1/6;display:grid;grid-template-columns:7mm 78mm 15mm 22mm 22mm}
+.pp-head-left>div{display:flex;align-items:center;padding:1.2mm;border-right:1px solid #999}
+.pp-head-left>div:last-child{border-right:0}
+.pp-head-time{grid-column:6;position:relative;overflow:hidden;padding:0}
+.pp-months,.pp-weeks{position:absolute;left:0;right:0;height:50%}
+.pp-months{top:0;border-bottom:1px solid #999}.pp-weeks{bottom:0}
+.pp-month,.pp-week{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;border-right:1px solid #aaa;text-transform:capitalize;white-space:nowrap;overflow:hidden}
+.pp-row{grid-column:1/-1;display:grid;grid-template-columns:7mm 78mm 15mm 22mm 22mm minmax(0,1fr);min-height:6.5mm;break-inside:avoid}
+.pp-cell{display:flex;align-items:center;padding:.8mm 1.1mm;border-right:1px solid #aaa;border-bottom:1px solid #bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-num,.pp-dur,.pp-date{justify-content:center}.pp-name{font-size:8.6px}.pp-indent{color:#888;margin-right:1.5mm}
+.pp-row.chapter{min-height:7mm;background:#e7e7e7;font-weight:700}
+.pp-row.chapter .pp-name{font-size:9px;letter-spacing:.01em}
+.pp-timeline{position:relative;border-right:1px solid #888;border-bottom:1px solid #bbb;overflow:hidden;min-width:0}
+.pp-day{position:absolute;top:0;bottom:0;border-right:.35px solid #ddd;background:transparent}
+.pp-day.weekend{background:rgba(0,0,0,.045)}
+.pp-bar{position:absolute;top:50%;height:3mm;transform:translateY(-50%);background:#4a78a8;border:1px solid #315b84;border-radius:.5mm;min-width:1.2mm}
+.pp-bar.summary{height:2.2mm;background:#333;border-color:#333;border-radius:0}
+.pp-bar.summary:before,.pp-bar.summary:after{content:"";position:absolute;top:100%;width:0;height:0;border-top:1.8mm solid #333}
+.pp-bar.summary:before{left:0;border-right:1.8mm solid transparent}.pp-bar.summary:after{right:0;border-left:1.8mm solid transparent}
+.pp-milestone{position:absolute;top:50%;width:3mm;height:3mm;background:#222;transform:translateY(-50%) rotate(45deg)}
+
+/* ---- V9.6 : report des titres dans la zone Gantt ---- */
+.pp-bar-label{position:absolute;z-index:5;color:#111;font-family:Arial,sans-serif;font-size:7.2px;font-weight:600;line-height:1;white-space:nowrap;pointer-events:none;text-shadow:0 0 .25mm #fff,0 0 .25mm #fff}
+.pp-bar-label.right{top:50%;transform:translateY(-50%);margin-left:1mm}
+.pp-bar-label.above{top:.35mm;transform:none}
+.project-print-grid.labels-above .pp-bar,.project-print-grid.labels-above .pp-milestone{top:68%}
+.project-global-grid .pp-bar-label{font-size:calc(var(--g-font) * .92);font-weight:600;text-shadow:0 0 .18mm #fff,0 0 .18mm #fff}
+.project-global-grid .pp-bar-label.right{margin-left:.7mm}
+.project-global-grid .pp-bar-label.above{top:.08mm}
+.project-global-grid.labels-above .pp-bar,.project-global-grid.labels-above .pp-milestone{top:70%}
+@media print{.pp-bar-label{color:#000!important;text-shadow:0 0 .22mm #fff,0 0 .22mm #fff!important}}
+@media print{
+  .print-gantt-page{font-family:Arial,sans-serif}
+  .project-print-grid{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+.project-global-grid{
+  --g-row-h:4.4mm;
+  --g-font:6.2px;
+  --g-head-h:8.5mm;
+  --g-left-w:110mm;
+  position:relative;
+  grid-template-columns:6mm 58mm 12mm 17mm 17mm minmax(0,1fr);
+  font-size:var(--g-font);
+  line-height:1;
+}
+.project-global-grid>.pp-head-left{grid-column:1/6;grid-template-columns:6mm 58mm 12mm 17mm 17mm;min-height:var(--g-head-h)}
+.project-global-grid>.pp-head-time{grid-column:6;min-height:var(--g-head-h)}
+.project-global-grid .pp-head-left>div{padding:.45mm .55mm;justify-content:center;text-align:center;line-height:1.05}
+.project-global-grid .pp-row{grid-template-columns:6mm 58mm 12mm 17mm 17mm minmax(0,1fr);min-height:var(--g-row-h);height:var(--g-row-h)}
+.project-global-grid .pp-cell{padding:.25mm .55mm;font-size:var(--g-font);min-width:0}
+.project-global-grid .pp-name{justify-content:flex-start;font-size:var(--g-font);font-style:normal!important;color:#222!important}
+.project-global-grid .pp-row.global-chapter{background:#ececec;font-weight:700}
+.project-global-grid .pp-row.global-chapter .pp-name{font-weight:700}
+.project-global-grid .pp-row.global-task:nth-of-type(even){background:#fafafa}
+.project-global-grid .pp-row.global-milestone{background:#fffdf7}
+.project-global-grid .pp-timeline{overflow:visible}
+.project-global-grid .pp-month,.project-global-grid .pp-week{font-size:calc(var(--g-font) * .93);padding:0 .25mm}
+.project-global-grid .pp-bar{height:calc(var(--g-row-h) * .40);min-height:.85mm;border-radius:0;border-width:.35px;z-index:3}
+.project-global-grid .pp-bar.summary{height:calc(var(--g-row-h) * .24);background:#202020;border-color:#202020}
+.project-global-grid .pp-bar.summary:before,.project-global-grid .pp-bar.summary:after{border-top-width:calc(var(--g-row-h) * .23)}
+.project-global-grid .pp-milestone{width:calc(var(--g-row-h) * .40);height:calc(var(--g-row-h) * .40);background:#EF9F27;z-index:4}
+.g-period-line{position:absolute;top:0;bottom:0;border-left:.35px solid #dadada;z-index:0}
+.g-period-line.major{border-left:.7px solid #9a9a9a}
+.global-link-overlay{position:absolute;left:var(--g-left-w);right:0;top:var(--g-head-h);bottom:0;z-index:6;pointer-events:none;overflow:visible}
+.global-link-overlay svg{display:block;width:100%;height:100%;overflow:visible}
+.global-link-overlay path,.global-link-overlay polyline{fill:none;stroke:#666;stroke-width:1.15;vector-effect:non-scaling-stroke;opacity:.82}
+.global-link-overlay polygon{fill:#666;opacity:.9}
+.global-print-page{font-family:Arial,sans-serif}
+.global-print-header{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm;border-bottom:.8px solid #555;padding:0 0 1.5mm;margin:0 0 1.5mm}
+.global-print-kicker{font:700 6.2px/1.1 Arial,sans-serif;letter-spacing:.08em;color:#666;margin-bottom:.8mm}
+.global-print-title{font:700 11px/1.05 Arial,sans-serif;color:#222}
+.global-print-period{font:600 6.5px/1.1 Arial,sans-serif;color:#333;white-space:nowrap;padding-bottom:.2mm}
+.global-print-period span{padding:0 1mm;color:#888}
+.global-print-meta{display:flex;gap:4mm;align-items:center;margin:0 0 1.5mm;font:5.8px/1.1 Arial,sans-serif;color:#555}
+.global-print-meta strong{font-weight:700;color:#222}
+.global-print-table{width:100%;overflow:hidden}
+.global-print-footer{display:flex;justify-content:space-between;align-items:center;gap:6mm;border-top:.6px solid #aaa;margin-top:1.2mm;padding-top:1mm;font:5.6px/1.1 Arial,sans-serif;color:#555}
+.global-print-legend{display:flex;gap:3mm;align-items:center;flex-wrap:wrap}
+.global-print-legend span{display:inline-flex;gap:.8mm;align-items:center}
+.global-print-legend i{display:inline-block;width:4mm;height:1.2mm;background:#4a78a8}
+.global-print-legend i.summary{height:.7mm;background:#222}
+.global-print-legend i.milestone{width:1.6mm;height:1.6mm;background:#EF9F27;transform:rotate(45deg)}
+.global-print-legend i.link{width:4mm;height:0;border-top:.45px solid #666;background:none}
+@media print{
+  .global-print-header,.global-print-meta,.global-print-footer,.project-global-grid{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+
+/* ---- V9.5 : optimisation impression A3 nette ---- */
+@media print{
+  html,body{background:#fff!important;-webkit-font-smoothing:auto;text-rendering:geometricPrecision}
+  .global-print-page{color:#000!important}
+  .global-print-header{border-bottom:0.35mm solid #000!important}
+  .global-print-kicker{color:#000!important;font-size:5.2pt!important;letter-spacing:.04em!important}
+  .global-print-title{color:#000!important;font-size:9pt!important}
+  .global-print-period{color:#000!important;font-size:5.4pt!important}
+  .global-print-meta{color:#000!important;font-size:4.8pt!important}
+  .global-print-footer{color:#000!important;border-top:.2mm solid #666!important;font-size:4.6pt!important}
+
+  .project-global-grid{
+    grid-template-columns:6mm 64mm 12mm 17mm 17mm minmax(0,1fr)!important;
+    --g-left-w:116mm!important;
+    border-top:.22mm solid #000!important;
+    border-left:.22mm solid #000!important;
+    color:#000!important;
+  }
+  .project-global-grid>.pp-head-left{
+    grid-template-columns:6mm 64mm 12mm 17mm 17mm!important;
+    background:#e9e9e9!important;
+  }
+  .project-global-grid .pp-row{
+    grid-template-columns:6mm 64mm 12mm 17mm 17mm minmax(0,1fr)!important;
+    background:#fff!important;
+  }
+  .project-global-grid .pp-cell{
+    color:#000!important;
+    border-right:.16mm solid #777!important;
+    border-bottom:.13mm solid #aaa!important;
+    font-weight:500!important;
+    text-rendering:geometricPrecision!important;
+  }
+  .project-global-grid .pp-name{color:#000!important;font-weight:500!important}
+  .project-global-grid .pp-row.global-chapter{background:#e6e6e6!important}
+  .project-global-grid .pp-row.global-chapter .pp-cell,
+  .project-global-grid .pp-row.global-chapter .pp-name{font-weight:700!important;color:#000!important}
+  .project-global-grid .pp-row.global-task:nth-of-type(even){background:#fff!important}
+  .project-global-grid .pp-row.global-milestone{background:#fff!important}
+  .project-global-grid .pp-head-left>div,
+  .project-global-grid .pp-head-time{color:#000!important;border-color:#555!important;font-weight:700!important}
+  .project-global-grid .pp-month,.project-global-grid .pp-week{color:#000!important;border-right:.16mm solid #777!important;font-weight:700!important}
+  .project-global-grid .pp-timeline{border-right:.16mm solid #777!important;border-bottom:.13mm solid #aaa!important}
+  .project-global-grid .g-period-line{border-left:.12mm solid #c7c7c7!important}
+  .project-global-grid .g-period-line.major{border-left:.22mm solid #777!important}
+  .project-global-grid .pp-bar{border:none!important;box-shadow:none!important;opacity:1!important}
+  .project-global-grid .pp-bar.summary{background:#000!important;border-color:#000!important}
+  .project-global-grid .pp-milestone{background:#000!important}
+  .global-link-overlay path,.global-link-overlay polyline{stroke:#333!important;stroke-width:.75!important;opacity:1!important}
+  .global-link-overlay polygon{fill:#333!important;opacity:1!important}
+}
+
 </style>
 </head>
 <body>
 <div class="page">
 
 <div class="no-print">
-<h1>VOP Planner — Planification de chantier</h1>
-<p class="subtitle">Planning graphique • Tâches &amp; jalons • Ressources • Livraisons • Export PDF</p>
+<h1>VOP Planner V9.5 — Planification de chantier</h1>
+<p class="subtitle">Planning graphique • Tâches &amp; jalons • Ressources • Livraisons • Export PDF <strong>GLOBAL TYPE PROJECT</strong></p>
+<div class="no-print" style="display:inline-block;margin:-8px 0 12px;padding:4px 9px;border-radius:999px;background:#2C2C2A;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em">VERSION 9.5 — IMPRESSION A3 HAUTE LISIBILITÉ</div>
 </div>
 
 <!-- PRINT HEADER -->
@@ -665,10 +812,18 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
         </div>
       </div>
 
-      <div><label>Page synthèse (p.1)</label>
+      <div><label>Page 1 — Global type Project</label>
         <select id="pdf-synthese-page" style="width:100%">
-          <option value="1" selected>Oui — planning complet</option>
+          <option value="1" selected>Oui — tableau + Gantt complet</option>
           <option value="0">Non</option>
+        </select>
+      </div>
+
+      <div><label>Report des titres sur le Gantt</label>
+        <select id="pdf-gantt-label-mode" style="width:100%" onchange="setGanttTitleLabelMode(this.value,true)">
+          <option value="none">Masqués</option>
+          <option value="right" selected>À droite de la barre</option>
+          <option value="above">Au-dessus de la barre</option>
         </select>
       </div>
 
@@ -732,7 +887,7 @@ body.gantt-row-reordering, body.gantt-row-reordering *{user-select:none!importan
 
     <div style="background:#EAF3DE;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;line-height:1.6">
       <strong>Structure du PDF généré :</strong><br>
-      <strong>• Page 1 (synthèse)</strong> — Planning complet sur une seule page A3, plages sans activité supprimées, zoom auto-calculé.<br>
+      <strong>• Page 1 — GLOBAL TYPE PROJECT</strong> — Toutes les tâches + phases + jalons dans un tableau compact à gauche et le Gantt complet à droite, sur une seule page A3.<br>
       <strong>• Pages suivantes (détail)</strong> — Optionnelles : chaque page est recalibrée sur son contenu réel : nombre de lignes, jours visibles, largeur des titres et largeur des colonnes de dates. En composition par chapitres, 0 = Auto ; l'application optimise la page et évite les pages de continuation ne contenant qu'une ligne lorsque l'A3 peut encore l'accueillir.<br>
       <strong>• Dernière page (tableau)</strong> — Optionnelle : tableau avec moyens humains, moyens matériels, jours/date de début et jours/date de fin.<br><br>
       Cliquez <strong>Exporter en PDF</strong> puis choisissez <strong>Enregistrer en PDF</strong> · Format : <strong>A3</strong>, orientation selon votre choix (<strong>Paysage</strong> ou <strong>Portrait</strong>) · Vérifiez que l'orientation du navigateur correspond et décochez les en-têtes/pieds de page.
@@ -1853,6 +2008,7 @@ function getClosedDays(pDate,totalDays){
 }
 
 function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
+  const ganttLabelMode=options.ganttLabelMode||getGanttTitleLabelMode();
   const LABEL_W=Math.max(180, Math.min(520, +options.labelWidth || getLabelWidth())),ROW_H=40,HDR_H=92,FOOT=8;
   const forceLivrLabels = !!options.forceLivrLabels;
   const showChapterAdd = !!options.showChapterAdd;
@@ -2045,6 +2201,12 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
       if(tsCal>=sDay&&tsCal<=eDay){
         s+=`<rect x="${mx-ms/2}" y="${my-ms/2}" width="${ms}" height="${ms}" fill="#EF9F27" transform="rotate(45,${mx},${my})" rx="2"/>`;
         if(DW>=22)s+=`<text x="${mx+ms}" y="${my+4}" font-size="9" fill="#854F0B" font-family="Arial,sans-serif">${fmtDate(addDays(pDate,tsCal))}</text>`;
+        if(ganttLabelMode!=='none'){
+          const fullName=escapeHtml(t.name||'');
+          const tx=ganttLabelMode==='right'?mx+ms+34:Math.max(LABEL_W+3,mx-ms/2);
+          const ty=ganttLabelMode==='right'?my+4:my-ms/2-4;
+          s+=`<text x="${tx}" y="${ty}" font-size="9.5" fill="#222" font-weight="600" font-family="Arial,sans-serif"><title>${fullName}</title>${fullName}</text>`;
+        }
       }
       barCoords[t.id]={x:mx,x2:mx,y:my,ts:tsCal,te:tsCal};
     } else {
@@ -2079,6 +2241,14 @@ function buildSVG(pDate,DW,rangeStart,rangeEnd,startsOverride,options={}){
         const barX=LABEL_W+cols[0]*DW+2;
         const barX2=LABEL_W+(cols[cols.length-1]+1)*DW-2;
         const barW=Math.max(8,barX2-barX);
+        if(ganttLabelMode!=='none'){
+          const fullName=escapeHtml(t.name||'');
+          if(ganttLabelMode==='right'){
+            s+=`<text x="${barX2+8}" y="${y+ROW_H/2+4}" font-size="10" fill="#222" font-weight="600" font-family="Arial,sans-serif"><title>${fullName}</title>${fullName}</text>`;
+          }else{
+            s+=`<text x="${Math.max(LABEL_W+3,barX)}" y="${by-3}" font-size="9.5" fill="#222" font-weight="600" font-family="Arial,sans-serif"><title>${fullName}</title>${fullName}</text>`;
+          }
+        }
         const grip=12;
         const hit=18;
         s+=`<rect class="gantt-task-hit" x="${barX}" y="${by-5}" width="${barW}" height="${bh+10}" rx="6" fill="transparent" pointer-events="all" style="cursor:grab" onmousedown="startGanttBarEdit(evt,${t.id},'move')"><title>Déplacer la tâche</title></rect>`;
@@ -2828,6 +2998,24 @@ function startGanttBarEdit(evt, taskId, mode){
   document.addEventListener('mouseup',onUp);
 }
 
+let ganttTitleLabelMode=(localStorage.getItem('vop-gantt-title-label-mode')||'right');
+if(!['none','right','above'].includes(ganttTitleLabelMode)) ganttTitleLabelMode='right';
+function getGanttTitleLabelMode(){return ganttTitleLabelMode;}
+function ganttTitleLabelModeText(mode){return mode==='right'?'Titres : à droite':mode==='above'?'Titres : au-dessus':'Titres : masqués';}
+function updateGanttTitleLabelButton(){
+  const b=document.getElementById('gantt-title-label-btn');
+  if(b){b.textContent=ganttTitleLabelModeText(ganttTitleLabelMode);b.classList.toggle('active',ganttTitleLabelMode!=='none');}
+  const sel=document.getElementById('pdf-gantt-label-mode');if(sel)sel.value=ganttTitleLabelMode;
+}
+function setGanttTitleLabelMode(mode,fromSelect=false){
+  if(!['none','right','above'].includes(mode))mode='none';
+  ganttTitleLabelMode=mode;localStorage.setItem('vop-gantt-title-label-mode',mode);
+  updateGanttTitleLabelButton();
+  if(!fromSelect){const sel=document.getElementById('pdf-gantt-label-mode');if(sel)sel.value=mode;}
+  renderGantt();
+}
+function cycleGanttTitleLabelMode(){const seq=['none','right','above'];setGanttTitleLabelMode(seq[(seq.indexOf(ganttTitleLabelMode)+1)%seq.length]);}
+
 function renderGantt(){
   normalizeLivraisons();
   if(!tasks.length)return;
@@ -2842,7 +3030,7 @@ function renderGantt(){
   const livrMax=livraisons.length?Math.max(...livraisons.map(l=>Math.max(getLivrDeliveryDay(l),getLivrOrderDay(l)))):0;
   const forecastEndDay=Math.max(taskMax,livrMax);
   const totalDays=forecastEndDay+3;
-  const {svg}=buildSVG(pDate,DW,0,totalDays,null,{showChapterAdd:true});
+  const {svg}=buildSVG(pDate,DW,0,totalDays,null,{showChapterAdd:true,ganttLabelMode:getGanttTitleLabelMode()});
 
   const usedCats=[...new Set(visibleTasks.map(t=>t.cat).filter(Boolean))];
   document.getElementById('g-legend').innerHTML=
@@ -2896,6 +3084,293 @@ function renderGantt(){
 }
 
 
+
+// ---- EXPORT PDF V9 : rendu tabulaire type Microsoft Project ----
+function isoWeekNumber(date){
+  const d=parseISODate(date); d.setHours(12,0,0,0);
+  d.setDate(d.getDate()+4-(d.getDay()||7));
+  const y=new Date(d.getFullYear(),0,1,12);
+  return Math.ceil((((d-y)/86400000)+1)/7);
+}
+function shortPrintDate(date){
+  return parseISODate(date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+function buildProjectPrintGrid(ps,startDay,endDay,pageTasks,startsMap,opts={}){
+  const labelMode=opts.labelMode||getGanttTitleLabelMode();
+  const days=[];
+  for(let d=startDay;d<=endDay;d++) days.push(d);
+  if(!days.length) return '';
+  const dayCount=days.length;
+  const dayPct=100/dayCount;
+
+  // Segments de mois et de semaines pour l'en-tête à deux niveaux.
+  const monthSeg=[]; let curM=null;
+  days.forEach((d,i)=>{
+    const dt=addDays(ps,d), key=dt.getFullYear()+'-'+dt.getMonth();
+    if(!curM || curM.key!==key){
+      curM={key,start:i,count:1,label:dt.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}; monthSeg.push(curM);
+    }else curM.count++;
+  });
+  const weekSeg=[]; let curW=null;
+  days.forEach((d,i)=>{
+    const dt=addDays(ps,d), key=dt.getFullYear()+'-S'+isoWeekNumber(dt);
+    if(!curW || curW.key!==key){curW={key,start:i,count:1,label:'S'+String(isoWeekNumber(dt)).padStart(2,'0')};weekSeg.push(curW);}else curW.count++;
+  });
+
+  const monthHtml=monthSeg.map(x=>`<div class="pp-month" style="left:${x.start*dayPct}%;width:${x.count*dayPct}%">${escapeHtml(x.label)}</div>`).join('');
+  const weekHtml=weekSeg.map(x=>`<div class="pp-week" style="left:${x.start*dayPct}%;width:${x.count*dayPct}%">${x.label}</div>`).join('');
+  const dayLines=days.map((d,i)=>{
+    const dt=addDays(ps,d), weekend=dt.getDay()===0||dt.getDay()===6;
+    return `<span class="pp-day ${weekend?'weekend':''}" style="left:${i*dayPct}%;width:${dayPct}%"></span>`;
+  }).join('');
+
+  // Plage récapitulative des chapitres présents sur cette page.
+  const chapterRange=(title)=>{
+    const idx=pageTasks.indexOf(title); let min=Infinity,max=-Infinity;
+    for(let i=idx+1;i<pageTasks.length;i++){
+      const t=pageTasks[i]; if(t.type==='title') break;
+      const sw=startsMap[t.id]; if(sw===undefined) continue;
+      const a=workdayToCalendarDay(sw), b=t.type==='milestone'?a:taskEndCalendarDay(t,sw);
+      min=Math.min(min,a); max=Math.max(max,b);
+    }
+    return Number.isFinite(min)?[min,max]:null;
+  };
+
+  let taskNo=0;
+  const rows=pageTasks.map(t=>{
+    const isTitle=t.type==='title', isMil=t.type==='milestone';
+    let a,b,duration='',startTxt='',endTxt='',num='';
+    if(isTitle){
+      const r=chapterRange(t); if(r){a=r[0];b=r[1];startTxt=shortPrintDate(addDays(ps,a));endTxt=shortPrintDate(addDays(ps,b));}
+    }else{
+      taskNo++;
+      const sw=startsMap[t.id];
+      if(sw!==undefined){a=workdayToCalendarDay(sw);b=isMil?a:taskEndCalendarDay(t,sw);startTxt=shortPrintDate(addDays(ps,a));endTxt=isMil?'—':shortPrintDate(addDays(ps,b));}
+      duration=isMil?'Jalon':`${Math.max(0,+t.dur||0)} j`; num=String(taskNo);
+    }
+    let bar='';
+    if(Number.isFinite(a) && Number.isFinite(b) && b>=startDay && a<=endDay){
+      const ca=Math.max(startDay,a), cb=Math.min(endDay,b);
+      const left=(ca-startDay)*dayPct;
+      const width=Math.max(dayPct,(cb-ca+1)*dayPct);
+      if(isMil){bar=`<span class="pp-milestone" style="left:calc(${left}% - 4px)"></span>`;}
+      else bar=`<span class="pp-bar ${isTitle?'summary':''}" style="left:${left}%;width:${width}%"></span>`;
+      if(labelMode!=='none'){
+        const labelLeft=labelMode==='right' ? (isMil?`calc(${left}% + 2.2mm)`:`calc(${left+width}% + .4mm)`) : `${left}%`;
+        bar+=`<span class="pp-bar-label ${labelMode}" style="left:${labelLeft}">${escapeHtml(t.name||'')}</span>`;
+      }
+    }
+    return `<div class="pp-row ${isTitle?'chapter':''}">
+      <div class="pp-cell pp-num">${num}</div>
+      <div class="pp-cell pp-name">${isTitle?'': '<span class="pp-indent">↳</span>'}${escapeHtml(t.name||'')}</div>
+      <div class="pp-cell pp-dur">${duration}</div>
+      <div class="pp-cell pp-date">${startTxt}</div>
+      <div class="pp-cell pp-date">${endTxt}</div>
+      <div class="pp-timeline">${dayLines}${bar}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="project-print-grid ${labelMode==='above'?'labels-above':''}">
+    <div class="pp-head pp-head-left">
+      <div>N°</div><div>Nom de la tâche</div><div>Durée</div><div>Début</div><div>Fin</div>
+    </div>
+    <div class="pp-head pp-head-time"><div class="pp-months">${monthHtml}</div><div class="pp-weeks">${weekHtml}</div></div>
+    ${rows}
+  </div>`;
+}
+
+function buildGlobalProjectGrid(ps,startDay,endDay,sourceTasks,startsMap,labelMode=getGanttTitleLabelMode()){
+  const totalDays=Math.max(1,endDay-startDay+1);
+  const rows=[];
+  const taskNumById={};
+  const rowIndexById={};
+  const taskRangeById={};
+  const successorsById={};
+
+  // Hiérarchie simple : chapitre = niveau 1 ; tâches = niveau 2.
+  // C'est le niveau réellement géré par VOP Planner aujourd'hui.
+  let phaseNo=0, subNo=0, standaloneNo=0, currentTitle=null;
+  const chapters=[];
+  sourceTasks.forEach((t,idx)=>{
+    if(t.type==='title'){
+      phaseNo++; subNo=0; currentTitle=t;
+      chapters.push({title:t,index:idx,phaseNo,members:[]});
+    }else if(chapters.length){
+      chapters[chapters.length-1].members.push(t);
+    }
+  });
+
+  const chapterRangeById={};
+  chapters.forEach(ch=>{
+    const scheduled=ch.members.filter(t=>startsMap[t.id]!==undefined);
+    if(!scheduled.length) return;
+    const a=Math.min(...scheduled.map(t=>workdayToCalendarDay(startsMap[t.id])));
+    const b=Math.max(...scheduled.map(t=>t.type==='milestone'?workdayToCalendarDay(startsMap[t.id]):taskEndCalendarDay(t,startsMap[t.id])));
+    chapterRangeById[ch.title.id]={a,b};
+  });
+
+  phaseNo=0; subNo=0; currentTitle=null;
+  sourceTasks.forEach(t=>{
+    if(t.type==='title'){
+      phaseNo++; subNo=0; currentTitle=t;
+      const r=chapterRangeById[t.id];
+      if(!r || r.b<startDay || r.a>endDay) return;
+      const scheduledMembers=(chapters.find(ch=>String(ch.title.id)===String(t.id))?.members||[]).filter(x=>startsMap[x.id]!==undefined);
+      let duration='';
+      if(scheduledMembers.length){
+        const smin=Math.min(...scheduledMembers.map(x=>startsMap[x.id]));
+        const smax=Math.max(...scheduledMembers.map(x=>x.type==='milestone'?startsMap[x.id]:startsMap[x.id]+Math.max(1,+x.dur||1)-1));
+        duration=`${Math.max(1,smax-smin+1)} j`;
+      }
+      rows.push({kind:'chapter',task:t,num:String(phaseNo),name:t.name||'',duration,a:r.a,b:r.b,
+        startTxt:shortPrintDate(addDays(ps,r.a)),endTxt:shortPrintDate(addDays(ps,r.b)),predTxt:'',succTxt:''});
+      return;
+    }
+
+    const sw=startsMap[t.id];
+    if(sw===undefined) return;
+    const a=workdayToCalendarDay(sw), b=t.type==='milestone'?a:taskEndCalendarDay(t,sw);
+    if(b<startDay || a>endDay) return;
+    let num;
+    if(currentTitle){subNo++; num=`${phaseNo}.${subNo}`;} else {standaloneNo++; num=String(standaloneNo);}
+    taskNumById[t.id]=num;
+    taskRangeById[t.id]={a,b};
+    rows.push({kind:t.type==='milestone'?'milestone':'task',task:t,num,name:t.name||'',duration:t.type==='milestone'?'0 j':`${Math.max(0,+t.dur||0)} j`,a,b,
+      startTxt:shortPrintDate(addDays(ps,a)),endTxt:shortPrintDate(addDays(ps,b)),predTxt:'',succTxt:''});
+  });
+
+  // Les numéros doivent être connus avant la construction des colonnes prédécesseurs/successeurs.
+  rows.forEach((r,i)=>{ if(r.task && r.task.type!=='title') rowIndexById[r.task.id]=i; });
+  rows.forEach(r=>{
+    const t=r.task;
+    if(!t || t.type==='title' || !t.pred) return;
+    const predId=String(t.pred);
+    const predNum=taskNumById[predId]||'';
+    const lag=+t.lag||0;
+    const link=t.link||'FS';
+    r.predTxt=predNum ? `${predNum} ${link}${lag?(lag>0?'+':'')+lag+'j':''}` : '';
+    if(!successorsById[predId]) successorsById[predId]=[];
+    successorsById[predId].push({num:r.num,link,lag});
+  });
+  rows.forEach(r=>{
+    const t=r.task; if(!t || t.type==='title') return;
+    const arr=successorsById[String(t.id)]||[];
+    r.succTxt=arr.map(x=>`${x.num} ${x.link}${x.lag?(x.lag>0?'+':'')+x.lag+'j':''}`).join('; ');
+  });
+
+  if(!rows.length) return '';
+
+  // Densité verticale automatique pour conserver la page globale sur un seul A3 paysage.
+  const n=rows.length;
+  let rowH=5.7,font=7.0;
+  if(n>25){rowH=4.4;font=6.2}
+  if(n>45){rowH=3.35;font=5.35}
+  if(n>70){rowH=2.55;font=5.6}
+  if(n>95){rowH=2.22;font=6.15}
+  const headH=n>70?7.2:8.5;
+
+  const pctForDay=d=>Math.max(0,Math.min(100,((d-startDay)/totalDays)*100));
+  const xForDay=d=>Math.max(0,Math.min(1000,((d-startDay)/Math.max(1,totalDays-1))*1000));
+
+  function makeSegments(keyFn,labelFn){
+    const seg=[]; let cur=null;
+    for(let d=startDay;d<=endDay;d++){
+      const dt=addDays(ps,d), key=keyFn(dt);
+      if(!cur || cur.key!==key){cur={key,start:d,end:d,label:labelFn(dt)};seg.push(cur);} else cur.end=d;
+    }
+    return seg;
+  }
+  const monthKey=dt=>`${dt.getFullYear()}-${dt.getMonth()}`;
+  const monthLabel=dt=>dt.toLocaleDateString('fr-FR',{month:'short'}).replace('.','');
+  const weekKey=dt=>`${dt.getFullYear()}-${isoWeekNumber(dt)}`;
+  const weekLabel=dt=>'S'+String(isoWeekNumber(dt)).padStart(2,'0');
+  const quarterKey=dt=>`${dt.getFullYear()}-Q${Math.floor(dt.getMonth()/3)+1}`;
+  const quarterLabel=dt=>`T${Math.floor(dt.getMonth()/3)+1} ${dt.getFullYear()}`;
+  const semesterKey=dt=>`${dt.getFullYear()}-H${dt.getMonth()<6?1:2}`;
+  const semesterLabel=dt=>`Semestre ${dt.getMonth()<6?1:2}, ${dt.getFullYear()}`;
+  const yearKey=dt=>String(dt.getFullYear());
+  const yearLabel=dt=>String(dt.getFullYear());
+
+  let upperSeg,lowerSeg,gridSeg;
+  if(totalDays<=90){
+    upperSeg=makeSegments(monthKey,dt=>dt.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}));
+    lowerSeg=makeSegments(weekKey,weekLabel); gridSeg=lowerSeg;
+  }else if(totalDays<=270){
+    upperSeg=makeSegments(quarterKey,quarterLabel); lowerSeg=makeSegments(monthKey,monthLabel); gridSeg=lowerSeg;
+  }else if(totalDays<=730){
+    upperSeg=makeSegments(semesterKey,semesterLabel); lowerSeg=makeSegments(monthKey,monthLabel); gridSeg=lowerSeg;
+  }else if(totalDays<=3000){
+    upperSeg=makeSegments(semesterKey,semesterLabel); lowerSeg=makeSegments(monthKey,dt=>monthLabel(dt).slice(0,1).toUpperCase()); gridSeg=lowerSeg;
+  }else{
+    upperSeg=makeSegments(yearKey,yearLabel); lowerSeg=makeSegments(quarterKey,dt=>'T'+(Math.floor(dt.getMonth()/3)+1)); gridSeg=lowerSeg;
+  }
+
+  const segHtml=(segments,cls)=>segments.map(s=>{
+    const left=pctForDay(s.start), width=Math.max(.05,((s.end-s.start+1)/totalDays)*100);
+    return `<div class="${cls}" style="left:${left}%;width:${width}%">${escapeHtml(s.label)}</div>`;
+  }).join('');
+  const upperHtml=segHtml(upperSeg,'pp-month');
+  const lowerHtml=segHtml(lowerSeg,'pp-week');
+  const lineHtml=gridSeg.map((s,i)=>`<span class="g-period-line ${i===0?'major':''}" style="left:${pctForDay(s.start)}%"></span>`).join('');
+
+  const rowsHtml=rows.map((r,i)=>{
+    const ca=Math.max(startDay,r.a), cb=Math.min(endDay,r.b);
+    const left=((ca-startDay)/totalDays)*100;
+    const width=Math.max(.12,((cb-ca+1)/totalDays)*100);
+    let bar='';
+    if(r.kind==='milestone'){
+      bar=`<span class="pp-milestone" style="left:calc(${left}% - (var(--g-row-h) * .20))"></span>`;
+    }else{
+      const color=r.kind==='chapter'?'#222':(CATS[r.task?.cat]?.c||'#4a78a8');
+      bar=`<span class="pp-bar ${r.kind==='chapter'?'summary':''}" style="left:${left}%;width:${width}%;${r.kind==='chapter'?'':`background:${color};border-color:${color}`} "></span>`;
+    }
+    if(labelMode!=='none'){
+      const labelLeft=labelMode==='right'?`calc(${left+width}% + .25mm)`:`${left}%`;
+      bar+=`<span class="pp-bar-label ${labelMode}" style="left:${labelLeft}">${escapeHtml(r.name||'')}</span>`;
+    }
+    const cls=r.kind==='chapter'?'global-chapter':(r.kind==='milestone'?'global-milestone':'global-task');
+    const indent=r.kind==='chapter'?'':'<span class="pp-indent">↳</span>';
+    return `<div class="pp-row ${cls}">
+      <div class="pp-cell pp-num">${r.num}</div>
+      <div class="pp-cell pp-name">${indent}${escapeHtml(r.name)}</div>
+      <div class="pp-cell pp-dur">${r.duration}</div>
+      <div class="pp-cell pp-date">${r.startTxt}</div>
+      <div class="pp-cell pp-date">${r.endTxt}</div>
+      <div class="pp-timeline">${lineHtml}${bar}</div>
+    </div>`;
+  }).join('');
+
+  // Liaisons orthogonales dessinées au-dessus du Gantt global.
+  const linkPaths=[];
+  rows.forEach((r,targetIdx)=>{
+    const t=r.task;
+    if(!t || t.type==='title' || !t.pred) return;
+    const predIdx=rowIndexById[String(t.pred)];
+    const pr=taskRangeById[String(t.pred)];
+    if(predIdx===undefined || !pr) return;
+    const link=t.link||'FS';
+    const srcDay=(link==='SS'||link==='SF')?pr.a:pr.b;
+    const dstDay=(link==='FF'||link==='SF')?r.b:r.a;
+    const x1=xForDay(srcDay), x2=xForDay(dstDay);
+    const y1=(predIdx+.5)*10, y2=(targetIdx+.5)*10;
+    const elbow=Math.max(6,Math.min(28,Math.abs(x2-x1)*.22));
+    let midX;
+    if(x2>=x1) midX=Math.min(995,x1+elbow); else midX=Math.max(5,x1-elbow);
+    const arrowX=x2>=x1?x2-5:x2+5;
+    const points=`${x1},${y1} ${midX},${y1} ${midX},${y2} ${x2},${y2}`;
+    const arrow=x2>=x1?`${x2},${y2} ${arrowX},${y2-2.4} ${arrowX},${y2+2.4}`:`${x2},${y2} ${arrowX},${y2-2.4} ${arrowX},${y2+2.4}`;
+    linkPaths.push(`<polyline points="${points}"></polyline><polygon points="${arrow}"></polygon>`);
+  });
+  const linkOverlay=linkPaths.length?`<div class="global-link-overlay"><svg viewBox="0 0 1000 ${rows.length*10}" preserveAspectRatio="none">${linkPaths.join('')}</svg></div>`:'';
+
+  return `<div class="project-print-grid project-global-grid ${labelMode==='above'?'labels-above':''}" style="--g-row-h:${rowH}mm;--g-font:${font}px;--g-head-h:${headH}mm">
+    <div class="pp-head pp-head-left">
+      <div>N°</div><div>Nom de la tâche</div><div>Durée</div><div>Début</div><div>Fin</div>
+    </div>
+    <div class="pp-head pp-head-time"><div class="pp-months">${upperHtml}</div><div class="pp-weeks">${lowerHtml}</div></div>
+    ${rowsHtml}${linkOverlay}
+  </div>`;
+}
 function exportPDF(){
   normalizeChapterParents();
   const depProblems=detectDependencyProblems(tasks);
@@ -2917,6 +3392,7 @@ function exportPDF(){
   const showM=document.getElementById('pdf-mat').value==='1';
   const showP=document.getElementById('pdf-prog').value==='1';
   const showSynthese=document.getElementById('pdf-synthese-page').value==='1';
+  const ganttLabelMode=document.getElementById('pdf-gantt-label-mode')?.value||getGanttTitleLabelMode();
   const orientation=(document.getElementById('pdf-orientation')?.value==='portrait')?'portrait':'landscape';
   const isPortrait=orientation==='portrait';
   // Hauteur utile de la zone Gantt selon l'orientation A3 (après marges 10mm + bandeau titre).
@@ -2963,67 +3439,34 @@ function exportPDF(){
   let pageNo=0;
 
   // ══════════════════════════════════════════════════════════
-  // PAGE 1 — SYNTHÈSE : planning complet sur une seule page
-  // Zoom auto-calculé pour tenir sur A3 paysage (sans plages vides)
+  // PAGE 1 — PLANNING GLOBAL : synthèse type Project
+  // Une ligne par phase / chapitre + jalons principaux.
+  // Les pages suivantes conservent le détail tâche par tâche.
   // ══════════════════════════════════════════════════════════
   if(showSynthese){
-    // Calculer la plage réelle d'activité (sans plages vides) sur l'ensemble du projet
-    const syntheseStartDay = rangeStartDay;
-    const syntheseEndDay   = rangeEndDay;
-
-    // Identifier les jours actifs pour construire une timeline compressée
-    // On utilise buildActivityAwarePdfChunks en mode "tout sur une tranche"
-    // mais on construit directement le SVG avec un DW adapté
-    const allTasks = filteredTasks;
-    const allLivr  = origLivr;
-
-    // Trouver les "blocs actifs" pour supprimer les plages vides
-    const activityChunks = buildActivityAwarePdfChunks(
-      syntheseStartDay, syntheseEndDay,
-      1, 'days',   // granularité : 1 jour (on va fusionner)
-      allTasks, allLivr, startsMap
-    );
-
-    // Rassembler tous les jours actifs
-    const activeDaysSet = new Set();
-    activityChunks.forEach(chunk => {
-      for(let d = chunk.startDay; d <= chunk.endDay; d++) activeDaysSet.add(d);
-    });
-    const activeDays = Array.from(activeDaysSet).sort((a,b)=>a-b);
-
-    if(activeDays.length > 0){
-      // A3 : largeur utile timeline dépend de l'orientation (voir SYNTHESE_TIMELINE_PX plus haut).
-      // LABEL_W = 220, DW borné entre 6 et 24.
-      const DW_s = Math.min(24, Math.max(6, Math.floor(SYNTHESE_TIMELINE_PX / Math.max(1, activeDays.length))));
-
-      // Sauvegarder et substituer les tâches/livraisons pour buildSVG
-      tasks = allTasks.map(t=>JSON.parse(JSON.stringify(t)));
-      livraisons = allLivr.map(l=>JSON.parse(JSON.stringify(l)));
-
-      // buildSVG avec un "startsOverride" utilisant la même startsMap
-      const {svg: svgSynth, width: wS, height: hS} = buildSVG(
-        ps, DW_s, syntheseStartDay, syntheseEndDay, startsMap, {forceLivrLabels:true}
-      );
-
-      const styledSvgSynth = svgSynth.replace(
-        '<svg ',
-        `<svg viewBox="0 0 ${wS} ${hS}" style="width:100%;height:${PAGE_GANTT_H_MM}mm;display:block" preserveAspectRatio="xMinYMin meet" `
-      );
-
+    const syntheseStartDay=rangeStartDay;
+    const syntheseEndDay=rangeEndDay;
+    const globalGrid=buildGlobalProjectGrid(ps,syntheseStartDay,syntheseEndDay,filteredTasks,startsMap,ganttLabelMode);
+    if(globalGrid){
+      const realTasks=filteredTasks.filter(t=>t.type!=='title' && startsMap[t.id]!==undefined);
+      const phaseCount=filteredTasks.filter(t=>t.type==='title').length;
+      const milestoneCount=realTasks.filter(t=>t.type==='milestone').length;
+      const startWork=realTasks.length?Math.min(...realTasks.map(t=>startsMap[t.id])):0;
+      const endWork=realTasks.length?Math.max(...realTasks.map(t=>{const sw=startsMap[t.id];return t.type==='milestone'?sw:sw+Math.max(1,+t.dur||1)-1;})):0;
+      const projectDuration=Math.max(1,endWork-startWork+1);
       pageNo++;
       printBlocks.push(`
-      <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;page-break-after:always;break-after:page;">
-        <div style="margin-bottom:6px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:15px;font-weight:600;color:#2C2C2A">${escapeHtml(name)}</div>
-            <div style="font-size:10px;font-weight:600;padding:2px 8px;background:#1D9E75;color:white;border-radius:4px;letter-spacing:.04em">VUE SYNTHÈSE</div>
+      <section class="print-gantt-page global-print-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;page-break-after:always;break-after:page;">
+        <div class="global-print-header">
+          <div>
+            <div class="global-print-kicker">VOP PLANNER V9.6 — VUE GLOBALE TYPE PROJECT</div>
+            <div class="global-print-title">${escapeHtml(name)}</div>
           </div>
-          <div style="font-size:11px;color:#666;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:2px">
-            <span>Planning complet · ${fmtFull(addDays(ps, syntheseStartDay))} → ${fmtFull(addDays(ps, syntheseEndDay))}</span>
-            <span>Page ${pageNo} · Plages sans activité masquées</span>
-          </div>
+          <div class="global-print-period">${fmtFull(addDays(ps,syntheseStartDay))}<span>→</span>${fmtFull(addDays(ps,syntheseEndDay))}</div>
         </div>
-        <div style="width:100%;height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvgSynth}</div>
+        <div style="font:700 5.8px/1 Arial,sans-serif;color:#111;margin-bottom:1mm">TABLEAU COMPLET + GANTT GLOBAL — IMPRESSION A3</div><div class="global-print-meta"><span><strong>${realTasks.length}</strong> tâches</span><span><strong>${phaseCount}</strong> phases</span><span><strong>${milestoneCount}</strong> jalons</span><span>Durée planifiée : <strong>${projectDuration} j</strong></span><span>Fin : <strong>${shortPrintDate(addDays(ps,workdayToCalendarDay(endWork)))}</strong></span></div>
+        <div class="global-print-table">${globalGrid}</div>
+        <div class="global-print-footer"><div class="global-print-legend"><span><i></i>Tâche</span><span><i class="summary"></i>Récapitulatif</span><span><i class="milestone"></i>Jalon</span><span><i class="link"></i>Liaison</span></div><span>Page ${pageNo}</span></div>
       </section>
       `);
     }
@@ -3055,14 +3498,12 @@ function exportPDF(){
         rowPages.forEach((taskPage,rowIdx)=>{
           tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
           livraisons=[];
-          const geom=getAutoPrintGeometry(ps,chunk.startDay,chunk.endDay,taskPage.length,orientation);
-          const builtRaw=buildSVG(ps,geom.dayWidth,chunk.startDay,chunk.endDay,startsMap,{labelWidth:geom.labelWidth});
-          const built=padSvgCanvasForPrint(builtRaw.svg,builtRaw.width,builtRaw.height,geom.minCanvasWidth,geom.minCanvasHeight);
+          const projectGrid=buildProjectPrintGrid(ps,chunk.startDay,chunk.endDay,taskPage,startsMap,{labelMode:ganttLabelMode});
           const chunkStartDate=addDays(ps, chunk.startDay);
           const chunkEndDate=addDays(ps, chunk.endDay);
           pageNo++;
           const isLastDetailPage=(groupIdx===groups.length-1) && (chunkIdx===pageChunks.length-1) && (rowIdx===rowPages.length-1);
-          const styledSvg=built.svg.replace('<svg ','<svg viewBox="0 0 '+built.width+' '+built.height+'" style="width:100%;height:auto;max-height:'+PAGE_GANTT_H_MM+'mm;display:block" preserveAspectRatio="xMinYMin meet" ');
+
           printBlocks.push(`
           <section class="print-gantt-page" style="page-break-inside:avoid;break-inside:avoid;width:100%;${!isLastDetailPage || showTablePage ? 'page-break-after:always;break-after:page;' : ''}">
             <div style="margin-bottom:6px">
@@ -3073,7 +3514,7 @@ function exportPDF(){
                 <span>Auto : ${taskPage.length} lignes · ${countVisiblePdfDays(ps,chunk.startDay,chunk.endDay)} jours affichés · ${selectedNames.length>2 ? selectedNames.length+' chapitres' : escapeHtml(selectedNames.join(' • '))}</span>
               </div>
             </div>
-            <div style="width:100%;max-height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
+            <div class="project-print-wrap">${projectGrid}</div>
           </section>
         `);
         });
@@ -3100,11 +3541,7 @@ function exportPDF(){
     rowPages.forEach((taskPage, rowIdx)=>{
       tasks=taskPage.map(t=>JSON.parse(JSON.stringify(t)));
       livraisons=(rowIdx===rowPages.length-1) ? livrChunk.map(l=>JSON.parse(JSON.stringify(l))) : [];
-      const geom=getAutoPrintGeometry(ps,chunk.startDay,chunk.endDay,taskPage.length,orientation);
-      const builtRaw=buildSVG(ps,geom.dayWidth,chunk.startDay,chunk.endDay,startsMap,{labelWidth:geom.labelWidth});
-      const built=padSvgCanvasForPrint(builtRaw.svg,builtRaw.width,builtRaw.height,geom.minCanvasWidth,geom.minCanvasHeight);
-      // Échelle visuelle constante : les pages peu chargées ne sont pas agrandies.
-      // La densité cible reprend celle de la page 4 de référence.
+      const projectGrid=buildProjectPrintGrid(ps,chunk.startDay,chunk.endDay,taskPage,startsMap,{labelMode:ganttLabelMode});
       const chunkStartDate=addDays(ps, chunk.startDay);
       const chunkEndDate=addDays(ps, chunk.endDay);
       pageNo++;
@@ -3120,7 +3557,7 @@ function exportPDF(){
             <span>Lignes/page : ${PRINT_ROWS_PER_PAGE} · Chapitres : ${escapeHtml(selectedChapters.join(' • '))}</span>
           </div>
         </div>
-        <div style="width:100%;max-height:${PAGE_GANTT_H_MM}mm;overflow:hidden">${styledSvg}</div>
+        <div class="project-print-wrap">${projectGrid}</div>
       </section>
     `);
     });
@@ -3502,8 +3939,10 @@ function ensureGanttV3Ui(){
       <button type="button" onclick="moveSelectedLine(1)" title="Descendre la ligne sélectionnée">↓ Descendre</button>
       <button type="button" onclick="graphicDuplicateSelected()">Dupliquer</button>
       <button type="button" onclick="graphicDeleteSelected()" style="color:#C7462D">Supprimer</button>
+      <button type="button" id="gantt-title-label-btn" onclick="cycleGanttTitleLabelMode()" title="Afficher le nom des tâches à droite ou au-dessus des barres du Gantt">Titres : à droite</button>
       <button type="button" onclick="showTab('tasks')">Tableau détaillé</button>`;
     titleBlock.parentElement.insertBefore(tb,titleBlock);
+    updateGanttTitleLabelButton();
   }
   if(!document.getElementById('gantt-context-menu')){
     const cm=document.createElement('div');
